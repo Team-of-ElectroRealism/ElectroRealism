@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_programmer_block": {
+      "conditions": {
+        "items": [
+          {
+            "items": "electrorealism:programmer_block"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "electrorealism:programmer_block"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_programmer_block"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "electrorealism:programmer_block"
+    ]
+  }
+}

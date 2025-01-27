@@ -1,5 +1,7 @@
 package com.teamofelectrorealism.electrorealism;
 
+import com.teamofelectrorealism.electrorealism.block.ModBlocks;
+import com.teamofelectrorealism.electrorealism.item.ModItems;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -55,6 +57,9 @@ public class ElectroRealism
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
         NeoForge.EVENT_BUS.register(this);
 
+        ModItems.register(modEventBus);
+        ModBlocks.register(modEventBus);
+
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
 
@@ -77,6 +82,9 @@ public class ElectroRealism
 
     private void addCreative(BuildCreativeModeTabContentsEvent event)
     {
+        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
+            event.accept(ModBlocks.PROGRAMMER_BLOCK);
+        }
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
