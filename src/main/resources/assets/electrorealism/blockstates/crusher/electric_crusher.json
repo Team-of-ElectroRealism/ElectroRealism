@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "electrorealism:block/crusher/electric_crusher",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "electrorealism:block/crusher/electric_crusher"
+    },
+    "facing=south": {
+      "model": "electrorealism:block/crusher/electric_crusher",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "electrorealism:block/crusher/electric_crusher",
+      "y": 270
+    }
+  }
+}

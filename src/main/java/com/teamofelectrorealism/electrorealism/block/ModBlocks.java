@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBlock;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.item.BlockItem;
@@ -25,6 +26,12 @@ public class ModBlocks {
             () -> new Block(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_MAGENTA)));
+
+    public static final DeferredBlock<Block> ELECTRIC_CRUSHER = registerBlock("electric_crusher",
+            () -> new ElectricCrusherBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion()));
 
     // Stop Blocks
 
