@@ -2,7 +2,7 @@
 	"credit": "Made by Danders",
 	"texture_size": [128, 128],
 	"textures": {
-		"0": "electrorealism:block/crusher/electric_crusher"
+		"0": "electrorealism:block/electric_crusher"
 	},
 	"elements": [
 		{
