@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism;
 
 import com.teamofelectrorealism.electrorealism.block.ModBlocks;
+import com.teamofelectrorealism.electrorealism.item.ModCreativeModeTabs;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
 import org.slf4j.Logger;
 
@@ -56,6 +57,8 @@ public class ElectroRealism
         // Note that this is necessary if and only if we want *this* class (ExampleMod) to respond directly to events.
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
         NeoForge.EVENT_BUS.register(this);
+
+        ModCreativeModeTabs.register(modEventBus);
 
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
