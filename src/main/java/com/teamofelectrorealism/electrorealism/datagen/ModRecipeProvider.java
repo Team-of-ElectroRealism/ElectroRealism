@@ -29,5 +29,6 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
                 .define('O', Items.IRON_NUGGET)
                 .unlockedBy(getHasName(ModBlocks.PROGRAMMER_BLOCK.get()), has(ModBlocks.PROGRAMMER_BLOCK.get()))
                 .save(recipeOutput);
+        shaped(RecipeCategory.)
     }
 }

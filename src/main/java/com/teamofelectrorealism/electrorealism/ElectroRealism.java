@@ -1,5 +1,6 @@
 package com.teamofelectrorealism.electrorealism;
 
+import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.ModBlocks;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
 import org.slf4j.Logger;
@@ -59,6 +60,7 @@ public class ElectroRealism
 
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
+        ModBlockEntityTypes.register(modEventBus);
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
@@ -84,6 +86,7 @@ public class ElectroRealism
     {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
             event.accept(ModBlocks.PROGRAMMER_BLOCK);
+            event.accept(ModBlocks.ARC_FURNACE);
         }
     }
 
