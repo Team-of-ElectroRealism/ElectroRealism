@@ -2,6 +2,7 @@ package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBlock;
+import com.teamofelectrorealism.electrorealism.block.arc_furnace.ArcFurnaceBlock;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -29,6 +30,9 @@ public class ModBlocks {
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));
+    public static final DeferredBlock<Block> ARC_FURNACE = registerBlock("arc_furnace",
+            () -> new ArcFurnaceBlock(BlockBehaviour.Properties.of()
+                    .instabreak()));
 
     // Stop Blocks
 
