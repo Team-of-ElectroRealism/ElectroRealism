@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.block.crusher;
 
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
+import com.teamofelectrorealism.electrorealism.item.ModItems;
 import com.teamofelectrorealism.electrorealism.screen.crusher.ElectricCrusherMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -40,12 +41,14 @@ public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvi
 
     private static final String INVENTORY_KEY = "inventory";
     private static final String POWER_LEVEL_KEY = "electric_crusher.power_level";
+    private static final String POWER_TOTAL_LEVEL_KEY = "electric_crusher.power_total_level";
     private static final String CRUSHING_PROGRESS_KEY = "electric_crusher.crushing_progress";
     private static final String CRUSHING_TOTAL_TIME_KEY = "electric_crusher.crushing_total_time";
 
     private static final int TOTAL_CRUSHING_TIME = 200;
 
     private int powerLevel;
+    private int powerTotalLevel;
     private int crushingProgress;
     private int crushingTotalTime = TOTAL_CRUSHING_TIME;
     private final ContainerData data;
@@ -56,23 +59,25 @@ public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvi
             @Override
             public int get(int pIndex) {
                 return switch (pIndex) {
-                    case 0 -> ElectricCrusherMenu.this.crushingProgress;
-                    case 1 -> ElectricCrusherMenu.this.crushingTotalTime;
-                    case 2 -> ElectricCrusherMenu.this.powerLevel;
+                    case 0 -> ElectricCrusherBlockEntity.this.crushingProgress;
+                    case 1 -> ElectricCrusherBlockEntity.this.crushingTotalTime;
+                    case 2 -> ElectricCrusherBlockEntity.this.powerLevel;
+                    case 3 -> ElectricCrusherBlockEntity.this.powerTotalLevel;
                     default -> 0;
                 };
             }
             @Override
             public void set(int pIndex, int pValue) {
                 switch (pIndex) {
-                    case 0: ElectricCrusherMenu.this.crushingProgress = pValue;
-                    case 1: ElectricCrusherMenu.this.crushingTotalTime = pValue;
-                    case 2: ElectricCrusherMenu.this.powerLevel = pValue;
+                    case 0: ElectricCrusherBlockEntity.this.crushingProgress = pValue;
+                    case 1: ElectricCrusherBlockEntity.this.crushingTotalTime = pValue;
+                    case 2: ElectricCrusherBlockEntity.this.powerLevel = pValue;
+                    case 3: ElectricCrusherBlockEntity.this.powerTotalLevel = pValue;
                 };
             }
             @Override
             public int getCount() {
-                return 3;
+                return 4;
             }
         };
     }
@@ -102,6 +107,7 @@ public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvi
         super.loadAdditional(compoundTag, registries);
         itemHandler.deserializeNBT(registries, compoundTag.getCompound(INVENTORY_KEY));
         powerLevel = compoundTag.getInt(POWER_LEVEL_KEY);
+        powerTotalLevel = compoundTag.getInt(POWER_TOTAL_LEVEL_KEY);
         crushingProgress = compoundTag.getInt(CRUSHING_PROGRESS_KEY);
         crushingTotalTime = compoundTag.getInt(CRUSHING_TOTAL_TIME_KEY);
     }
@@ -109,6 +115,7 @@ public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvi
     public void saveAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
         compoundTag.put(INVENTORY_KEY, itemHandler.serializeNBT(registries));
         compoundTag.putInt(POWER_LEVEL_KEY, powerLevel);
+        compoundTag.putInt(POWER_TOTAL_LEVEL_KEY, powerTotalLevel);
         compoundTag.putInt(CRUSHING_PROGRESS_KEY, crushingProgress);
         compoundTag.putInt(CRUSHING_TOTAL_TIME_KEY, crushingTotalTime);
 
@@ -131,7 +138,43 @@ public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public void tick(Level level, BlockPos blockPos, BlockState blockState) {
+        testPower();
+        if (isPowered() && isOutputSlotEmptyAndRecivable()) {
+            increaseCrushingProgress();
+            if (hasCrushingFinished()) {
+                crushItem();
+                resetProgress();
+            }
+        }
+        else {
+            crushingProgress = 0;
+        }
+    }
 
+    private boolean isOutputSlotEmptyAndRecivable() {
+        return this.itemHandler.getStackInSlot(SLOT_OUTPUT).isEmpty() || this.itemHandler.getStackInSlot(SLOT_OUTPUT).getCount() < this.itemHandler.getStackInSlot(SLOT_OUTPUT).getMaxStackSize();
+    }
+
+    private void resetProgress() {
+        this.crushingProgress = 0;
+        this.crushingTotalTime = TOTAL_CRUSHING_TIME;
+    }
+
+    private void crushItem() {
+        itemHandler.extractItem(SLOT_INPUT, 1, false);
+        itemHandler.setStackInSlot(SLOT_OUTPUT, new ItemStack(ModItems.TEST_ITEM.get(), 1));
+    }
+
+    private boolean hasCrushingFinished() {
+        return this.crushingProgress >= this.crushingTotalTime;
+    }
+
+    private void increaseCrushingProgress() {
+        crushingProgress++;
+    }
+
+    private void testPower() {
+        powerLevel = 1;
     }
 
     private boolean isPowered() {

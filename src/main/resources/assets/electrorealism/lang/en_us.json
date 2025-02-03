@@ -2,6 +2,8 @@
   "block.electrorealism.programmer_block": "Programmer Block",
   "block.electrorealism.electric_crusher": "Electric Crusher",
 
+  "item.electrorealism.test_item": "Test Item",
+
   "creativetab.electrorealism.electrorealism_items": "ElectroRealism Items",
   "creativetab.electrorealism.electrorealism_blocks": "ElectroRealism Blocks"
 }

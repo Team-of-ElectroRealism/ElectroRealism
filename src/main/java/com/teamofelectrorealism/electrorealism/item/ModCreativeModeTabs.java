@@ -20,8 +20,9 @@ public class ModCreativeModeTabs {
             () -> CreativeModeTab.builder().icon(() -> new ItemStack(ModBlocks.PROGRAMMER_BLOCK.get()))
                     .title(Component.translatable("creativetab.electrorealism.electrorealism_items"))
                     .displayItems((itemDisplayParameters, output) -> {
-                        // Items to ba added to the tab
 
+                        // Items to be added to the tab
+                        output.accept(ModItems.TEST_ITEM);
 
                     }).build());
 
@@ -30,8 +31,10 @@ public class ModCreativeModeTabs {
                     .withTabsBefore(ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "electrorealism_items_tab"))
                     .title(Component.translatable("creativetab.electrorealism.electrorealism_blocks"))
                     .displayItems((itemDisplayParameters, output) -> {
-                        // Blocks to ba added to the tab
+
+                        // Blocks to be added to the tab
                         output.accept(ModBlocks.PROGRAMMER_BLOCK);
+                        output.accept(ModBlocks.ELECTRIC_CRUSHER);
 
                     }).build());
 

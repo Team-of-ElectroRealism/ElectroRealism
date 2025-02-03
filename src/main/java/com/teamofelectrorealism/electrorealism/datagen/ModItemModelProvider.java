@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.datagen;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.item.ModItems;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
@@ -15,7 +16,7 @@ public class ModItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-
+        basicItem(ModItems.TEST_ITEM.get());
     }
 
     private ItemModelBuilder handheldItem(DeferredItem<?> item) {

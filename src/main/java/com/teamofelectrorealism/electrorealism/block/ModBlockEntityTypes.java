@@ -13,12 +13,9 @@ public class ModBlockEntityTypes {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, ElectroRealism.MODID);
 
-    public static final Supplier<BlockEntityType<ElectricCrusherBlockEntity>> ELECTRIC_CRUSHER_BE = BLOCK_ENTITY_TYPES.register("electric_crusher_entity",
-            () -> BlockEntityType.Builder.of(
-                            ElectricCrusherBlockEntity::new,
-                            ModBlocks.ELECTRIC_CRUSHER.get()
-                    )
-                    .build(null));
+    public static final Supplier<BlockEntityType<ElectricCrusherBlockEntity>> ELECTRIC_CRUSHER_BE =
+            BLOCK_ENTITY_TYPES.register("electric_crusher_be",
+                    () -> BlockEntityType.Builder.of(ElectricCrusherBlockEntity::new, ModBlocks.ELECTRIC_CRUSHER.get()).build(null));
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITY_TYPES.register(eventBus);

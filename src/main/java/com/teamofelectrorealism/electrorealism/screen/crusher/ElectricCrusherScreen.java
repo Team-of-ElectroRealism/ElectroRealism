@@ -12,11 +12,11 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class ElectricCrusherScreen extends AbstractContainerScreen<ElectricCrusherMenu> {
     private static final ResourceLocation GUI_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/alloy_furnace/alloy_furnace_gui.png");
+            ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/crusher/electric_crusher_gui.png");
     private static final ResourceLocation ARROW_TEXTURE =
             ResourceLocation.parse("textures/gui/sprites/container/furnace/burn_progress.png");
     private static final ResourceLocation POWER_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/common/power_icon.png");
+            ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/crusher/electric_crusher_power.png");
 
     public ElectricCrusherScreen(ElectricCrusherMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -45,11 +45,10 @@ public class ElectricCrusherScreen extends AbstractContainerScreen<ElectricCrush
         renderProgressPower(pGuiGraphics, x, y);
     }
 
-    // This works for the classic fire texture
     private void renderProgressPower(GuiGraphics pGuiGraphics, int x, int y) {
-        int fireHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
-        if (fireHeight > 0) {
-            pGuiGraphics.blit(POWER_TEXTURE, x + 56, y + 36 + 14 - fireHeight, 0, 14 - fireHeight, 14, fireHeight, 14, 14); // Your original placement
+        int powerHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
+        if (powerHeight > 0) {
+            pGuiGraphics.blit(POWER_TEXTURE, x + 56, y + 36 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
         }
     }
 
