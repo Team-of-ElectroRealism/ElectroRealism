@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:brick"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "G": {
+      "item": "minecraft:coal"
+    }
+  },
+  "pattern": [
+    "CGC",
+    "BGB",
+    "BBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "electrorealism:arc_furnace"
+  }
+}

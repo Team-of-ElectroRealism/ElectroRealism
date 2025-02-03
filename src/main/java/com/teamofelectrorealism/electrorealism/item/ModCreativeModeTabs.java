@@ -32,6 +32,7 @@ public class ModCreativeModeTabs {
                     .displayItems((itemDisplayParameters, output) -> {
                         // Blocks to ba added to the tab
                         output.accept(ModBlocks.PROGRAMMER_BLOCK);
+                        output.accept(ModBlocks.ARC_FURNACE);
 
                     }).build());
 

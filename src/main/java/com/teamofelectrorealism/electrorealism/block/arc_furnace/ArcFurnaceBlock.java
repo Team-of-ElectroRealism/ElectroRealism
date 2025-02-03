@@ -68,21 +68,15 @@ public class ArcFurnaceBlock extends BaseEntityBlock {
         return RenderShape.MODEL;
     }
 
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        level.playSound(player, pos, SoundEvents.STONE_PLACE, SoundSource.BLOCKS, 1f, 1f);
-        return InteractionResult.SUCCESS;
-    }
 
-    @Override
-    public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
-        if(entity instanceof ItemEntity itemEntity) {
-            if(itemEntity.getItem().getItem() == Items.RAW_IRON) {
-                itemEntity.setItem(new ItemStack(Items.IRON_INGOT, itemEntity.getItem().getCount()));
-            }
-        }
-        super.stepOn(level, pos, state, entity);
-    }
+
+//    @Override
+//    public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
+//        if("power is on") {
+//            "player takes damage"
+//        }
+//        super.stepOn(level, pos, state, entity);
+//    }
 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
