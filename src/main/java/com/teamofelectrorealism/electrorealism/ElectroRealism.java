@@ -4,6 +4,7 @@ import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.ModBlocks;
 import com.teamofelectrorealism.electrorealism.item.ModCreativeModeTabs;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
+import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.screen.ModMenuTypes;
 import com.teamofelectrorealism.electrorealism.screen.crusher.ElectricCrusherScreen;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
@@ -68,6 +69,7 @@ public class ElectroRealism
         ModBlocks.register(modEventBus);
         ModBlockEntityTypes.register(modEventBus);
         ModMenuTypes.register(modEventBus);
+        ModRecipes.register(modEventBus);
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
