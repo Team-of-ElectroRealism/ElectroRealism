@@ -35,6 +35,7 @@ public class ModCreativeModeTabs {
                         // Blocks to be added to the tab
                         output.accept(ModBlocks.PROGRAMMER_BLOCK);
                         output.accept(ModBlocks.ELECTRIC_CRUSHER);
+                        output.accept(ModBlocks.VOLTAGE_SOURCE);
 
                     }).build());
 
