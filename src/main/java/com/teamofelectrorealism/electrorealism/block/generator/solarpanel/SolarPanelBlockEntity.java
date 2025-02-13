@@ -16,8 +16,10 @@ public class SolarPanelBlockEntity extends GeneratorBlockEntity {
         super(ModBlockEntityTypes.SOLAR_PANEL_BE.get(), pos, blockState);
     }
 
+    @Override
     public void tick(Level level, BlockPos pos, BlockState state) {
-        if (level.canSeeSky(pos)) {
+        BlockPos skyPos = pos.above();
+        if (level.canSeeSky(skyPos)) {
             this.transferVoltage(level, pos);
         }
     }

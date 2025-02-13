@@ -24,7 +24,7 @@ public class SolarPanelBlock extends GeneratorBlock {
 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return null;
+        return new SolarPanelBlockEntity(blockPos, blockState);
     }
 
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {

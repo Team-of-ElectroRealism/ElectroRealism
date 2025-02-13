@@ -36,6 +36,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.PROGRAMMER_BLOCK);
                         output.accept(ModBlocks.ELECTRIC_CRUSHER);
                         output.accept(ModBlocks.VOLTAGE_SOURCE);
+                        output.accept(ModBlocks.SOLAR_PANEL);
 
                     }).build());
 

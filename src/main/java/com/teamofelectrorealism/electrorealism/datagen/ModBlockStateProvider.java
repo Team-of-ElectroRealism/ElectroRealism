@@ -16,6 +16,7 @@ public class ModBlockStateProvider extends BlockStateProvider {
     protected void registerStatesAndModels() {
         blockWithItem(ModBlocks.PROGRAMMER_BLOCK);
         blockWithItem(ModBlocks.VOLTAGE_SOURCE);
+        blockWithItem(ModBlocks.SOLAR_PANEL);
     }
 
     private void blockWithItem(DeferredBlock<?> deferredBlock) {

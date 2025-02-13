@@ -16,9 +16,7 @@ public abstract class GeneratorBlockEntity extends BlockEntity implements IPower
     @Override
     public abstract int getVoltage();
 
-    public void tick(Level level, BlockPos pos, BlockState state) {
-        this.transferVoltage(level, pos);
-    }
+    public abstract void tick(Level level, BlockPos pos, BlockState state);
 
     protected abstract void transferVoltage(Level level, BlockPos pos);
 }
