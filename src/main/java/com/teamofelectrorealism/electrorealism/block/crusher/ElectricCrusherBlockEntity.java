@@ -1,7 +1,8 @@
 package com.teamofelectrorealism.electrorealism.block.crusher;
 
+import com.teamofelectrorealism.electrorealism.api.ElectricalAPI;
+import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.item.ModItems;
 import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.recipe.crusher.ElectricCrusherRecipe;
 import com.teamofelectrorealism.electrorealism.recipe.crusher.ElectricCrusherRecipeInput;
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvider {
+public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvider, IPowerReceiver {
     public final ItemStackHandler itemHandler = new ItemStackHandler(3) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -46,17 +47,21 @@ public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvi
     private static final int SLOT_OUTPUT = 2;
 
     private static final String INVENTORY_KEY = "inventory";
-    private static final String POWER_LEVEL_KEY = "electric_crusher.power_level";
-    private static final String POWER_TOTAL_LEVEL_KEY = "electric_crusher.power_total_level";
+    private static final String BUFFER_LEVEL_KEY = "electric_crusher.buffer_level";
+    private static final String BUFFER_TOTAL_LEVEL_KEY = "electric_crusher.buffer_total_level";
     private static final String CRUSHING_PROGRESS_KEY = "electric_crusher.crushing_progress";
     private static final String CRUSHING_TOTAL_TIME_KEY = "electric_crusher.crushing_total_time";
+    private static final String INTERNAL_RESISTANCE_KEY = "electric_crusher.internal_resistance";
 
     private static final int TOTAL_CRUSHING_TIME = 200;
+    private static final int TOTAL_BUFFER_CAPASITY = 2000; // In mAh
+    private static final int INTERNAL_RESISTANCE = 10; // In ohm
 
-    private int powerLevel;
-    private int powerTotalLevel = 1;
+    private int bufferLevel;
+    private int bufferTotalLevel = TOTAL_BUFFER_CAPASITY;
     private int crushingProgress;
     private int crushingTotalTime = TOTAL_CRUSHING_TIME;
+    private int internalResistance = INTERNAL_RESISTANCE;
     private final ContainerData data;
 
     public ElectricCrusherBlockEntity(BlockPos pos, BlockState blockState) {
@@ -67,8 +72,9 @@ public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvi
                 return switch (pIndex) {
                     case 0 -> ElectricCrusherBlockEntity.this.crushingProgress;
                     case 1 -> ElectricCrusherBlockEntity.this.crushingTotalTime;
-                    case 2 -> ElectricCrusherBlockEntity.this.powerLevel;
-                    case 3 -> ElectricCrusherBlockEntity.this.powerTotalLevel;
+                    case 2 -> ElectricCrusherBlockEntity.this.bufferLevel;
+                    case 3 -> ElectricCrusherBlockEntity.this.bufferTotalLevel;
+                    case 4 -> ElectricCrusherBlockEntity.this.internalResistance;
                     default -> 0;
                 };
             }
@@ -77,13 +83,14 @@ public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvi
                 switch (pIndex) {
                     case 0: ElectricCrusherBlockEntity.this.crushingProgress = pValue;
                     case 1: ElectricCrusherBlockEntity.this.crushingTotalTime = pValue;
-                    case 2: ElectricCrusherBlockEntity.this.powerLevel = pValue;
-                    case 3: ElectricCrusherBlockEntity.this.powerTotalLevel = pValue;
+                    case 2: ElectricCrusherBlockEntity.this.bufferLevel = pValue;
+                    case 3: ElectricCrusherBlockEntity.this.bufferTotalLevel = pValue;
+                    case 4: ElectricCrusherBlockEntity.this.internalResistance = pValue;
                 };
             }
             @Override
             public int getCount() {
-                return 4;
+                return 5;
             }
         };
     }
@@ -112,18 +119,20 @@ public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvi
     public void loadAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
         super.loadAdditional(compoundTag, registries);
         itemHandler.deserializeNBT(registries, compoundTag.getCompound(INVENTORY_KEY));
-        powerLevel = compoundTag.getInt(POWER_LEVEL_KEY);
-        powerTotalLevel = compoundTag.getInt(POWER_TOTAL_LEVEL_KEY);
+        bufferLevel = compoundTag.getInt(BUFFER_LEVEL_KEY);
+        bufferTotalLevel = compoundTag.getInt(BUFFER_TOTAL_LEVEL_KEY);
         crushingProgress = compoundTag.getInt(CRUSHING_PROGRESS_KEY);
         crushingTotalTime = compoundTag.getInt(CRUSHING_TOTAL_TIME_KEY);
+        internalResistance = compoundTag.getInt(INTERNAL_RESISTANCE_KEY);
     }
     @Override
     public void saveAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
         compoundTag.put(INVENTORY_KEY, itemHandler.serializeNBT(registries));
-        compoundTag.putInt(POWER_LEVEL_KEY, powerLevel);
-        compoundTag.putInt(POWER_TOTAL_LEVEL_KEY, powerTotalLevel);
+        compoundTag.putInt(BUFFER_LEVEL_KEY, bufferLevel);
+        compoundTag.putInt(BUFFER_TOTAL_LEVEL_KEY, bufferTotalLevel);
         compoundTag.putInt(CRUSHING_PROGRESS_KEY, crushingProgress);
         compoundTag.putInt(CRUSHING_TOTAL_TIME_KEY, crushingTotalTime);
+        compoundTag.putInt(INTERNAL_RESISTANCE_KEY, internalResistance);
 
         super.saveAdditional(compoundTag, registries);
     }
@@ -144,12 +153,10 @@ public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public void tick(Level level, BlockPos blockPos, BlockState blockState) {
-        testPower();
-
         if(hasRecipe() && isOutputSlotEmptyOrReceivable()) {
-
-            if (isPowered()) {
+            if (isPowered() && hasBufferEnoughCharge()) {
                 increaseCrushingProgress();
+                decreaseBufferCharge();
                 if (hasCrushingFinished()) {
                     crushItem();
                     resetProgress();
@@ -160,6 +167,14 @@ public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvi
         } else {
             crushingProgress = 0;
         }
+    }
+
+    private boolean hasBufferEnoughCharge() {
+        return bufferLevel >= 100;
+    }
+
+    private void decreaseBufferCharge() {
+        bufferLevel = bufferLevel - 3;
     }
 
     private boolean hasRecipe() {
@@ -215,11 +230,31 @@ public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvi
         crushingProgress++;
     }
 
-    private void testPower() {
-        powerLevel = 1;
+    private boolean isPowered() {
+        return this.bufferLevel > 0;
     }
 
-    private boolean isPowered() {
-        return this.powerLevel > 0;
+    @Override
+    public int getResistance() {
+        return internalResistance;
+    }
+
+    @Override
+    public void receiveVoltage(int voltage) {
+        int totalResistance = this.internalResistance;
+
+        int chargeIncrease = ElectricalAPI.getChargeIncreaseMah(voltage, totalResistance, (double) 1 / 20);
+
+        setBufferCharge(bufferLevel + chargeIncrease);
+    }
+
+    @Override
+    public int getBufferCharge() {
+        return bufferLevel;
+    }
+
+    @Override
+    public void setBufferCharge(int charge) {
+        this.bufferLevel = Math.max(0, Math.min(charge, bufferTotalLevel));
     }
 }

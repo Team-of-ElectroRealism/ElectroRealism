@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "electrorealism:block/voltage_source"
+    }
+  }
+}
