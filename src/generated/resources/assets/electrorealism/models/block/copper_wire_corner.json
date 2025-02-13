@@ -1,0 +1,24 @@
+{
+  "corner": {
+    "parent": "block/block",
+    "textures": {
+      "particle": "electrorealism:block/copper_wire_corner"
+    },
+    "elements": [
+      {
+        "from": [ 0, 0, 4 ],
+        "to": [ 12, 0.25, 12 ],
+        "faces": {
+          "up": { "uv": [ 0, 0, 16, 16 ], "texture": "#particle" }
+        }
+      },
+      {
+        "from": [ 4, 0, 0 ],
+        "to": [ 12, 0.25, 12 ],
+        "faces": {
+          "up": { "uv": [ 0, 0, 16, 16 ], "texture": "#particle" }
+        }
+      }
+    ]
+  }
+}

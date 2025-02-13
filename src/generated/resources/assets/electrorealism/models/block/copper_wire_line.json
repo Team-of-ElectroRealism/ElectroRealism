@@ -1,0 +1,17 @@
+{
+  "line": {
+    "parent": "block/block",
+    "textures": {
+      "particle": "electrorealism:block/copper_wire_line"
+    },
+    "elements": [
+      {
+        "from": [ 0, 0, 4 ],
+        "to": [ 16, 0.25, 12 ],
+        "faces": {
+          "up": { "uv": [ 0, 0, 16, 16 ], "texture": "#particle" }
+        }
+      }
+    ]
+  }
+}

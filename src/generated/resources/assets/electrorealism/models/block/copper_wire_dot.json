@@ -1,0 +1,17 @@
+{
+  "dot": {
+    "parent": "block/block",
+    "textures": {
+      "particle": "electrorealism:block/copper_wire_dot"
+    },
+    "elements": [
+      {
+        "from": [ 4, 0, 4 ],
+        "to": [ 12, 0.25, 12 ],
+        "faces": {
+          "up": { "uv": [ 0, 0, 16, 16 ], "texture": "#particle" }
+        }
+      }
+    ]
+  }
+}

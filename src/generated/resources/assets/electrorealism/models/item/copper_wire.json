@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "electrorealism:block/copper_wire_dot"
+  }
+}

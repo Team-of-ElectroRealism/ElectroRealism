@@ -7,6 +7,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DropExperienceBlock;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
@@ -25,6 +26,12 @@ public class ModBlocks {
             () -> new Block(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_MAGENTA)));
+
+    public static final DeferredBlock<Block> COPPER_WIRE = registerBlock("copper_wire",
+            () -> new Block(BlockBehaviour.Properties.of()
+                    .noCollission()
+                    .strength(0.2F)
+                    .sound(SoundType.METAL)));
 
     // Stop Blocks
 

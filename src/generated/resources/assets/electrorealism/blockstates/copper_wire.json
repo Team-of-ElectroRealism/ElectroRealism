@@ -1,0 +1,12 @@
+{
+  "multipart": [
+    { "apply": { "model": "electrorealism:block/copper_wire_dot" }, "when": { "north": "none", "east": "none", "south": "none", "west": "none" } },
+    { "apply": { "model": "electrorealism:block/copper_wire_line" }, "when": { "north": "side", "south": "side" } },
+    { "apply": { "model": "electrorealism:block/copper_wire_line" }, "when": { "east": "side", "west": "side" } },
+    { "apply": { "model": "electrorealism:block/copper_wire_corner" }, "when": { "north": "side", "east": "side" } },
+    { "apply": { "model": "electrorealism:block/copper_wire_corner" }, "when": { "north": "side", "west": "side" } },
+    { "apply": { "model": "electrorealism:block/copper_wire_corner" }, "when": { "south": "side", "east": "side" } },
+    { "apply": { "model": "electrorealism:block/copper_wire_corner" }, "when": { "south": "side", "west": "side" } },
+    { "apply": { "model": "electrorealism:block/copper_wire_cross" }, "when": { "north": "side", "south": "side", "east": "side", "west": "side" } }
+  ]
+}
