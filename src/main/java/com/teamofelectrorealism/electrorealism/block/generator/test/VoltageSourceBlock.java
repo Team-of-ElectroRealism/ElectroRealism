@@ -1,4 +1,4 @@
-package com.teamofelectrorealism.electrorealism.block.test;
+package com.teamofelectrorealism.electrorealism.block.generator.test;
 
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;

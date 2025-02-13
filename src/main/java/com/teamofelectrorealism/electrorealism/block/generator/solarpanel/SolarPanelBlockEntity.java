@@ -1,20 +1,25 @@
-package com.teamofelectrorealism.electrorealism.block.test;
+package com.teamofelectrorealism.electrorealism.block.generator.solarpanel;
 
-import com.teamofelectrorealism.electrorealism.api.ElectricalAPI;
-import com.teamofelectrorealism.electrorealism.block.IPowerProvider;
 import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
+import com.teamofelectrorealism.electrorealism.block.generator.GeneratorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class VoltageSourceBlockEntity extends BlockEntity implements IPowerProvider {
+public class SolarPanelBlockEntity extends GeneratorBlockEntity {
     private final int voltage = 230;
 
-    public VoltageSourceBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntityTypes.VOLTAGE_SOURCE_BE.get(), pos, state);
+    public SolarPanelBlockEntity(BlockPos pos, BlockState blockState) {
+        super(ModBlockEntityTypes.SOLAR_PANEL_BE.get(), pos, blockState);
+    }
+
+    public void tick(Level level, BlockPos pos, BlockState state) {
+        if (level.canSeeSky(pos)) {
+            this.transferVoltage(level, pos);
+        }
     }
 
     @Override
@@ -22,11 +27,8 @@ public class VoltageSourceBlockEntity extends BlockEntity implements IPowerProvi
         return voltage;
     }
 
-    public void tick(Level level, BlockPos pos, BlockState state) {
-        this.transferVoltage(level, pos);
-    }
-
-    private void transferVoltage(Level level, BlockPos pos) {
+    @Override
+    protected void transferVoltage(Level level, BlockPos pos) {
         for (Direction facing: Direction.values()) {
             BlockPos neighborPos = pos.offset(facing.getNormal());
             BlockEntity blockEntity = level.getBlockEntity(neighborPos);
