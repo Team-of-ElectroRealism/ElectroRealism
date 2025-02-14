@@ -1,0 +1,11 @@
+{
+  "type": "electrorealism:smelting",
+  "ingredient": [
+    {
+      "item": "minecraft:iron_ore"
+    }
+  ],
+  "result": {
+    "id": "electrorealism:test_item"
+  }
+}

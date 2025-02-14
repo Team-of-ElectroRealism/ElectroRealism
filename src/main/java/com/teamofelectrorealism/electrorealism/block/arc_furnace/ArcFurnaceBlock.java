@@ -1,20 +1,21 @@
 package com.teamofelectrorealism.electrorealism.block.arc_furnace;
 
 import com.mojang.serialization.MapCodec;
+import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import net.minecraft.core.BlockPos;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -22,15 +23,19 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class ArcFurnaceBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final MapCodec<ArcFurnaceBlock> CODEC = simpleCodec(ArcFurnaceBlock::new);
     public static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 16, 16);
+
     public ArcFurnaceBlock(Properties properties) {
         super(properties);
+    }
+
+    private static void tick(Level level1, BlockPos pos, BlockState state1, ArcFurnaceBlockEntity blockEntity) {
+        blockEntity.tick(level1, pos, state1);
     }
 
     @Override
@@ -68,18 +73,42 @@ public class ArcFurnaceBlock extends BaseEntityBlock {
         return RenderShape.MODEL;
     }
 
-
-
-//    @Override
-//    public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
-//        if("power is on") {
-//            "player takes damage"
-//        }
-//        super.stepOn(level, pos, state, entity);
-//    }
-
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return new ArcFurnaceBlockEntity(blockPos, blockState);
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (state.getBlock() != newState.getBlock()) {
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof ArcFurnaceBlockEntity arcFurnaceBlockEntity) {
+                arcFurnaceBlockEntity.drops();
+                level.updateNeighbourForOutputSignal(pos, this);
+            }
+        }
+        super.onRemove(state, level, pos, newState, isMoving);
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (!level.isClientSide()) {
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof ArcFurnaceBlockEntity arcFurnaceBlockEntity) {
+                player.openMenu(new SimpleMenuProvider(arcFurnaceBlockEntity, Component.literal("Arch Furnace")), pos);
+            } else {
+                throw new IllegalStateException("Our Container provider is missing!");
+            }
+        }
+        return ItemInteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    @Override
+    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
+        if(level.isClientSide()) {
+            return null;
+        }
+
+        return createTickerHelper(blockEntityType, ModBlockEntityTypes.ARC_FURNACE_BE.get(), ArcFurnaceBlock::tick);
     }
 }

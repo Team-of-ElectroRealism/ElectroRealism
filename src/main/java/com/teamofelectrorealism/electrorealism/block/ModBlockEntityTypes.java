@@ -16,9 +16,14 @@ public class ModBlockEntityTypes {
 
     public static final Supplier<BlockEntityType<ElectricCrusherBlockEntity>> ELECTRIC_CRUSHER_BE =
             BLOCK_ENTITY_TYPES.register("electric_crusher_be",
-                    () -> BlockEntityType.Builder.of(ElectricCrusherBlockEntity::new, ModBlocks.ELECTRIC_CRUSHER.get()).build(null));
-    public static final Supplier<BlockEntityType<ArcFurnaceBlockEntity>> ARC_FURNACE_BE = BLOCK_ENTITY_TYPES.register("arc_furnace_entity",
-            () -> BlockEntityType.Builder.of(
+                    () -> BlockEntityType.Builder.of(
+                            ElectricCrusherBlockEntity::new,
+                            ModBlocks.ELECTRIC_CRUSHER.get()
+                    )
+                    .build(null));
+    public static final Supplier<BlockEntityType<ArcFurnaceBlockEntity>> ARC_FURNACE_BE =
+            BLOCK_ENTITY_TYPES.register("arc_furnace_entity",
+                    () -> BlockEntityType.Builder.of(
                             ArcFurnaceBlockEntity::new,
                             ModBlocks.ARC_FURNACE.get()
                     )

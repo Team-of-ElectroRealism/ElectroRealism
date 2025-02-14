@@ -1,7 +1,6 @@
 package com.teamofelectrorealism.electrorealism.block.crusher;
 
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.item.ModItems;
 import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.recipe.crusher.ElectricCrusherRecipe;
 import com.teamofelectrorealism.electrorealism.recipe.crusher.ElectricCrusherRecipeInput;

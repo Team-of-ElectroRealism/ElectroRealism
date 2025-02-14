@@ -32,7 +32,9 @@ public class ModBlocks {
                     .noOcclusion()));
     public static final DeferredBlock<Block> ARC_FURNACE = registerBlock("arc_furnace",
             () -> new ArcFurnaceBlock(BlockBehaviour.Properties.of()
-                    .instabreak()));
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_RED)
+                    .noOcclusion()));
 
     // Stop Blocks
 
