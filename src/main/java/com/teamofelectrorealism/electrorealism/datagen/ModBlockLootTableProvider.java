@@ -20,6 +20,7 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
         this.dropSelf(ModBlocks.ELECTRIC_CRUSHER.get());
         this.dropSelf(ModBlocks.VOLTAGE_SOURCE.get());
         this.dropSelf(ModBlocks.SOLAR_PANEL.get());
+        this.dropSelf(ModBlocks.COMBUSTION_GENERATOR.get());
     }
 
     @Override

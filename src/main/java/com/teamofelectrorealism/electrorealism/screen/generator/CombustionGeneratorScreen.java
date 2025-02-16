@@ -1,4 +1,4 @@
-package com.teamofelectrorealism.electrorealism.screen.crusher;
+package com.teamofelectrorealism.electrorealism.screen.generator;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
@@ -10,15 +10,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 
-public class ElectricCrusherScreen extends AbstractContainerScreen<ElectricCrusherMenu> {
+public class CombustionGeneratorScreen extends AbstractContainerScreen<CombustionGeneratorMenu> {
     private static final ResourceLocation GUI_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/crusher/electric_crusher_gui.png");
-    private static final ResourceLocation ARROW_TEXTURE =
-            ResourceLocation.parse("textures/gui/sprites/container/furnace/burn_progress.png");
+            ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/generator/combustion_generator_gui.png");
+    private static final ResourceLocation FIRE_TEXTURE =
+            ResourceLocation.parse("textures/gui/sprites/container/furnace/lit_progress.png");
     private static final ResourceLocation POWER_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/icons/icon_power.png");
 
-    public ElectricCrusherScreen(ElectricCrusherMenu menu, Inventory playerInventory, Component title) {
+    public CombustionGeneratorScreen(CombustionGeneratorMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
     }
 
@@ -41,21 +41,21 @@ public class ElectricCrusherScreen extends AbstractContainerScreen<ElectricCrush
 
         pGuiGraphics.blit(GUI_TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
 
-        renderProgressArrow(pGuiGraphics, x, y);
+        renderProgressFire(pGuiGraphics, x, y);
         renderProgressPower(pGuiGraphics, x, y);
     }
 
     private void renderProgressPower(GuiGraphics pGuiGraphics, int x, int y) {
         int powerHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
         if (powerHeight > 0) {
-            pGuiGraphics.blit(POWER_TEXTURE, x + 57, y + 37 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
+            pGuiGraphics.blit(POWER_TEXTURE, x + 101, y + 43 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
         }
     }
 
-    private void renderProgressArrow(GuiGraphics pGuiGraphics, int x, int y) {
-        if(menu.isCrushing()) {
-            int arrowWidth = Mth.ceil(menu.getCrushingProgress() * 24.0F);
-            pGuiGraphics.blit(ARROW_TEXTURE, x + 79, y + 34, 0, 0, arrowWidth, 16, 24, 16);
+    private void renderProgressFire(GuiGraphics guiGraphics, int x, int y) {
+        int fireHeight = Mth.ceil(menu.getLitProgress() * 13.0F) + 1; // Scale to max 14 pixels
+        if (fireHeight > 0) {
+            guiGraphics.blit(FIRE_TEXTURE, x + 81, y + 25 + 14 - fireHeight, 0, 14 - fireHeight, 14, fireHeight, 14, 14);
         }
     }
 

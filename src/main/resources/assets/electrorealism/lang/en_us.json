@@ -2,6 +2,8 @@
   "block.electrorealism.programmer_block": "Programmer Block",
   "block.electrorealism.electric_crusher": "Electric Crusher",
   "block.electrorealism.voltage_source": "Voltage Source",
+  "block.electrorealism.solar_panel": "Solar Panel",
+  "block.electrorealism.combustion_generator": "Combustion Generator",
 
   "item.electrorealism.test_item": "Test Item",
 

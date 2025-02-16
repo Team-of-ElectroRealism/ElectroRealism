@@ -2,6 +2,7 @@ package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBlock;
+import com.teamofelectrorealism.electrorealism.block.generator.combustion.CombustionGeneratorBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.test.VoltageSourceBlock;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
@@ -40,6 +41,12 @@ public class ModBlocks {
 
     public static final DeferredBlock<Block> SOLAR_PANEL = registerBlock("solar_panel",
             () -> new SolarPanelBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion()));
+
+    public static final DeferredBlock<Block> COMBUSTION_GENERATOR = registerBlock("combustion_generator",
+            () -> new CombustionGeneratorBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));

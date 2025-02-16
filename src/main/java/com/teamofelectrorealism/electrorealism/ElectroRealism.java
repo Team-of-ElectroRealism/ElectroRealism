@@ -7,6 +7,7 @@ import com.teamofelectrorealism.electrorealism.item.ModItems;
 import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.screen.ModMenuTypes;
 import com.teamofelectrorealism.electrorealism.screen.crusher.ElectricCrusherScreen;
+import com.teamofelectrorealism.electrorealism.screen.generator.CombustionGeneratorScreen;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.slf4j.Logger;
 
@@ -122,6 +123,7 @@ public class ElectroRealism
         @SubscribeEvent
         public static void registerScreens(RegisterMenuScreensEvent event) {
             event.register(ModMenuTypes.ELECTRIC_CRUSHER_MENU.get(), ElectricCrusherScreen::new);
+            event.register(ModMenuTypes.COMBUSTION_GENERATOR_MENU.get(), CombustionGeneratorScreen::new);
         }
     }
 }

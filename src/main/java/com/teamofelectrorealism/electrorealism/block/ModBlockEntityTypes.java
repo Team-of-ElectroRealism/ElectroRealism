@@ -2,6 +2,7 @@ package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.generator.combustion.CombustionGeneratorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.generator.test.VoltageSourceBlockEntity;
@@ -27,6 +28,10 @@ public class ModBlockEntityTypes {
     public static final Supplier<BlockEntityType<SolarPanelBlockEntity>> SOLAR_PANEL_BE =
             BLOCK_ENTITY_TYPES.register("solar_panel_be",
                     () -> BlockEntityType.Builder.of(SolarPanelBlockEntity::new, ModBlocks.SOLAR_PANEL.get()).build(null));
+
+    public static final Supplier<BlockEntityType<CombustionGeneratorBlockEntity>> COMBUSTION_GENERATOR_BE =
+            BLOCK_ENTITY_TYPES.register("combustion_generator_be",
+                    () -> BlockEntityType.Builder.of(CombustionGeneratorBlockEntity::new, ModBlocks.COMBUSTION_GENERATOR.get()).build(null));
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITY_TYPES.register(eventBus);
