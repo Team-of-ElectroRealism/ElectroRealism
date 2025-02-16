@@ -27,8 +27,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
-import static net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity.isFuel;
-
 public class CombustionGeneratorBlockEntity extends GeneratorBlockEntity implements MenuProvider {
     public final ItemStackHandler itemHandler = new ItemStackHandler(1) {
         @Override
@@ -120,6 +118,10 @@ public class CombustionGeneratorBlockEntity extends GeneratorBlockEntity impleme
 
     private int getBurnDuration(ItemStack stackInSlot) {
         return FuelValues.getFuelValue(stackInSlot);
+    }
+
+    private boolean isFuel(ItemStack stackInSlot) {
+        return getBurnDuration(stackInSlot) > 0;
     }
 
     private boolean isLit() {

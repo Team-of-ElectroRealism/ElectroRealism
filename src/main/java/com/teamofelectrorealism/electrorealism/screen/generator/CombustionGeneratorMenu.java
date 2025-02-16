@@ -102,7 +102,7 @@ public class CombustionGeneratorMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()), player, ModBlocks.ELECTRIC_CRUSHER.get());
+        return stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()), player, ModBlocks.COMBUSTION_GENERATOR.get());
     }
 
     private void addPlayerInventory(Inventory playerInventory) {
