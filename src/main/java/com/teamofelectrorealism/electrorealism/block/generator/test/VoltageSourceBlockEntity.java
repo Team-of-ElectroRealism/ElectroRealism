@@ -1,6 +1,5 @@
-package com.teamofelectrorealism.electrorealism.block.test;
+package com.teamofelectrorealism.electrorealism.block.generator.test;
 
-import com.teamofelectrorealism.electrorealism.api.ElectricalAPI;
 import com.teamofelectrorealism.electrorealism.block.IPowerProvider;
 import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
