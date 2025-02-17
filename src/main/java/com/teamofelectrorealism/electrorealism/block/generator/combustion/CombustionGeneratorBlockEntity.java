@@ -100,11 +100,10 @@ public class CombustionGeneratorBlockEntity extends GeneratorBlockEntity impleme
 
         if (isLit) {
             transferVoltage(level, pos);
-
-            if (wasLit != isLit) {
-                level.setBlockAndUpdate(pos, state.setValue(CombustionGeneratorBlock.LIT, isLit));
-                setChanged(level, pos, state);
-            }
+        }
+        if (wasLit != isLit) {
+            level.setBlockAndUpdate(pos, state.setValue(CombustionGeneratorBlock.LIT, isLit));
+            setChanged(level, pos, state);
         }
     }
 
