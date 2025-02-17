@@ -6,6 +6,7 @@ import com.teamofelectrorealism.electrorealism.block.generator.combustion.Combus
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.generator.test.VoltageSourceBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.generator.waterwheel.WaterWheelBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
@@ -28,6 +29,10 @@ public class ModBlockEntityTypes {
     public static final Supplier<BlockEntityType<SolarPanelBlockEntity>> SOLAR_PANEL_BE =
             BLOCK_ENTITY_TYPES.register("solar_panel_be",
                     () -> BlockEntityType.Builder.of(SolarPanelBlockEntity::new, ModBlocks.SOLAR_PANEL.get()).build(null));
+
+    public static final Supplier<BlockEntityType<WaterWheelBlockEntity>> WATER_WHEEL_BE =
+            BLOCK_ENTITY_TYPES.register("water_wheel_be",
+                    () -> BlockEntityType.Builder.of(WaterWheelBlockEntity::new, ModBlocks.WATER_WHEEL.get()).build(null));
 
     public static final Supplier<BlockEntityType<CombustionGeneratorBlockEntity>> COMBUSTION_GENERATOR_BE =
             BLOCK_ENTITY_TYPES.register("combustion_generator_be",
