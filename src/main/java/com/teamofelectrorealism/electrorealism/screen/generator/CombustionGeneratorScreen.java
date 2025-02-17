@@ -48,7 +48,7 @@ public class CombustionGeneratorScreen extends AbstractContainerScreen<Combustio
     private void renderProgressPower(GuiGraphics pGuiGraphics, int x, int y) {
         int powerHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
         if (powerHeight > 0) {
-            pGuiGraphics.blit(POWER_TEXTURE, x + 101, y + 43 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
+            pGuiGraphics.blit(POWER_TEXTURE, x + 100, y + 42 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
         }
     }
 

@@ -36,7 +36,11 @@ public class CombustionGeneratorMenu extends AbstractContainerMenu {
     }
 
     public float getPowerProgress() {
-        return 1f;
+        int litDuration = this.data.get(1);
+        if(litDuration > 0) {
+            return 1f;
+        }
+        return 0f;
     }
 
     public float getLitProgress() {
