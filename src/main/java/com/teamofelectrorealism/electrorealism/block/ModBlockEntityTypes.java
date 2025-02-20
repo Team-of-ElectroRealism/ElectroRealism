@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.converter.fromfe.FEToPowerConverterBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlockEntity;
@@ -32,6 +33,10 @@ public class ModBlockEntityTypes {
     public static final Supplier<BlockEntityType<WaterWheelBlockEntity>> WATER_WHEEL_BE =
             BLOCK_ENTITY_TYPES.register("water_wheel_be",
                     () -> BlockEntityType.Builder.of(WaterWheelBlockEntity::new, ModBlocks.WATER_WHEEL.get()).build(null));
+
+    public static final Supplier<BlockEntityType<FEToPowerConverterBlockEntity>> FE_CONVERTER_BE =
+            BLOCK_ENTITY_TYPES.register("fe_converter_be",
+                    () -> BlockEntityType.Builder.of(FEToPowerConverterBlockEntity::new, ModBlocks.FE_CONVERTER.get()).build(null));
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITY_TYPES.register(eventBus);

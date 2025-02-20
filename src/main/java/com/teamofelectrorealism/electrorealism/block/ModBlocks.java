@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.converter.fromfe.FEToPowerConverterBlock;
 import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.test.FEGeneratorBlock;
@@ -58,6 +59,12 @@ public class ModBlocks {
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion(),
                     1000));
+
+    public static final DeferredBlock<Block> FE_CONVERTER = registerBlock("fe_converter",
+            () -> new FEToPowerConverterBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion()));
 
     // Stop Blocks
 

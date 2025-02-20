@@ -15,9 +15,7 @@ public abstract class EnergyConverterBlock extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return null;
-    }
+    public abstract @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState);
 
     @Override
     public abstract @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType);
