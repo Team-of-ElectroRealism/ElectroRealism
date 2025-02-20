@@ -1,7 +1,7 @@
 package com.teamofelectrorealism.electrorealism.block.generator.test;
 
-import com.teamofelectrorealism.electrorealism.block.IPowerProvider;
-import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
+import com.teamofelectrorealism.electrorealism.block.IVoltageProvider;
+import com.teamofelectrorealism.electrorealism.block.IVoltageReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -9,7 +9,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class VoltageSourceBlockEntity extends BlockEntity implements IPowerProvider {
+public class VoltageSourceBlockEntity extends BlockEntity implements IVoltageProvider {
     private final int voltage = 230;
 
     public VoltageSourceBlockEntity(BlockPos pos, BlockState state) {
@@ -29,8 +29,8 @@ public class VoltageSourceBlockEntity extends BlockEntity implements IPowerProvi
         for (Direction facing: Direction.values()) {
             BlockPos neighborPos = pos.offset(facing.getNormal());
             BlockEntity blockEntity = level.getBlockEntity(neighborPos);
-            if (blockEntity instanceof IPowerReceiver) {
-                IPowerReceiver receiver = (IPowerReceiver) blockEntity;
+            if (blockEntity instanceof IVoltageReceiver) {
+                IVoltageReceiver receiver = (IVoltageReceiver) blockEntity;
 
                 receiver.receiveVoltage(voltage);
             }

@@ -1,6 +1,6 @@
 package com.teamofelectrorealism.electrorealism.block.generator.solarpanel;
 
-import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
+import com.teamofelectrorealism.electrorealism.block.IVoltageReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.generator.GeneratorBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -34,8 +34,8 @@ public class SolarPanelBlockEntity extends GeneratorBlockEntity {
         for (Direction facing: Direction.values()) {
             BlockPos neighborPos = pos.offset(facing.getNormal());
             BlockEntity blockEntity = level.getBlockEntity(neighborPos);
-            if (blockEntity instanceof IPowerReceiver) {
-                IPowerReceiver receiver = (IPowerReceiver) blockEntity;
+            if (blockEntity instanceof IVoltageReceiver) {
+                IVoltageReceiver receiver = (IVoltageReceiver) blockEntity;
 
                 receiver.receiveVoltage(voltage);
             }

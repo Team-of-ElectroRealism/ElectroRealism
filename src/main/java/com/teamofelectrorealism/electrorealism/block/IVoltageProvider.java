@@ -1,5 +1,5 @@
 package com.teamofelectrorealism.electrorealism.block;
 
-public interface IPowerProvider {
+public interface IVoltageProvider {
     int getVoltage();
 }

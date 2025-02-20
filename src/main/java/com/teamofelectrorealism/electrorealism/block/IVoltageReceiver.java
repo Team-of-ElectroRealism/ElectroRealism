@@ -1,6 +1,6 @@
 package com.teamofelectrorealism.electrorealism.block;
 
-public interface IPowerReceiver {
+public interface IVoltageReceiver {
     int getResistance();
 
     void receiveVoltage(int voltage);

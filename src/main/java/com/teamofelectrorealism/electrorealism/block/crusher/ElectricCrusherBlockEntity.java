@@ -1,7 +1,7 @@
 package com.teamofelectrorealism.electrorealism.block.crusher;
 
 import com.teamofelectrorealism.electrorealism.api.ElectricalAPI;
-import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
+import com.teamofelectrorealism.electrorealism.block.IVoltageReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.recipe.crusher.ElectricCrusherRecipe;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvider, IPowerReceiver {
+public class ElectricCrusherBlockEntity extends BlockEntity implements MenuProvider, IVoltageReceiver {
     public final ItemStackHandler itemHandler = new ItemStackHandler(3) {
         @Override
         protected void onContentsChanged(int slot) {
