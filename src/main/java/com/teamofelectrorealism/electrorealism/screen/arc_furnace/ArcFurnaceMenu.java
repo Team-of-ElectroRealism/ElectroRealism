@@ -18,7 +18,7 @@ public class ArcFurnaceMenu extends AbstractContainerMenu {
     private final ContainerData data;
 
     public ArcFurnaceMenu(int containerId, Inventory inv, FriendlyByteBuf extraData) {
-        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(4));
+        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(6));
     }
 
 
@@ -37,16 +37,17 @@ public class ArcFurnaceMenu extends AbstractContainerMenu {
         addDataSlots(data);
     }
 
-    public float getHeatProgress() {
+    public int getHeatProgress() {
         int heatLevel = this.data.get(2);
-        int heatTotalLevel = this.data.get(3);
 
-        if (heatTotalLevel == 0) {
-            System.out.println("Potential division by zero detected! powerTotalLevel in Crusher is 0. Returning 0 as power progress.");
-            return 0f;
-        }
+        return heatLevel;
+    }
 
-        return (float) heatLevel / heatTotalLevel;
+    public float getPowerProgress() {
+        int powerLevel = this.data.get(4);
+        int powerTotalLevel = this.data.get(5);
+
+        return powerTotalLevel != 0 && powerLevel != 0 ? (float) powerLevel / (float) powerTotalLevel : 0.0F;
     }
 
     public float getSmeltingProgress() {

@@ -58,21 +58,21 @@ public class ArcFurnaceScreen extends AbstractContainerScreen<ArcFurnaceMenu> {
     }
 
     private void renderProgressPower(GuiGraphics pGuiGraphics, int x, int y) {
-        int powerHeight = Mth.ceil(menu.getSmeltingProgress() * 13.0F) + 1; // Scale to max 14 pixels
+        int powerHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
         if (powerHeight > 0) {
-            pGuiGraphics.blit(POWER_TEXTURE, x + 36, y + 36 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
+            pGuiGraphics.blit(POWER_TEXTURE, x + 34, y + 35 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
         }
     }
 
     private void renderProgressArrow(GuiGraphics pGuiGraphics, int x, int y) {
         if(menu.isSmelting()) {
-            int arrowWidth = Mth.ceil(menu.getHeatProgress() * 24.0F);
+            int arrowWidth = Mth.ceil(menu.getSmeltingProgress() * 24.0F);
             pGuiGraphics.blit(ARROW_TEXTURE, x + 79, y + 34, 0, 0, arrowWidth, 16, 24, 16);
         }
     }
 
     private void renderHeatAnimation(GuiGraphics pGuiGraphics, int x, int y) {
-        int heatFrame = (int)((System.currentTimeMillis() / 1000) % 8); // Cycle every 1000ms
+        int heatFrame = (int)(menu.getHeatProgress());
         RenderSystem.setShaderTexture(0, HEAT_TEXTURES[heatFrame]);
 
         pGuiGraphics.blit(

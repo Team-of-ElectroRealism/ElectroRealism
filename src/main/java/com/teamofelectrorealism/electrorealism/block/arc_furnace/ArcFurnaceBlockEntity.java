@@ -30,12 +30,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
-    public final ItemStackHandler itemHandler = new ItemStackHandler(3) {
+    public final ItemStackHandler itemHandler = new ItemStackHandler(2) {
         @Override
         protected void onContentsChanged(int slot) {
             if (!level.isClientSide()) {
                 setChanged();
-                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 2);
             }
         }
     };
@@ -49,12 +49,14 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
     private static final String SMELTING_PROGRESS_KEY = "arc_furnace.smelting_progress";
     private static final String SMELTING_TOTAL_TIME_KEY = "arc_furnace.smelting_total_time";
 
-    private static final int TOTAL_SMELTING_TIME = 200;
+    private static final int TOTAL_SMELTING_TIME = 80;
 
     private int heatLevel;
     private int heatTotalLevel = 7;
     private int smeltingProgress;
     private int smeltingTotalTime = TOTAL_SMELTING_TIME;
+    private int powerLevel;
+    private int powerTotalLevel = 10;
     private final ContainerData data;
 
     public ArcFurnaceBlockEntity(BlockPos pos, BlockState blockState) {
@@ -67,6 +69,8 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
                     case 1 -> ArcFurnaceBlockEntity.this.smeltingTotalTime;
                     case 2 -> ArcFurnaceBlockEntity.this.heatLevel;
                     case 3 -> ArcFurnaceBlockEntity.this.heatTotalLevel;
+                    case 4 -> ArcFurnaceBlockEntity.this.powerLevel;
+                    case 5 -> ArcFurnaceBlockEntity.this.powerTotalLevel;
 
                     default -> 0;
                 };
@@ -79,12 +83,14 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
                     case 1: ArcFurnaceBlockEntity.this.smeltingTotalTime = i;
                     case 2: ArcFurnaceBlockEntity.this.heatLevel = i;
                     case 3: ArcFurnaceBlockEntity.this.heatTotalLevel = i;
+                    case 4: ArcFurnaceBlockEntity.this.powerLevel = i;
+                    case 5: ArcFurnaceBlockEntity.this.powerTotalLevel = i;
                 }
             }
 
             @Override
             public int getCount() {
-                return 4;
+                return 6;
             }
         };
     }
@@ -145,7 +151,15 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     public void tick(Level level, BlockPos blockPos, BlockState blockState) {
-        testHeating();
+        if (powerLevel <= 9) {
+            increasePowerLevel();
+        }
+
+        if (isPowered()) {
+            heatUp();
+        } else {
+            coolDown();
+        }
 
         if (hasRecipe() && isOutputSlotEmptyOrReceivable()) {
             if (isHeated()) {
@@ -216,42 +230,41 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     private void increaseHeatingProgress() {
-        heatLevel++;
+        if (heatLevel < 7) {
+            heatLevel++;
+        }
+    }
+
+    private void increasePowerLevel() {
+        powerLevel++;
     }
 
     // Timer for heating
     private int heatUpTimer = 0;
 
-    private void testHeating() {
-        if (!itemHandler.getStackInSlot(SLOT_INPUT).isEmpty()) {
-            // If heating up, increase the timer
-            if (heatUpTimer < 160) { // 8 seconds at 20 ticks/second
-                heatUpTimer++;
-                heatLevel = (int) ((float) heatUpTimer / 160 * heatTotalLevel); // Smooth increase
-            } else {
-                // Stay fully heated after 8 seconds
-                heatLevel = heatTotalLevel;
+    private void heatUp() {
+        if (heatUpTimer < 160) { // 8 seconds at 20 ticks/second
+            heatUpTimer++;
+            if (heatUpTimer % 20 == 0) {
+                increaseHeatingProgress();
             }
         } else {
-            // Cool down when no item is in slot
-            if (heatLevel > 0) {
-                heatLevel -= 1; // Cool down slowly
-            }
-            heatUpTimer = 0;
-        }
-
-        // Sync to client
-        setChanged();
-        if (!level.isClientSide) {
-            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+            // Stay fully heated after 8 seconds
+            heatLevel = heatTotalLevel;
         }
     }
 
-    private void testHeat() {
-        heatLevel = 1;
+    private void coolDown() {
+        if (heatLevel > 0) {
+            heatLevel --; // Cool down slowly
+        }
     }
 
     private boolean isHeated() {
         return this.heatLevel > 6;
+    }
+
+    private boolean isPowered() {
+        return this.powerLevel > 9;
     }
 }
