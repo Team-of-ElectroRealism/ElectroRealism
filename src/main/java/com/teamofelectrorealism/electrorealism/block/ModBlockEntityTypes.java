@@ -2,6 +2,7 @@ package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.arc_furnace.ArcFurnaceBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.generator.test.VoltageSourceBlockEntity;
@@ -19,7 +20,18 @@ public class ModBlockEntityTypes {
 
     public static final Supplier<BlockEntityType<ElectricCrusherBlockEntity>> ELECTRIC_CRUSHER_BE =
             BLOCK_ENTITY_TYPES.register("electric_crusher_be",
-                    () -> BlockEntityType.Builder.of(ElectricCrusherBlockEntity::new, ModBlocks.ELECTRIC_CRUSHER.get()).build(null));
+                    () -> BlockEntityType.Builder.of(
+                            ElectricCrusherBlockEntity::new,
+                            ModBlocks.ELECTRIC_CRUSHER.get()
+                    )
+                    .build(null));
+    public static final Supplier<BlockEntityType<ArcFurnaceBlockEntity>> ARC_FURNACE_BE =
+            BLOCK_ENTITY_TYPES.register("arc_furnace_entity",
+                    () -> BlockEntityType.Builder.of(
+                            ArcFurnaceBlockEntity::new,
+                            ModBlocks.ARC_FURNACE.get()
+                    )
+                    .build(null));
 
     public static final Supplier<BlockEntityType<VoltageSourceBlockEntity>> VOLTAGE_SOURCE_BE =
             BLOCK_ENTITY_TYPES.register("voltage_source_be",

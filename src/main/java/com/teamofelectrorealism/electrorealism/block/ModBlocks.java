@@ -5,6 +5,7 @@ import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBloc
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.test.VoltageSourceBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.waterwheel.WaterWheelBlock;
+import com.teamofelectrorealism.electrorealism.block.arc_furnace.ArcFurnaceBlock;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -31,6 +32,11 @@ public class ModBlocks {
             () -> new ElectricCrusherBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion()));
+    public static final DeferredBlock<Block> ARC_FURNACE = registerBlock("arc_furnace",
+            () -> new ArcFurnaceBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_RED)
                     .noOcclusion()));
 
     public static final DeferredBlock<Block> VOLTAGE_SOURCE = registerBlock("voltage_source",
