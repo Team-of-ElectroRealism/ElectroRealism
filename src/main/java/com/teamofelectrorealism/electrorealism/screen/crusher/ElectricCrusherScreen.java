@@ -48,7 +48,7 @@ public class ElectricCrusherScreen extends AbstractContainerScreen<ElectricCrush
     private void renderProgressPower(GuiGraphics pGuiGraphics, int x, int y) {
         int powerHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
         if (powerHeight > 0) {
-            pGuiGraphics.blit(POWER_TEXTURE, x + 56, y + 36 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
+            pGuiGraphics.blit(POWER_TEXTURE, x + 57, y + 37 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
         }
     }
 

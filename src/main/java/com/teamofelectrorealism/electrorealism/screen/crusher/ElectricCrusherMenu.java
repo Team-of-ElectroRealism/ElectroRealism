@@ -18,7 +18,7 @@ public class ElectricCrusherMenu extends AbstractContainerMenu {
     private final ContainerData data;
 
     public ElectricCrusherMenu(int containerId , Inventory inv, FriendlyByteBuf extraData) {
-        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(4));
+        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(5));
     }
 
     public ElectricCrusherMenu(int containerId, Inventory inv, BlockEntity blockEntity, ContainerData containerData) {
