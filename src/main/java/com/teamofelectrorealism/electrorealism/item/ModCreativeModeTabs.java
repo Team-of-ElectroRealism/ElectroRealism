@@ -39,6 +39,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.SOLAR_PANEL);
                         output.accept(ModBlocks.WATER_WHEEL);
                         output.accept(ModBlocks.FE_GENERATOR);
+                        output.accept(ModBlocks.FE_CONVERTER);
 
                     }).build());
 
