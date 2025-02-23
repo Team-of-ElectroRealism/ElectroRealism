@@ -18,7 +18,7 @@ public class ArcFurnaceMenu extends AbstractContainerMenu {
     private final ContainerData data;
 
     public ArcFurnaceMenu(int containerId, Inventory inv, FriendlyByteBuf extraData) {
-        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(6));
+        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(7));
     }
 
 

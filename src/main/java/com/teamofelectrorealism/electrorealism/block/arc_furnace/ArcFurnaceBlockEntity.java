@@ -1,5 +1,8 @@
 package com.teamofelectrorealism.electrorealism.block.arc_furnace;
 
+import com.teamofelectrorealism.electrorealism.api.ElectricalAPI;
+import com.teamofelectrorealism.electrorealism.block.IPowerProvider;
+import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.recipe.arc_furnace.ArcFurnaceRecipe;
@@ -29,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
+public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider, IPowerReceiver {
     public final ItemStackHandler itemHandler = new ItemStackHandler(2) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -45,18 +48,24 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
 
     private static final String INVENTORY_KEY = "inventory";
     private static final String HEAT_LEVEL_KEY = "arc_furnace.heat_level";
+    private static final String BUFFER_LEVEL_KEY = "arc_furnace.buffer_level";
+    private static final String BUFFER_TOTAL_LEVEL_KEY = "arc_furnace.buffer_total_level";
     private static final String HEAT_TOTAL_LEVEL_KEY = "arc_furnace.heat_total_level";
     private static final String SMELTING_PROGRESS_KEY = "arc_furnace.smelting_progress";
     private static final String SMELTING_TOTAL_TIME_KEY = "arc_furnace.smelting_total_time";
+    private static final String INTERNAL_RESISTANCE_KEY = "arc_furnace.internal_resistance";
 
     private static final int TOTAL_SMELTING_TIME = 80;
+    private static final int TOTAL_BUFFER_CAPASITY = 2000; // In mAh
+    private static final int INTERNAL_RESISTANCE = 10; // In ohm
 
     private int heatLevel;
     private int heatTotalLevel = 7;
     private int smeltingProgress;
     private int smeltingTotalTime = TOTAL_SMELTING_TIME;
-    private int powerLevel;
-    private int powerTotalLevel = 10;
+    private int bufferLevel;
+    private int bufferTotalLevel = TOTAL_BUFFER_CAPASITY;
+    private int internalResistance = INTERNAL_RESISTANCE;
     private final ContainerData data;
 
     public ArcFurnaceBlockEntity(BlockPos pos, BlockState blockState) {
@@ -69,8 +78,9 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
                     case 1 -> ArcFurnaceBlockEntity.this.smeltingTotalTime;
                     case 2 -> ArcFurnaceBlockEntity.this.heatLevel;
                     case 3 -> ArcFurnaceBlockEntity.this.heatTotalLevel;
-                    case 4 -> ArcFurnaceBlockEntity.this.powerLevel;
-                    case 5 -> ArcFurnaceBlockEntity.this.powerTotalLevel;
+                    case 4 -> ArcFurnaceBlockEntity.this.bufferLevel;
+                    case 5 -> ArcFurnaceBlockEntity.this.bufferTotalLevel;
+                    case 6 -> ArcFurnaceBlockEntity.this.internalResistance;
 
                     default -> 0;
                 };
@@ -83,14 +93,15 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
                     case 1: ArcFurnaceBlockEntity.this.smeltingTotalTime = i;
                     case 2: ArcFurnaceBlockEntity.this.heatLevel = i;
                     case 3: ArcFurnaceBlockEntity.this.heatTotalLevel = i;
-                    case 4: ArcFurnaceBlockEntity.this.powerLevel = i;
-                    case 5: ArcFurnaceBlockEntity.this.powerTotalLevel = i;
+                    case 4: ArcFurnaceBlockEntity.this.bufferLevel = i;
+                    case 5: ArcFurnaceBlockEntity.this.bufferTotalLevel = i;
+                    case 6: ArcFurnaceBlockEntity.this.internalResistance = i;
                 }
             }
 
             @Override
             public int getCount() {
-                return 6;
+                return 7;
             }
         };
     }
@@ -123,6 +134,9 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
         heatTotalLevel = compoundTag.getInt(HEAT_TOTAL_LEVEL_KEY);
         smeltingProgress = compoundTag.getInt(SMELTING_PROGRESS_KEY);
         smeltingTotalTime = compoundTag.getInt(SMELTING_TOTAL_TIME_KEY);
+        bufferLevel = compoundTag.getInt(BUFFER_LEVEL_KEY);
+        bufferTotalLevel = compoundTag.getInt(BUFFER_TOTAL_LEVEL_KEY);
+        internalResistance = compoundTag.getInt(INTERNAL_RESISTANCE_KEY);
     }
     @Override
     public void saveAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
@@ -131,6 +145,9 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
         compoundTag.putInt(HEAT_TOTAL_LEVEL_KEY, heatTotalLevel);
         compoundTag.putInt(SMELTING_PROGRESS_KEY, smeltingProgress);
         compoundTag.putInt(SMELTING_TOTAL_TIME_KEY, smeltingTotalTime);
+        compoundTag.putInt(BUFFER_LEVEL_KEY, bufferLevel);
+        compoundTag.putInt(BUFFER_TOTAL_LEVEL_KEY, bufferTotalLevel);
+        compoundTag.putInt(INTERNAL_RESISTANCE_KEY, internalResistance);
 
         super.saveAdditional(compoundTag, registries);
     }
@@ -151,10 +168,6 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     public void tick(Level level, BlockPos blockPos, BlockState blockState) {
-        if (powerLevel <= 9) {
-            increasePowerLevel();
-        }
-
         if (isPowered()) {
             heatUp();
         } else {
@@ -162,8 +175,9 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
         }
 
         if (hasRecipe() && isOutputSlotEmptyOrReceivable()) {
-            if (isHeated()) {
+            if (isHeated() && hasBufferEnoughCharge()) {
                 increaseSmeltingProgress();
+                decreaseBufferCharge();
                 if (hasSmeltingFinished()) {
                     smeltItem();
                     resetProgress();
@@ -174,6 +188,14 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
         } else {
             smeltingProgress = 0;
         }
+    }
+
+    private boolean hasBufferEnoughCharge() {
+        return bufferLevel >= 100;
+    }
+
+    private void decreaseBufferCharge() {
+        bufferLevel = bufferLevel - 3;
     }
 
     private boolean hasRecipe() {
@@ -235,10 +257,6 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
 
-    private void increasePowerLevel() {
-        powerLevel++;
-    }
-
     // Timer for heating
     private int heatUpTimer = 0;
 
@@ -254,6 +272,30 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
 
+    @Override
+    public int getResistance() {
+        return internalResistance;
+    }
+
+    @Override
+    public void receiveVoltage(int voltage) {
+        int totalResistance = this.internalResistance;
+
+        int chargeIncrease = ElectricalAPI.getChargeIncreaseMah(voltage, totalResistance, (double) 1 / 20);
+
+        setBufferCharge(bufferLevel + chargeIncrease);
+    }
+
+    @Override
+    public int getBufferCharge() {
+        return bufferLevel;
+    }
+
+    @Override
+    public void setBufferCharge(int charge) {
+        this.bufferLevel = Math.max(0, Math.min(charge, bufferTotalLevel));
+    }
+
     private void coolDown() {
         if (heatLevel > 0) {
             heatLevel --; // Cool down slowly
@@ -265,6 +307,6 @@ public class ArcFurnaceBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     private boolean isPowered() {
-        return this.powerLevel > 9;
+        return this.bufferLevel > 0;
     }
 }
