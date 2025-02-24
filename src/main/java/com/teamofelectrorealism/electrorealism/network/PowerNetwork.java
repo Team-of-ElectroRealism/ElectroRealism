@@ -22,6 +22,10 @@ public class PowerNetwork {
     public void removed() {
     }
 
+    public void invalidate() {
+        this.isValid = false;
+    }
+
     public void tick(int index) {
         this.id = index;
     }
