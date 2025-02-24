@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.test.VoltageSourceBlock;
@@ -53,6 +54,12 @@ public class ModBlocks {
 
     public static final DeferredBlock<Block> WATER_WHEEL = registerBlock("water_wheel",
             () -> new WaterWheelBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion()));
+
+    public static final DeferredBlock<Block> SMALL_CONNECTOR = registerBlock("small_connector",
+            () -> new SmallConnectorBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));
