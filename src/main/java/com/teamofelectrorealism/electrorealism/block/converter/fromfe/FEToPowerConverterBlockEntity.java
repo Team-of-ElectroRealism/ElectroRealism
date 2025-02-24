@@ -28,7 +28,7 @@ public class FEToPowerConverterBlockEntity extends EnergyConverterBlockEntity im
 
     private int voltage;
     private int energyStored;
-    private final EnergyStorage energyStorage;
+    public final EnergyStorage energyStorage;
 
     public FEToPowerConverterBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlockEntityTypes.FE_CONVERTER_BE.get(), pos, blockState);
@@ -89,10 +89,17 @@ public class FEToPowerConverterBlockEntity extends EnergyConverterBlockEntity im
     @Override
     public void tick(Level level, BlockPos pos, BlockState state) {
         if (!level.isClientSide()) {
+            System.out.println("FEToPowerConverter tick() called"); // Print before conversion
             convertEnergy();
+            System.out.println("Energy converted, voltage: " + voltage); // Print after conversion
+
             BlockPos receiverPos = findPowerReceiver(level, pos);
-            if (receiverPos != null) {
+            if (receiverPos!= null) {
+                System.out.println("Receiver found at: " + receiverPos); // Print before transfer
                 transferVoltage(level, receiverPos);
+                System.out.println("Voltage transferred to receiver"); // Print after transfer
+            } else {
+                System.out.println("No receiver found"); // Print if no receiver
             }
         }
     }

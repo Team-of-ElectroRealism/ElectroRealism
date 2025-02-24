@@ -23,7 +23,7 @@ public class FEGeneratorBlock extends Block {
     private final int energyOutput;
 
     public FEGeneratorBlock(Properties properties, int energyOutput) {
-        super(properties);
+        super(properties.randomTicks());
         this.energyOutput = energyOutput;
     }
 
@@ -54,16 +54,26 @@ public class FEGeneratorBlock extends Block {
             BlockPos targetPos = pos.relative(facing);
 
             if (level.isLoaded(targetPos)) {
+                System.out.println("FEGenerator tick() called, facing: " + facing); // Print facing direction
+
                 // Create an EnergyStorage instance
                 IEnergyStorage energyStorage = new EnergyStorage(energyOutput);
+                System.out.println("EnergyStorage created with capacity: " + energyOutput); // Print capacity
 
                 // Get the IEnergyStorage from the level using Capabilities.EnergyStorage.BLOCK
                 IEnergyStorage targetStorage = level.getCapability(Capabilities.EnergyStorage.BLOCK, targetPos, facing.getOpposite());
-
-                if (targetStorage!= null && targetStorage.canReceive()) {
-                    // Transfer energy
-                    int transferred = energyStorage.extractEnergy(targetStorage.receiveEnergy(energyOutput, true), false);
-                    targetStorage.receiveEnergy(transferred, false);
+                if (targetStorage!= null) {
+                    System.out.println("Target IEnergyStorage found"); // Print if target found
+                    if (targetStorage.canReceive()) {
+                        // Transfer energy
+                        int transferred = energyStorage.extractEnergy(targetStorage.receiveEnergy(energyOutput, true), false);
+                        System.out.println("Energy transferred: " + transferred); // Print transferred amount
+                        targetStorage.receiveEnergy(transferred, false);
+                    } else {
+                        System.out.println("Target cannot receive energy"); // Print if target cannot receive
+                    }
+                } else {
+                    System.out.println("Target IEnergyStorage not found"); // Print if no target
                 }
             }
         }

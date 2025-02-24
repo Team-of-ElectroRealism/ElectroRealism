@@ -57,7 +57,8 @@ public class ModBlocks {
             () -> new FEGeneratorBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)
-                    .noOcclusion(),
+                    .noOcclusion()
+                    .randomTicks(),
                     1000));
 
     public static final DeferredBlock<Block> FE_CONVERTER = registerBlock("fe_converter",
