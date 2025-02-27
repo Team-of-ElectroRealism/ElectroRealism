@@ -14,4 +14,6 @@ public class SmallConnectorBlockEntity extends AbstractConnectorBlockEntity {
     public void tick(Level level, BlockPos blockPos, BlockState blockState) {
         System.out.println("Ticking!");
     }
+
+    
 }
