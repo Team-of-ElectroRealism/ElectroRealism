@@ -10,8 +10,11 @@ public enum WireConnectResult {
     LINKED_IN(Component.translatable("statusbar.electrorealism.wire.linked_in")),
     LINKED_OUT(Component.translatable("statusbar.electrorealism.wire.linked_out")),
 
-    REMOVED(Component.translatable("statusbar.electrorealism.wire.removed")),
     CONNECT(Component.translatable("statusbar.electrorealism.wire.connect")),
+    CONNECT_IN(Component.translatable("statusbar.electrorealism.wire.connect_in")),
+    CONNECT_OUT(Component.translatable("statusbar.electrorealism.wire.connect_out")),
+
+    REMOVED(Component.translatable("statusbar.electrorealism.wire.removed")),
     INVALID(Component.translatable("statusbar.electrorealism.wire.invalid")),
     NO_CONNECTION(Component.translatable("statusbar.electrorealism.wire.no_connection")),
     COUNT(Component.translatable("statusbar.electrorealism.wire.count")),
@@ -43,7 +46,9 @@ public enum WireConnectResult {
         return LINKED;
     }
 
-    public static WireConnectResult getConnect() {
+    public static WireConnectResult getConnect(boolean in, boolean out) {
+        if(in && !out) return CONNECT_IN;
+        if(!in && out) return CONNECT_OUT;
         return CONNECT;
     }
 }

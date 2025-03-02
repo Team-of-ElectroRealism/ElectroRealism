@@ -72,14 +72,21 @@ public class WireSpool extends Item {
 
         else { // First click
             // 5b. If the item is a remover and the block has no connections, display a message and play a sound.
-
-            // 6b. Get the index of the available nodeBlockEntity on the clicked block.
-
-            // 7b. If no nodeBlockEntity is available, exit.
-
-            // 8b. If the item is not a remover, display a message indicating the connection type.
-
-            // 9b. Store the clicked block's position and nodeBlockEntity index in the item's NBT data.
+            if (context.getPlayer() == null) return InteractionResult.PASS;
+            if (isRemover(heldItem)) {
+                if (!nodeBlockEntity.hasAnyConnection()) {
+                    context.getPlayer().displayClientMessage(WireConnectResult.NO_CONNECTION.getMessage(), true);
+                    return InteractionResult.CONSUME;
+                }
+            }
+            int index = nodeBlockEntity.getAvailableNode(context.getClickLocation());
+            if (index < 0) {
+                return InteractionResult.PASS;
+            }
+            if (!isRemover(heldItem)) {
+                context.getPlayer().displayClientMessage(WireConnectResult.getConnect(nodeBlockEntity.isNodeInput(index), nodeBlockEntity.isNodeOutput(index)).getMessage(), true);
+            }
+            itemStack.set(ModDataComponents.WIRE_CONNECTION.value(), new WireConnectionData(nodeBlockEntity.getPos(), index)); // observerPacket? todo
         }
         return InteractionResult.CONSUME; // Indicate that the item was used
     }

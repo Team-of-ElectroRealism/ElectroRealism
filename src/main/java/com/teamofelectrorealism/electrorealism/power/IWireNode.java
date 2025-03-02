@@ -191,4 +191,11 @@ public interface IWireNode {
         }
         return -1;
     }
+
+    default boolean hasAnyConnection() {
+        for (int i = 0; i < getNodeCount(); i++) {
+            if(hasConnection(i)) return true;
+        }
+        return false;
+    }
 }
