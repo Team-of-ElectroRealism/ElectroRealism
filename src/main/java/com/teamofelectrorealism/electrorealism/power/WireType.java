@@ -1,19 +1,25 @@
 package com.teamofelectrorealism.electrorealism.power;
 
+import com.teamofelectrorealism.electrorealism.item.ModItems;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+
 public enum WireType {
-    COPPER(0, 17.54e-9, 100.0, 255, 255, 255);
+    COPPER(0, 17.54e-9, 100.0, 255, 255, 255, ModItems.COPPER_SPOOL.toStack());
 
     //should add CAPACITY, INDUCTANCE, THICKNESS, not MAX_CURRENT maybe?
     private final int ID, COLOR_RED, COLOR_GREEN, COLOR_BLUE;
     private final double RESISTIVITY, MAX_CURRENT; // RESISTIVITY in Ω⋅m
+    private final ItemStack SOURCE_DROP;
 
-    WireType(int id, double resistivity, double maxCurrent, int colorRed, int colorGreen, int colorBlue) {
+    WireType(int id, double resistivity, double maxCurrent, int colorRed, int colorGreen, int colorBlue, ItemStack source) {
         this.ID = id;
         this.RESISTIVITY = resistivity;
         this.MAX_CURRENT = maxCurrent;
         this.COLOR_RED = colorRed;
         this.COLOR_GREEN = colorGreen;
         this.COLOR_BLUE = colorBlue;
+        this.SOURCE_DROP = source;
     }
 
     public static WireType fromIndex(int index) {
@@ -45,5 +51,16 @@ public enum WireType {
 
     public int getColorBlue() {
         return COLOR_BLUE;
+    }
+
+    public static WireType of(Item item) {
+        if (item == ModItems.COPPER_SPOOL.get()) {
+            return WireType.COPPER;
+        }
+        return WireType.COPPER;
+    }
+
+    public ItemStack getSourceDrop() {
+        return SOURCE_DROP.copy();
     }
 }

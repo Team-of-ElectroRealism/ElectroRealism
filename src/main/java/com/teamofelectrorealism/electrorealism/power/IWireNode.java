@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.power;
 
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -10,12 +11,84 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 
 public interface IWireNode {
+    static WireConnectResult disconnect(Level level, BlockPos pos1, BlockPos pos2) {
+        BlockEntity blockEntity1 = level.getBlockEntity(pos1);
+        BlockEntity blockEntity2 = level.getBlockEntity(pos2);
+        if (blockEntity1 == null || blockEntity2 == null || blockEntity1 == blockEntity2) {
+            return WireConnectResult.INVALID;
+        }
+        if (!(blockEntity1 instanceof IWireNode iWireNode1) || !(blockEntity2 instanceof IWireNode iWireNode2)) {
+            return WireConnectResult.INVALID;
+        }
+        if (!iWireNode1.hasConnectionTo(pos2)) {
+            return WireConnectResult.NO_CONNECTION;
+        }
+
+        LocalNode localNode1 = iWireNode1.getConnectionTo(pos2);
+        LocalNode localNode2 = iWireNode2.getConnectionTo(pos1);
+        if (localNode1 == null || localNode2 == null) {
+            return WireConnectResult.NO_CONNECTION;
+        }
+        iWireNode1.removeNode(localNode1);
+        iWireNode2.removeNode(localNode2);
+        return WireConnectResult.REMOVED;
+    }
+
+    static WireConnectResult connect(Level level, BlockPos pos1, int node1, BlockPos pos2, int node2, WireType wireType) {
+        BlockEntity blockEntity1 = level.getBlockEntity(pos1);
+        BlockEntity blockEntity2 = level.getBlockEntity(pos2);
+        if (blockEntity1 == null || blockEntity2 == null || blockEntity1 == blockEntity2) {
+            return WireConnectResult.INVALID;
+        }
+        if (!(blockEntity1 instanceof IWireNode iWireNode1) || !(blockEntity2 instanceof IWireNode iWireNode2)) {
+            return WireConnectResult.INVALID;
+        }
+        if (node1 < 0 || node2 < 0) {
+            return WireConnectResult.COUNT;
+        }
+        
+        int maxLength = Math.min(iWireNode1.getMaxWireLength(), iWireNode2.getMaxWireLength());
+        if (pos1.distSqr(pos2) > maxLength * maxLength) return WireConnectResult.LONG;
+        if (iWireNode1.hasConnectionTo(pos2)) return WireConnectResult.EXISTS;
+        if (iWireNode1.getConnectorType() == ConnectorType.Large && iWireNode2.getConnectorType() == ConnectorType.Large) {
+            if (wireType == WireType.COPPER) return WireConnectResult.REQUIRES_HIGH_CURRENT;
+        }
+
+        iWireNode1.setNode(node1, node2, iWireNode2.getPos(), wireType);
+        iWireNode2.setNode(node2, node1, iWireNode1.getPos(), wireType);
+        return WireConnectResult.getLink(iWireNode2.isNodeInput(node2), iWireNode2.isNodeOutput(node2));
+    }
+
+    default boolean isNodeInput(int index) {
+        return true;
+    }
+
+    default boolean isNodeOutput(int node) {
+        return true;
+    }
+
+    void setNode(int index, int connectingIndex, BlockPos pos, WireType wireType);
+
+    ConnectorType getConnectorType();
+
+    int getMaxWireLength();
+
     default int getNodeCount() {
         return 1;
     };
 
     default boolean hasConnection(int index) {
         return getLocalNode(index) != null;
+    }
+
+    default boolean hasConnectionTo(BlockPos pos) {
+        if (pos == null) return false;
+        for (int i = 0; i < getNodeCount(); i++) {
+            LocalNode localNode = getLocalNode(i);
+            if (localNode == null) continue;
+            if (localNode.getPos().equals(pos)) return true;
+        }
+        return false;
     }
 
     @Nullable
@@ -105,5 +178,17 @@ public interface IWireNode {
             if (node.getPos().equals(pos)) return node;
         }
         return null;
+    }
+
+    default int getAvailableNode(Vec3 pos) {
+        return getAvailableNode();
+    }
+
+    default int getAvailableNode() {
+        for (int i = 0; i < getNodeCount(); i++) {
+            if (hasConnection(i)) continue;
+            return i;
+        }
+        return -1;
     }
 }
