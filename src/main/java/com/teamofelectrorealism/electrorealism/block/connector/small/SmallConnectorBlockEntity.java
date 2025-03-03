@@ -38,6 +38,7 @@ public class SmallConnectorBlockEntity extends AbstractConnectorBlockEntity {
         return 16;
     }
 
+
     @Override
     public Vec3 getNodeOffset(int node) {
         return switch (getBlockState().getValue(AbstractConnectorBlock.FACING)) {
@@ -49,6 +50,11 @@ public class SmallConnectorBlockEntity extends AbstractConnectorBlockEntity {
             case EAST -> OFFSET_EAST;
         };
     }
-
-    
+    /*
+    // For testing
+    @Override
+    public Vec3 getNodeOffset(int node) {
+        return Vec3.ZERO;
+    }
+     */
 }

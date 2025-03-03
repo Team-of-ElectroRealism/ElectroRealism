@@ -4,10 +4,12 @@ import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -18,7 +20,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class SmallConnectorBlock extends AbstractConnectorBlock {
     public static final MapCodec<SmallConnectorBlock> CODEC = simpleCodec(SmallConnectorBlock::new);
-    public static final VoxelShape SHAPE = Block.box(6, 0, 6, 10, 5, 10);
+    public static final VoxelShape BASE_SHAPE = Block.box(6, 0, 6, 10, 5, 10);
+    public static final VoxelShape UP_SHAPE = BASE_SHAPE;
+    public static final VoxelShape DOWN_SHAPE = BASE_SHAPE.move(0, 11/16f, 0);
+    public static final VoxelShape NORTH_SHAPE = Block.box(6, 6, 11, 10, 10, 16);
+    public static final VoxelShape SOUTH_SHAPE = Block.box(6, 6, 0, 10, 10, 5);
+    public static final VoxelShape WEST_SHAPE = Block.box(11, 6, 6, 16, 10, 10);
+    public static final VoxelShape EAST_SHAPE = Block.box(0, 6, 6, 5, 10, 10);
 
     public SmallConnectorBlock(Properties properties) {
         super(properties);
@@ -37,8 +45,18 @@ public class SmallConnectorBlock extends AbstractConnectorBlock {
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos blockPos, CollisionContext collisionContext) {
-        return SHAPE;
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
+        Direction facing = state.getValue(FACING);
+
+        return switch (facing) {
+            case DOWN -> DOWN_SHAPE;
+            case UP -> UP_SHAPE;
+            case NORTH -> NORTH_SHAPE;
+            case SOUTH -> SOUTH_SHAPE;
+            case EAST -> EAST_SHAPE;
+            case WEST -> WEST_SHAPE;
+            default -> BASE_SHAPE;
+        };
     }
 
     @Override
