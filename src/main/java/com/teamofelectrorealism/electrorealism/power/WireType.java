@@ -5,7 +5,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public enum WireType {
-    COPPER(0, 17.54e-9, 100.0, 255, 255, 255, ModItems.COPPER_SPOOL.toStack());
+    COPPER(0, 17.54e-9, 100.0, 200, 116, 86, ModItems.COPPER_SPOOL.toStack());
 
     //should add CAPACITY, INDUCTANCE, THICKNESS, not MAX_CURRENT maybe?
     private final int ID, COLOR_RED, COLOR_GREEN, COLOR_BLUE;
