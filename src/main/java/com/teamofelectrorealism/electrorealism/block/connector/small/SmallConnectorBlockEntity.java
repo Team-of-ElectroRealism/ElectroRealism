@@ -27,6 +27,11 @@ public class SmallConnectorBlockEntity extends AbstractConnectorBlockEntity {
         //System.out.println("Ticking!");
     }
 
+    @Override
+    public Vec3 getCableStartOffset() {
+        // Offset for where the wire starts:
+        return new Vec3(0.5, 0.2, 0.5);
+    }
 
     @Override
     public ConnectorType getConnectorType() {

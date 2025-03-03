@@ -180,6 +180,10 @@ public interface IWireNode {
         return null;
     }
 
+    default Vec3 getCableStartOffset() {
+        return Vec3.ZERO;  // Default offset; override in your block entity if necessary.
+    }
+
     default int getAvailableNode(Vec3 pos) {
         return getAvailableNode();
     }

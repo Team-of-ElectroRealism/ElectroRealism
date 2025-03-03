@@ -54,7 +54,11 @@ public class WireNodeRenderer<T extends BlockEntity> implements BlockEntityRende
 
             float offsetDistance = distanceFromZero(relativeOffsetX, relativeOffsetY, relativeOffsetZ);
 
-            matrixStackIn.translate(relativeOffsetX + .5f + connectingNodeOffsetX, relativeOffsetY + .5f + connectingNodeOffsetY, relativeOffsetZ + .5f + connectingNodeOffsetZ);
+            Vec3 customOffset = blockEntity.getCableStartOffset();
+            matrixStackIn.translate(relativeOffsetX + connectingNodeOffsetX + (float) customOffset.x(),
+                    relativeOffsetY + connectingNodeOffsetY + (float) customOffset.y(),
+                    relativeOffsetZ + connectingNodeOffsetZ + (float) customOffset.z());
+
             wireRender(
                     blockEntityIn,
                     connectingPos,
