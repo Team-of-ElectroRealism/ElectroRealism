@@ -23,6 +23,8 @@ public class ModCreativeModeTabs {
 
                         // Items to be added to the tab
                         output.accept(ModItems.TEST_ITEM);
+                        output.accept(ModItems.SPOOL);
+                        output.accept(ModItems.COPPER_SPOOL);
 
                     }).build());
 

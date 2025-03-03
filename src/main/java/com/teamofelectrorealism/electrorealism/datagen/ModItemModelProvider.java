@@ -17,6 +17,8 @@ public class ModItemModelProvider extends ItemModelProvider {
     @Override
     protected void registerModels() {
         basicItem(ModItems.TEST_ITEM.get());
+        basicItem(ModItems.COPPER_SPOOL.get());
+        basicItem(ModItems.SPOOL.get());
     }
 
     private ItemModelBuilder handheldItem(DeferredItem<?> item) {

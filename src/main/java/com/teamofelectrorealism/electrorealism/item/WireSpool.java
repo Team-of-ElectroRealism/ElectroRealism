@@ -25,12 +25,6 @@ public class WireSpool extends Item {
         BlockEntity blockEntity = context.getLevel().getBlockEntity(clickedPos);
 
         WireConnectionData connectionData = itemStack.get(ModDataComponents.WIRE_CONNECTION.value());
-        /*
-        if (connectionData == null) { // hmm logic
-            connectionData = new WireConnectionData(clickedPos, 0); // default todo
-        }
-        connectionData = new WireConnectionData(clickedPos, connectionData.nodeBlockEntity());
-        */
 
         // 3. Check if the block entity is a valid wire nodeBlockEntity. If not, exit.
         if (!(blockEntity instanceof IWireNode)) { // will also check if blockEntity is null
@@ -38,11 +32,11 @@ public class WireSpool extends Item {
         }
         IWireNode nodeBlockEntity = (IWireNode) blockEntity;
         Item heldItem = itemStack.getItem();
-        BlockPos connectionPos = connectionData.pos();
 
         // 4. Check if this is the first or second click in the connection process.
-        if (connectionPos != null /* Item has stored position data (second click) */) {
+        if (connectionData != null && connectionData.pos() != null /* Item has stored position data (second click) */) {
             WireConnectResult connectResult = null;
+            BlockPos connectionPos = connectionData.pos();
 
             // 6a. Disconnect or connect wires based on the item type.
             if(isRemover(heldItem)) {

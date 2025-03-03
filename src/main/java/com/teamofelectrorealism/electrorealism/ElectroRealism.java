@@ -2,6 +2,7 @@ package com.teamofelectrorealism.electrorealism;
 
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.ModBlocks;
+import com.teamofelectrorealism.electrorealism.block.connector.ConnectorRenderer;
 import com.teamofelectrorealism.electrorealism.datacomponents.ModDataComponents;
 import com.teamofelectrorealism.electrorealism.item.ModCreativeModeTabs;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
@@ -9,6 +10,7 @@ import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.screen.ModMenuTypes;
 import com.teamofelectrorealism.electrorealism.screen.arc_furnace.ArcFurnaceScreen;
 import com.teamofelectrorealism.electrorealism.screen.crusher.ElectricCrusherScreen;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.slf4j.Logger;
 
@@ -59,6 +61,7 @@ public class ElectroRealism
     {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(this::setupRenderers);
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (ExampleMod) to respond directly to events.
@@ -92,6 +95,10 @@ public class ElectroRealism
         LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
 
         Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
+    }
+
+    private void setupRenderers(final FMLCommonSetupEvent event) {
+        BlockEntityRenderers.register(ModBlockEntityTypes.SMALL_CONNECTOR_BE.get(), ConnectorRenderer::new);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event)

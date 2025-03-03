@@ -14,8 +14,12 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
+import java.util.Set;
 
 public abstract class AbstractConnectorBlockEntity extends BlockEntity implements IWireNode{
+
+    private final Set<LocalNode> wireCache = new HashSet<>();
     private PowerNetwork powerNetwork;
     private final LocalNode[] localNodes;
     private final IWireNode[] nodeCache;
@@ -81,6 +85,18 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         super.saveAdditional(tag, registries);
     }
     //End serializing
+
+
+    @Override
+    public void removeNode(int index, boolean dropWire) {
+        LocalNode node = this.localNodes[index];
+        this.localNodes[index] = null;
+        this.nodeCache[index] = null;
+
+        invalidateNodeCache();
+        if (powerNetwork == null) powerNetwork.invalidate();
+        if (dropWire && node != null) this.wireCache.add(node);
+    }
 
     //Helpers
     public void invalidateLocalNodes() {

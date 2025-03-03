@@ -37,7 +37,7 @@ public enum WireConnectResult {
     }
 
     public boolean isConnected() {
-        return this == CONNECT;
+        return this == CONNECT || this == CONNECT_IN || this == CONNECT_OUT;
     }
 
     public static WireConnectResult getLink(boolean in, boolean out) {
