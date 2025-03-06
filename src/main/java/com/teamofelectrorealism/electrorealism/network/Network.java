@@ -29,16 +29,11 @@ public class Network {
         throw new NotImplementedException();
     }
 
+    private void removeInvalidConnections() {
+        connections.removeIf(connection -> !connection.isValid());
+    }
+
     public void tick() {
-        List<Connection> validConnections = new ArrayList<Connection>();
-        for (int i = 0; i < connections.size(); i++) {
-            Connection connection = connections.get(i);
-            if (connection.isValid()) {
-                connection.tick(i);
-                validConnections.add(connection);
-            }
-            connection.removed();
-        }
-        connections = validConnections;
+        removeInvalidConnections();
     }
 }

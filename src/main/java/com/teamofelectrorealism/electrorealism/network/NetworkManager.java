@@ -33,11 +33,14 @@ public class NetworkManager {
         return newNetwork;
     }
 
+    private void removeInvalidNetworks() {
+        networks.removeIf(network -> !network.isValid());
+    }
+
     public void tick() {
         for (Network network : networks) {
             network.tick();
         }
-
-        networks.removeIf(network -> !network.isValid());
+        removeInvalidNetworks();
     }
 }
