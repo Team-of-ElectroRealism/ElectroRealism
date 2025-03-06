@@ -17,11 +17,6 @@ public class NetworkManager {
         networks = new ArrayList<Network>();
     }
 
-    public void addConnection(Connection connection) {
-        Network network = findOrCreateNetwork(Connection.getSourceNode());
-        network.addConnection(connection);
-    }
-
     public Network findOrCreateNetwork(LocalNode node) {
         for (Network network : networks) {
             if (network.containsNode(node)) {

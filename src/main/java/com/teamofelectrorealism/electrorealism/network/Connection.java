@@ -7,8 +7,8 @@ public class Connection {
     private int id;
     private boolean isValid;
 
-    private static LocalNode sourceNode;
-    private static LocalNode targetNode;
+    private LocalNode sourceNode;
+    private LocalNode targetNode;
     private Network network;
 
     public Connection(Level level, LocalNode sourceNode, LocalNode targetNode) {
@@ -21,11 +21,11 @@ public class Connection {
         network.addConnection(this);
     }
 
-    public static LocalNode getSourceNode() {
+    public LocalNode getSourceNode() {
         return sourceNode;
     }
 
-    public static LocalNode getTargetNode() {
+    public LocalNode getTargetNode() {
         return targetNode;
     }
 
