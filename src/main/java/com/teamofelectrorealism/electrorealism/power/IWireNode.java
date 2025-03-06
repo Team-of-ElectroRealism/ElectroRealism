@@ -99,10 +99,10 @@ public interface IWireNode {
     @Nullable
     IWireNode getWireNode(int index);
 
-    static IWireNode getWireNode(Level world, BlockPos pos) {
+    static IWireNode getWireNode(Level level, BlockPos pos) {
         if(pos == null)
             return null;
-        BlockEntity blockEntity = world.getBlockEntity(pos);
+        BlockEntity blockEntity = level.getBlockEntity(pos);
         if(blockEntity == null)
             return null;
         if(!(blockEntity instanceof IWireNode))

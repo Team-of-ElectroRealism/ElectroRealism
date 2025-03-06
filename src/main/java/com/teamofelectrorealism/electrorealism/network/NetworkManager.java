@@ -1,0 +1,43 @@
+package com.teamofelectrorealism.electrorealism.network;
+
+import com.teamofelectrorealism.electrorealism.power.LocalNode;
+import net.minecraft.world.level.LevelAccessor;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class NetworkManager {
+    public static Map<LevelAccessor, NetworkManager> instances = new HashMap<>();
+    private List<Network> networks;
+
+    public NetworkManager(LevelAccessor levelAccessor) {
+        instances.put(levelAccessor, this);
+        networks = new ArrayList<Network>();
+    }
+
+    public void addConnection(Connection connection) {
+        Network network = findOrCreateNetwork(Connection.getSourceNode());
+        network.addConnection(connection);
+    }
+
+    public Network findOrCreateNetwork(LocalNode node) {
+        for (Network network : networks) {
+            if (network.containsNode(node)) {
+                return network;
+            }
+        }
+        Network newNetwork = new Network();
+        networks.add(newNetwork);
+        return newNetwork;
+    }
+
+    public void tick() {
+        for (Network network : networks) {
+            network.tick();
+        }
+
+        networks.removeIf(network -> !network.isValid());
+    }
+}

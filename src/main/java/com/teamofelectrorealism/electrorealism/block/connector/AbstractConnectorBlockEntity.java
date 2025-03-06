@@ -1,7 +1,6 @@
 package com.teamofelectrorealism.electrorealism.block.connector;
 
-import com.llamalad7.mixinextras.sugar.Local;
-import com.teamofelectrorealism.electrorealism.network.PowerNetwork;
+import com.teamofelectrorealism.electrorealism.network.Connection;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.LocalNode;
 import com.teamofelectrorealism.electrorealism.power.WireType;
@@ -20,7 +19,7 @@ import java.util.Set;
 public abstract class AbstractConnectorBlockEntity extends BlockEntity implements IWireNode{
 
     private final Set<LocalNode> wireCache = new HashSet<>();
-    private PowerNetwork powerNetwork;
+    private Connection connection;
     private final LocalNode[] localNodes;
     private final IWireNode[] nodeCache;
 
@@ -44,17 +43,17 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         return getBlockPos();
     }
 
-    public PowerNetwork getNetwork(int node) {
-        return powerNetwork;
+    public Connection getNetwork(int node) {
+        return connection;
     }
 
-    public void setNetwork(int node, PowerNetwork powerNetwork) {
-        this.powerNetwork = powerNetwork;
+    public void setNetwork(int node, Connection connection) {
+        this.connection = connection;
     }
 
     public void setNode(int index, int other, BlockPos pos, WireType type) {
         this.localNodes[index] = new LocalNode(this, index, other, type, pos);
-        if (powerNetwork != null) powerNetwork.invalidate();
+        if (connection != null) connection.invalidate();
     }
     // End getters/setters
 
@@ -94,7 +93,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         this.nodeCache[index] = null;
 
         invalidateNodeCache();
-        if (powerNetwork == null) powerNetwork.invalidate();
+        if (connection == null) connection.invalidate();
         if (dropWire && node != null) this.wireCache.add(node);
     }
 
