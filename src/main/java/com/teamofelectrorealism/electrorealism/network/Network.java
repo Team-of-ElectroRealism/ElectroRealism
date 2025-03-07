@@ -15,7 +15,7 @@ public class Network {
         this.nodes = new ArrayList<LocalNode>();
     }
 
-    public void addConnection(Connection connection) {
+    void addConnection(Connection connection) {
         connections.add(connection);
         nodes.add(connection.getSourceNode());
         nodes.add(connection.getTargetNode());

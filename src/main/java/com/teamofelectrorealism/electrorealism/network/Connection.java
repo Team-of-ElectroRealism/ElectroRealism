@@ -7,18 +7,14 @@ public class Connection {
     private int id;
     private boolean isValid;
 
-    private LocalNode sourceNode;
-    private LocalNode targetNode;
-    private Network network;
+    private final LocalNode sourceNode;
+    private final LocalNode targetNode;
 
-    public Connection(Level level, LocalNode sourceNode, LocalNode targetNode) {
+    public Connection(LocalNode sourceNode, LocalNode targetNode) {
         this.id = 0;
         this.isValid = true;
         this.sourceNode = sourceNode;
         this.targetNode = targetNode;
-
-        this.network = NetworkManager.instances.get(level).findOrCreateNetwork(sourceNode);
-        network.addConnection(this);
     }
 
     public LocalNode getSourceNode() {

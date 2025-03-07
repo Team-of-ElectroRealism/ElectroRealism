@@ -17,7 +17,7 @@ public class NetworkManager {
         networks = new ArrayList<Network>();
     }
 
-    public Network findOrCreateNetwork(LocalNode node) {
+    private Network findOrCreateNetwork(LocalNode node) {
         for (Network network : networks) {
             if (network.containsNode(node)) {
                 return network;
@@ -26,6 +26,12 @@ public class NetworkManager {
         Network newNetwork = new Network();
         networks.add(newNetwork);
         return newNetwork;
+    }
+
+    public void createConnection(LocalNode sourceNode, LocalNode targetNode) {
+        Network network = this.findOrCreateNetwork(sourceNode);
+        Connection connection = new Connection(sourceNode, targetNode);
+        network.addConnection(connection);
     }
 
     private void removeInvalidNetworks() {

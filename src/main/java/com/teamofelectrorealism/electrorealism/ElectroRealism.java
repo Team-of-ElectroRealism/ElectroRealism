@@ -6,12 +6,14 @@ import com.teamofelectrorealism.electrorealism.block.connector.ConnectorRenderer
 import com.teamofelectrorealism.electrorealism.datacomponents.ModDataComponents;
 import com.teamofelectrorealism.electrorealism.item.ModCreativeModeTabs;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
+import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.screen.ModMenuTypes;
 import com.teamofelectrorealism.electrorealism.screen.arc_furnace.ArcFurnaceScreen;
 import com.teamofelectrorealism.electrorealism.screen.crusher.ElectricCrusherScreen;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -116,6 +118,12 @@ public class ElectroRealism
     {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
+    }
+
+    @SubscribeEvent
+    public void loadEvent(LevelEvent.Load levelEvent) {
+        if(levelEvent.getLevel().isClientSide()) return;
+        new NetworkManager(levelEvent.getLevel());
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
