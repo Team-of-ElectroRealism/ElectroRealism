@@ -2,6 +2,7 @@ package com.teamofelectrorealism.electrorealism.power;
 
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
+import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -56,6 +57,16 @@ public interface IWireNode {
 
         iWireNode1.setNode(node1, node2, iWireNode2.getPos(), wireType);
         iWireNode2.setNode(node2, node1, iWireNode1.getPos(), wireType);
+
+        // Ensure NetworkManager is initialized
+        if (!NetworkManager.instances.containsKey(level)) {
+            new NetworkManager(level);
+        }
+
+        NetworkManager.instances.get(level).createConnection(
+                iWireNode1.getLocalNode(node1),
+                iWireNode2.getLocalNode(node2)
+        );
         return WireConnectResult.getLink(iWireNode2.isNodeInput(node2), iWireNode2.isNodeOutput(node2));
     }
 

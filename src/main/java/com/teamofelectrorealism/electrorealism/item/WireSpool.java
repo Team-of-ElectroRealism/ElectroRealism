@@ -2,7 +2,6 @@ package com.teamofelectrorealism.electrorealism.item;
 
 import com.teamofelectrorealism.electrorealism.datacomponents.ModDataComponents;
 import com.teamofelectrorealism.electrorealism.datacomponents.WireConnectionData;
-import com.teamofelectrorealism.electrorealism.network.Connection;
 import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.WireConnectResult;
@@ -14,7 +13,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-//todo
 public class WireSpool extends Item {
     public WireSpool(Properties properties) {
         super(properties);
@@ -36,21 +34,11 @@ public class WireSpool extends Item {
         if (connectionData != null && connectionData.pos() != null) { // second click
             WireConnectResult connectResult;
             BlockPos targetPos = connectionData.pos();
-            BlockEntity targetBlockEntity = context.getLevel().getBlockEntity(targetPos);
 
             if(isRemover(itemInHand)) {
                 connectResult = IWireNode.disconnect(context.getLevel(), clickedPos, targetPos);
             } else {
                 connectResult = IWireNode.connect(context.getLevel(), getPos(connectionData), getNode(connectionData), clickedPos, clickedIWireNodeBlockEntity.getAvailableNode(context.getClickLocation()), WireType.of(itemInHand));
-
-                if (!NetworkManager.instances.containsKey(context.getLevel())) {
-                    System.out.println("Called");
-                    new NetworkManager(context.getLevel());
-                }
-                NetworkManager.instances.get(context.getLevel()).createConnection(
-                        clickedIWireNodeBlockEntity.getLocalNode(connectionData.node()),
-                        ((IWireNode) targetBlockEntity).getLocalNode(0)
-                );
             }
 
             clickedBlockEntity.setChanged();

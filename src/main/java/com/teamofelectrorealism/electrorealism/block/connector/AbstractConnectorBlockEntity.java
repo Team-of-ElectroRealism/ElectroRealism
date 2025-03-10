@@ -43,11 +43,11 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         return getBlockPos();
     }
 
-    public Connection getNetwork(int node) {
+    public Connection getConnection(int node) {
         return connection;
     }
 
-    public void setNetwork(int node, Connection connection) {
+    public void setConnection(int node, Connection connection) {
         this.connection = connection;
     }
 
