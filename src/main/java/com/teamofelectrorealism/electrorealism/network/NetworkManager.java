@@ -1,6 +1,8 @@
 package com.teamofelectrorealism.electrorealism.network;
 
+import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.LocalNode;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 
 import java.util.ArrayList;
@@ -12,8 +14,8 @@ public class NetworkManager {
     public static Map<LevelAccessor, NetworkManager> instances = new HashMap<>();
     private List<Network> networks;
 
-    public NetworkManager(LevelAccessor levelAccessor) {
-        instances.put(levelAccessor, this);
+    public NetworkManager(LevelAccessor level) {
+        instances.put(level, this);
         networks = new ArrayList<Network>();
     }
 
@@ -28,10 +30,16 @@ public class NetworkManager {
         return newNetwork;
     }
 
-    public void createConnection(LocalNode sourceNode, LocalNode targetNode) {
-        Network network = this.findOrCreateNetwork(sourceNode);
-        Connection connection = new Connection(sourceNode, targetNode);
-        network.addConnection(connection);
+    public void createConnection(Level level, LocalNode node1, LocalNode node2) {
+        Network network = this.findOrCreateNetwork(node1);
+        Connection connection = new Connection(node1, node2);
+        network.registerConnection(connection);
+
+        IWireNode wireNode1 = (IWireNode) level.getBlockEntity(node1.getPos());
+        IWireNode wireNode2 = (IWireNode) level.getBlockEntity(node2.getPos());
+
+        if (wireNode1 != null) network.registerNodeAndMachine(node1, wireNode1.getMachine());
+        if (wireNode2 != null) network.registerNodeAndMachine(node2, wireNode2.getMachine());
     }
 
     private void removeInvalidNetworks() {

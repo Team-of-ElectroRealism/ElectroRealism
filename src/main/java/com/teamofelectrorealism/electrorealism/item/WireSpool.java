@@ -2,7 +2,6 @@ package com.teamofelectrorealism.electrorealism.item;
 
 import com.teamofelectrorealism.electrorealism.datacomponents.ModDataComponents;
 import com.teamofelectrorealism.electrorealism.datacomponents.WireConnectionData;
-import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.WireConnectResult;
 import com.teamofelectrorealism.electrorealism.power.WireType;

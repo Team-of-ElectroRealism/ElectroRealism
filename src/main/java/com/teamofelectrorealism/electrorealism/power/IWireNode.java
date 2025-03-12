@@ -64,6 +64,7 @@ public interface IWireNode {
         }
 
         NetworkManager.instances.get(level).createConnection(
+                level,
                 iWireNode1.getLocalNode(node1),
                 iWireNode2.getLocalNode(node2)
         );
@@ -209,4 +210,6 @@ public interface IWireNode {
         }
         return false;
     }
+
+    BlockEntity getMachine();
 }

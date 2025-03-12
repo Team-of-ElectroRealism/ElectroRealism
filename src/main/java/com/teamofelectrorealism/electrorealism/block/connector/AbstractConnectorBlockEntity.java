@@ -1,10 +1,13 @@
 package com.teamofelectrorealism.electrorealism.block.connector;
 
+import com.teamofelectrorealism.electrorealism.block.IPowerProvider;
+import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.network.Connection;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.LocalNode;
 import com.teamofelectrorealism.electrorealism.power.WireType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -55,6 +58,19 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         this.localNodes[index] = new LocalNode(this, index, other, type, pos);
         if (connection != null) connection.invalidate();
     }
+
+    @Override
+    public BlockEntity getMachine() {
+        for (Direction facing: Direction.values()) {
+            BlockPos neighborPos = this.getPos().offset(facing.getNormal());
+            BlockEntity blockEntity = level.getBlockEntity(neighborPos);
+            if (blockEntity instanceof IPowerReceiver || blockEntity instanceof IPowerProvider) {
+                return blockEntity;
+            }
+        }
+        return null;
+    }
+
     // End getters/setters
 
     //Serializing

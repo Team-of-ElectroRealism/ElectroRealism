@@ -120,12 +120,6 @@ public class ElectroRealism
         LOGGER.info("HELLO from server starting");
     }
 
-    @SubscribeEvent
-    public void loadEvent(LevelEvent.Load levelEvent) {
-        if(levelEvent.getLevel().isClientSide()) return;
-        new NetworkManager(levelEvent.getLevel());
-    }
-
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents
