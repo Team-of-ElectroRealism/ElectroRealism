@@ -1,7 +1,9 @@
-package com.teamofelectrorealism.electrorealism.block.arc_furnace;
+package com.teamofelectrorealism.electrorealism.block.user.arc_furnace;
 
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
+import com.teamofelectrorealism.electrorealism.block.user.AbstractPowerUserBlock;
+import com.teamofelectrorealism.electrorealism.block.user.AbstractPowerUserBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -25,7 +27,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class ArcFurnaceBlock extends BaseEntityBlock {
+public class ArcFurnaceBlock extends AbstractPowerUserBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final MapCodec<ArcFurnaceBlock> CODEC = simpleCodec(ArcFurnaceBlock::new);
     public static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 16, 16);
@@ -34,7 +36,8 @@ public class ArcFurnaceBlock extends BaseEntityBlock {
         super(properties);
     }
 
-    private static void tick(Level level1, BlockPos pos, BlockState state1, ArcFurnaceBlockEntity blockEntity) {
+    @Override
+    protected void tick(Level level1, BlockPos pos, BlockState state1, AbstractPowerUserBlockEntity blockEntity) {
         blockEntity.tick(level1, pos, state1);
     }
 
@@ -66,11 +69,6 @@ public class ArcFurnaceBlock extends BaseEntityBlock {
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos blockPos, CollisionContext collisionContext) {
         return SHAPE;
-    }
-
-    @Override
-    public RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
     }
 
     @Override
@@ -109,6 +107,6 @@ public class ArcFurnaceBlock extends BaseEntityBlock {
             return null;
         }
 
-        return createTickerHelper(blockEntityType, ModBlockEntityTypes.ARC_FURNACE_BE.get(), ArcFurnaceBlock::tick);
+        return createTickerHelper(blockEntityType, ModBlockEntityTypes.ARC_FURNACE_BE.get(), this::tick);
     }
 }

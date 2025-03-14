@@ -2,7 +2,8 @@ package com.teamofelectrorealism.electrorealism.block.generator.waterwheel;
 
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.block.generator.GeneratorBlock;
+import com.teamofelectrorealism.electrorealism.block.generator.AbstractGeneratorBlock;
+import com.teamofelectrorealism.electrorealism.block.generator.AbstractGeneratorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -12,13 +13,14 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-public class WaterWheelBlock extends GeneratorBlock {
+public class WaterWheelBlock extends AbstractGeneratorBlock {
     public static final MapCodec<WaterWheelBlock> CODEC = simpleCodec(WaterWheelBlock::new);
     public WaterWheelBlock(Properties properties) {
         super(properties);
     }
 
-    private static void tick(Level level1, BlockPos pos, BlockState state1, WaterWheelBlockEntity blockEntity) {
+    @Override
+    protected void tick(Level level1, BlockPos pos, BlockState state1, AbstractGeneratorBlockEntity blockEntity) {
         blockEntity.tick(level1, pos, state1);
     }
 
@@ -33,7 +35,7 @@ public class WaterWheelBlock extends GeneratorBlock {
             return null;
         }
 
-        return createTickerHelper(blockEntityType, ModBlockEntityTypes.WATER_WHEEL_BE.get(), WaterWheelBlock::tick);
+        return createTickerHelper(blockEntityType, ModBlockEntityTypes.WATER_WHEEL_BE.get(), this::tick);
     }
 
     @Override

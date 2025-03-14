@@ -1,7 +1,9 @@
-package com.teamofelectrorealism.electrorealism.block.crusher;
+package com.teamofelectrorealism.electrorealism.block.user.crusher;
 
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
+import com.teamofelectrorealism.electrorealism.block.user.AbstractPowerUserBlock;
+import com.teamofelectrorealism.electrorealism.block.user.AbstractPowerUserBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -25,7 +27,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class ElectricCrusherBlock extends BaseEntityBlock {
+public class ElectricCrusherBlock extends AbstractPowerUserBlock {
 
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final MapCodec<ElectricCrusherBlock> CODEC = simpleCodec(ElectricCrusherBlock::new);
@@ -35,7 +37,8 @@ public class ElectricCrusherBlock extends BaseEntityBlock {
         super(properties);
     }
 
-    private static void tick(Level level1, BlockPos pos, BlockState state1, ElectricCrusherBlockEntity blockEntity) {
+    @Override
+    protected void tick(Level level1, BlockPos pos, BlockState state1, AbstractPowerUserBlockEntity blockEntity) {
         blockEntity.tick(level1, pos, state1);
     }
 
@@ -67,11 +70,6 @@ public class ElectricCrusherBlock extends BaseEntityBlock {
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos blockPos, CollisionContext collisionContext) {
         return SHAPE;
-    }
-
-    @Override
-    public RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
     }
 
     @Override
@@ -110,6 +108,6 @@ public class ElectricCrusherBlock extends BaseEntityBlock {
             return null;
         }
 
-        return createTickerHelper(blockEntityType, ModBlockEntityTypes.ELECTRIC_CRUSHER_BE.get(), ElectricCrusherBlock::tick);
+        return createTickerHelper(blockEntityType, ModBlockEntityTypes.ELECTRIC_CRUSHER_BE.get(), this::tick);
     }
 }

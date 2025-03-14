@@ -2,9 +2,8 @@ package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.arc_furnace.ArcFurnaceBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlock;
+import com.teamofelectrorealism.electrorealism.block.user.crusher.ElectricCrusherBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.user.arc_furnace.ArcFurnaceBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.generator.test.VoltageSourceBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.generator.waterwheel.WaterWheelBlockEntity;

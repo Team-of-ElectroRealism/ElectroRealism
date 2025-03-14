@@ -7,9 +7,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-public abstract class GeneratorBlockEntity extends BlockEntity implements IPowerProvider {
+public abstract class AbstractGeneratorBlockEntity extends BlockEntity implements IPowerProvider {
 
-    public GeneratorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
+    public AbstractGeneratorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
     }
 

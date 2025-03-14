@@ -2,7 +2,7 @@ package com.teamofelectrorealism.electrorealism.block.generator.waterwheel;
 
 import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.block.generator.GeneratorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.generator.AbstractGeneratorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -12,7 +12,7 @@ import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 
-public class WaterWheelBlockEntity extends GeneratorBlockEntity {
+public class WaterWheelBlockEntity extends AbstractGeneratorBlockEntity {
     public final int voltage = 230;
 
     public WaterWheelBlockEntity(BlockPos pos, BlockState blockState) {

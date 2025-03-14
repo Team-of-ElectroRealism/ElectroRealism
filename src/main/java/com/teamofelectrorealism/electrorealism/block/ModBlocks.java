@@ -2,11 +2,11 @@ package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlock;
-import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBlock;
+import com.teamofelectrorealism.electrorealism.block.user.crusher.ElectricCrusherBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.test.VoltageSourceBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.waterwheel.WaterWheelBlock;
-import com.teamofelectrorealism.electrorealism.block.arc_furnace.ArcFurnaceBlock;
+import com.teamofelectrorealism.electrorealism.block.user.arc_furnace.ArcFurnaceBlock;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
