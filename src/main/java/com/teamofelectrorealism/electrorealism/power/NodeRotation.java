@@ -13,6 +13,7 @@ import static net.minecraft.world.level.block.Rotation.*;
 
 public enum NodeRotation implements StringRepresentable {
 
+    //not in use
     NONE(null, null),
 
     Y_CLOCKWISE_90(Y, CLOCKWISE_90),

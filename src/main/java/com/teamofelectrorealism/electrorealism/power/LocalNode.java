@@ -78,47 +78,4 @@ public class LocalNode {
     public void setInvalid() {
         this.invalid = true;
     }
-
-    // rotation logic
-    public void updateRelative(RotationAxis axis, int angle) {
-        if (axis == null || angle == 0) return;
-        Map<Integer, java.util.function.Function<Vec3i, Vec3i>> rotations = ROTATION_MAP.get(axis);
-        if (rotations != null && rotations.containsKey(angle)) {
-            this.relativePos = rotations.get(angle).apply(this.relativePos);
-        }
-    }
-
-    public enum RotationAxis {
-        X, Y, Z
-    }
-
-    private static final Map<RotationAxis, Map<Integer, java.util.function.Function<Vec3i, Vec3i>>> ROTATION_MAP = new HashMap<>();
-
-    static {
-        ROTATION_MAP.put(RotationAxis.Y, createRotationMap(
-                v -> new Vec3i(-v.getZ(), v.getY(), v.getX()),
-                v -> new Vec3i(-v.getX(), v.getY(), -v.getZ()),
-                v -> new Vec3i(v.getZ(), v.getY(), -v.getX())
-        ));
-
-        ROTATION_MAP.put(RotationAxis.X, createRotationMap(
-                v -> new Vec3i(v.getX(), v.getZ(), -v.getY()),
-                v -> new Vec3i(v.getX(), -v.getY(), -v.getZ()),
-                v -> new Vec3i(v.getX(), -v.getZ(), v.getY())
-        ));
-
-        ROTATION_MAP.put(RotationAxis.Z, createRotationMap(
-                v -> new Vec3i(v.getY(), -v.getX(), v.getZ()),
-                v -> new Vec3i(-v.getX(), -v.getY(), v.getZ()),
-                v -> new Vec3i(-v.getY(), v.getX(), v.getZ())
-        ));
-    }
-
-    private static Map<Integer, java.util.function.Function<Vec3i, Vec3i>> createRotationMap(java.util.function.Function<Vec3i, Vec3i> rot90, java.util.function.Function<Vec3i, Vec3i> rot180, java.util.function.Function<Vec3i, Vec3i> rot270) {
-        Map<Integer, Function<Vec3i, Vec3i>> map = new HashMap<>();
-        map.put(90, rot90);
-        map.put(180, rot180);
-        map.put(270, rot270);
-        return map;
-    }
 }

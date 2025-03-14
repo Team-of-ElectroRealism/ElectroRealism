@@ -16,12 +16,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.Set;
 
 public abstract class AbstractConnectorBlockEntity extends BlockEntity implements IWireNode{
 
-    private final Set<LocalNode> wireCache = new HashSet<>();
     private Connection connection;
     private final LocalNode[] localNodes;
     private final IWireNode[] nodeCache;
@@ -110,7 +107,6 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
         invalidateNodeCache();
         if (connection == null) connection.invalidate();
-        if (dropWire && node != null) this.wireCache.add(node);
     }
 
     //Helpers

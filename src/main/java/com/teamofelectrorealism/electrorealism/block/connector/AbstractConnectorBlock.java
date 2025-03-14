@@ -1,6 +1,5 @@
 package com.teamofelectrorealism.electrorealism.block.connector;
 
-import com.teamofelectrorealism.electrorealism.power.NodeRotation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
