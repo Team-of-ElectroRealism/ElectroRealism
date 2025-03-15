@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.network;
 
-import com.teamofelectrorealism.electrorealism.power.LocalNode;
+import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
+import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -10,50 +11,54 @@ import java.util.List;
 import java.util.Map;
 
 public class Network {
-    private Map<LocalNode, BlockEntity> nodeMachineMap = new HashMap<>();
+    private Map<ConnectionPoint, BlockEntity> connectorMachineMap = new HashMap<>();
     private List<Connection> connections;
-    private List<LocalNode> nodes;
+    private List<ConnectionPoint> connectionPoints;
 
     public Network() {
         this.connections = new ArrayList<Connection>();
-        this.nodes = new ArrayList<LocalNode>();
+        this.connectionPoints = new ArrayList<ConnectionPoint>();
     }
 
     void registerConnection(Connection connection) {
         connections.add(connection);
-        nodes.add(connection.getSourceNode());
-        nodes.add(connection.getTargetNode());
+        connectionPoints.add(connection.getSourceNode());
+        connectionPoints.add(connection.getTargetNode());
     }
 
     // Start Getters/Setters
 
-    public BlockEntity getMachineFromNode(LocalNode node) {
-        return nodeMachineMap.get(node);
+    BlockEntity getMachineFromConnector(ConnectionPoint connectionPoint) {
+        return connectorMachineMap.get(connectionPoint);
     }
 
     // End Getters/Setters
 
-    public void registerNodeAndMachine(LocalNode node, BlockEntity machine) {
-        nodeMachineMap.put(node, machine);
+    void registerConnectorAndMachine(ConnectionPoint connectionPoint, BlockEntity machine) {
+        connectorMachineMap.put(connectionPoint, machine);
     }
 
-    public void unregisterNode(LocalNode node) {
-        nodeMachineMap.remove(node);
+    void removeConnector(ConnectionPoint connectionPoint) {
+        connectorMachineMap.remove(connectionPoint);
     }
 
-    public boolean containsNode(LocalNode node) {
-        return nodes.contains(node);
+    boolean containsConnectionPoint(ConnectionPoint connectionPoint) {
+        return connectionPoints.contains(connectionPoint);
     }
 
-    public boolean isValid() {
+    boolean isValid() {
         throw new NotImplementedException();
     }
 
-    private void removeInvalidConnections() {
-        connections.removeIf(connection -> !connection.isValid());
+    void removeInvalidConnections() {
+        connections.removeIf(Network::isConnectionInvalid);
     }
 
-    public void tick() {
+    private static boolean isConnectionInvalid(Connection connection) {
+        return !connection.isValid();
+    }
+
+    void tick() {
         removeInvalidConnections();
     }
 }

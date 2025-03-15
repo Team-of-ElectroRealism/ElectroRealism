@@ -27,5 +27,6 @@
   "statusbar.electrorealism.wire.exists": "Wire connection already exists",
   "statusbar.electrorealism.wire.no_connection": "Wire not connected here",
   "statusbar.electrorealism.wire.invalid": "Invalid connection",
+  "statusbar.electrorealism.wire.error": "No NetworkManager for this level",
   "statusbar.electrorealism.wire.requires_high_current": "This connection requires a high current wire"
 }

@@ -31,9 +31,9 @@ public class WireNodeRenderer<T extends BlockEntity> implements BlockEntityRende
 
         time += partialTicks;
 
-        for (int i = 0; i < blockEntity.getNodeCount(); i++) {
+        for (int i = 0; i < blockEntity.getConnectionPointCount(); i++) {
             if (!blockEntity.hasConnection(i)) continue;
-            Vec3 nodeOffset = blockEntity.getNodeOffset(i);
+            Vec3 nodeOffset = blockEntity.getConnectionPointOffset(i);
             float nodeOffsetX = ((float) nodeOffset.x());
             float nodeOffsetY = ((float) nodeOffset.y());
             float nodeOffsetZ = ((float) nodeOffset.z());
@@ -41,7 +41,7 @@ public class WireNodeRenderer<T extends BlockEntity> implements BlockEntityRende
             IWireNode wireNode = blockEntity.getWireNode(i);
             if (wireNode == null) return;
 
-            Vec3 connectingNodeOffset = wireNode.getNodeOffset(blockEntity.getConnectingNodeIndex(i));
+            Vec3 connectingNodeOffset = wireNode.getConnectionPointOffset(blockEntity.getConnectingNodeIndex(i));
             float connectingNodeOffsetX = ((float) connectingNodeOffset.x());
             float connectingNodeOffsetY = ((float) connectingNodeOffset.y());
             float connectingNodeOffsetZ = ((float) connectingNodeOffset.z());
@@ -63,7 +63,7 @@ public class WireNodeRenderer<T extends BlockEntity> implements BlockEntityRende
                     -relativeOffsetX - connectingNodeOffsetX + nodeOffsetX,
                     -relativeOffsetY - connectingNodeOffsetY + nodeOffsetY,
                     -relativeOffsetZ - connectingNodeOffsetZ + nodeOffsetZ,
-                    blockEntity.getNodeType(i),
+                    blockEntity.getWireType(i),
                     offsetDistance
             );
             matrixStackIn.popPose();

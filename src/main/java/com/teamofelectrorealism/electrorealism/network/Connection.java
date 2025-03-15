@@ -1,27 +1,26 @@
 package com.teamofelectrorealism.electrorealism.network;
 
-import com.teamofelectrorealism.electrorealism.power.LocalNode;
-import net.minecraft.world.level.Level;
+import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 
 public class Connection {
     private int id;
     private boolean isValid;
 
-    private final LocalNode sourceNode;
-    private final LocalNode targetNode;
+    private final ConnectionPoint sourceNode;
+    private final ConnectionPoint targetNode;
 
-    public Connection(LocalNode sourceNode, LocalNode targetNode) {
+    public Connection(ConnectionPoint sourceNode, ConnectionPoint targetNode) {
         this.id = 0;
         this.isValid = true;
         this.sourceNode = sourceNode;
         this.targetNode = targetNode;
     }
 
-    public LocalNode getSourceNode() {
+    public ConnectionPoint getSourceNode() {
         return sourceNode;
     }
 
-    public LocalNode getTargetNode() {
+    public ConnectionPoint getTargetNode() {
         return targetNode;
     }
 

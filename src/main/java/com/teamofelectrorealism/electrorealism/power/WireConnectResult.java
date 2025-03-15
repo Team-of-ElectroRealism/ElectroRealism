@@ -20,6 +20,7 @@ public enum WireConnectResult {
     COUNT(Component.translatable("statusbar.electrorealism.wire.count")),
     LONG(Component.translatable("statusbar.electrorealism.wire.long")),
     EXISTS(Component.translatable("statusbar.electrorealism.wire.exists")),
+    ERROR(Component.translatable("statusbar.electrorealism.wire.error")),
     REQUIRES_HIGH_CURRENT(Component.translatable("statusbar.electrorealism.wire.requires_high_current"));
 
     private final Component message;

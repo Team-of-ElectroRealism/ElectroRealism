@@ -4,6 +4,7 @@ import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
+import com.teamofelectrorealism.electrorealism.power.WireType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,7 +28,6 @@ public class SmallConnectorBlockEntity extends AbstractConnectorBlockEntity {
         //System.out.println("Ticking!");
     }
 
-
     @Override
     public ConnectorType getConnectorType() {
         return ConnectorType.Small;
@@ -38,9 +38,13 @@ public class SmallConnectorBlockEntity extends AbstractConnectorBlockEntity {
         return 16;
     }
 
+    @Override
+    public int getConnectionPointCount() {
+        return 4;
+    }
 
     @Override
-    public Vec3 getNodeOffset(int node) {
+    public Vec3 getConnectionPointOffset(int node) {
         return switch (getBlockState().getValue(AbstractConnectorBlock.FACING)) {
             case DOWN -> OFFSET_DOWN;
             case UP -> OFFSET_UP;

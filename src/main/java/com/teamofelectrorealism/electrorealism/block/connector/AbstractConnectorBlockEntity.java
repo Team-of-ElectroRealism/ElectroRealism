@@ -3,8 +3,8 @@ package com.teamofelectrorealism.electrorealism.block.connector;
 import com.teamofelectrorealism.electrorealism.block.IPowerProvider;
 import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.network.Connection;
+import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
-import com.teamofelectrorealism.electrorealism.power.LocalNode;
 import com.teamofelectrorealism.electrorealism.power.WireType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,39 +20,40 @@ import javax.annotation.Nullable;
 public abstract class AbstractConnectorBlockEntity extends BlockEntity implements IWireNode{
 
     private Connection connection;
-    private final LocalNode[] localNodes;
+    private final ConnectionPoint[] connectionPoints;
     private final IWireNode[] nodeCache;
 
     public AbstractConnectorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
 
-        this.localNodes = new LocalNode[getNodeCount()];
-        this.nodeCache = new IWireNode[getNodeCount()];
+        this.connectionPoints = new ConnectionPoint[getConnectionPointCount()];
+        this.nodeCache = new IWireNode[getConnectionPointCount()];
     }
 
     // getters/setters
     public @Nullable IWireNode getWireNode(int index) {
-        return IWireNode.getWireNodeFrom(index, this, this.localNodes, this.nodeCache, level);
+        return IWireNode.getWireNodeFrom(index, this, this.connectionPoints, this.nodeCache, level);
     }
 
-    public @Nullable LocalNode getLocalNode(int index) {
-        return this.localNodes[index];
+    public @Nullable ConnectionPoint getConnectionPoint(int index) {
+        return this.connectionPoints[index];
     }
 
     public BlockPos getPos() {
         return getBlockPos();
     }
 
-    public Connection getConnection(int node) {
+    public Connection getConnection(int pointIndex) {
         return connection;
     }
 
-    public void setConnection(int node, Connection connection) {
+    public void setConnection(int pointIndex, Connection connection) {
         this.connection = connection;
     }
 
-    public void setNode(int index, int other, BlockPos pos, WireType type) {
-        this.localNodes[index] = new LocalNode(this, index, other, type, pos);
+    @Override
+    public void setConnection(int pointIndex, int connectingPointIndex, WireType wireType, BlockPos pos) {
+        this.connectionPoints[pointIndex] = new ConnectionPoint(this, pointIndex, connectingPointIndex, wireType, pos);
         if (connection != null) connection.invalidate();
     }
 
@@ -76,33 +77,33 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         super.loadAdditional(tag, registries);
         invalidateLocalNodes();
         invalidateNodeCache();
-        ListTag nodes = tag.getList(LocalNode.NODES, ListTag.TAG_COMPOUND);
+        ListTag nodes = tag.getList(ConnectionPoint.NODES, ListTag.TAG_COMPOUND);
         nodes.forEach(localNodeTag -> {
-            LocalNode localNode = new LocalNode(this, (CompoundTag) localNodeTag);
-            this.localNodes[localNode.getIndex()] = localNode;
+            ConnectionPoint connectionPoint = new ConnectionPoint(this, (CompoundTag) localNodeTag);
+            this.connectionPoints[connectionPoint.getPointIndex()] = connectionPoint;
         });
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         ListTag nodes = new ListTag();
-        for(int i = 0; i < getNodeCount(); i++) {
-            LocalNode localNode = this.localNodes[i];
-            if(localNode == null) continue;
+        for(int i = 0; i < getConnectionPointCount(); i++) {
+            ConnectionPoint connectionPoint = this.connectionPoints[i];
+            if(connectionPoint == null) continue;
             CompoundTag localNodeTag = new CompoundTag();
-            localNode.write(localNodeTag);
+            connectionPoint.write(localNodeTag);
             nodes.add(localNodeTag);
         }
-        tag.put(LocalNode.NODES, nodes);
+        tag.put(ConnectionPoint.NODES, nodes);
         super.saveAdditional(tag, registries);
     }
     //End serializing
 
 
     @Override
-    public void removeNode(int index, boolean dropWire) {
-        LocalNode node = this.localNodes[index];
-        this.localNodes[index] = null;
+    public void removeConnectionPoint(int index, boolean dropWire) {
+        ConnectionPoint node = this.connectionPoints[index];
+        this.connectionPoints[index] = null;
         this.nodeCache[index] = null;
 
         invalidateNodeCache();
@@ -111,12 +112,12 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
     //Helpers
     public void invalidateLocalNodes() {
-        for(int i = 0; i < getNodeCount(); i++)
-            this.localNodes[i] = null;
+        for(int i = 0; i < getConnectionPointCount(); i++)
+            this.connectionPoints[i] = null;
     }
 
     public void invalidateNodeCache() {
-        for(int i = 0; i < getNodeCount(); i++)
+        for(int i = 0; i < getConnectionPointCount(); i++)
             this.nodeCache[i] = null;
     }
 }
