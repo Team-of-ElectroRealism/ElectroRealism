@@ -19,7 +19,7 @@ public class ConnectionPoint {
     private final int pointIndex;
     private final int connectingPointIndex;
     private final WireType wireType;
-    private Vec3i relativePos;
+    private final Vec3i relativePos;
     private boolean invalid = false;
 
     public ConnectionPoint(BlockEntity blockEntity, int pointIndex, int connectingPointIndex, WireType wireType, BlockPos blockPos) {

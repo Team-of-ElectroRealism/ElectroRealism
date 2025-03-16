@@ -63,6 +63,7 @@ public interface IWireNode {
             return WireConnectResult.ERROR;
         }
 
+        System.out.println(level.dimension());
         NetworkManager.instances.get(level).createConnection(
                 level,
                 iWireNode1.getConnectionPoint(node1),

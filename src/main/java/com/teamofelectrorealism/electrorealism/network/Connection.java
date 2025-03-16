@@ -16,11 +16,11 @@ public class Connection {
         this.targetNode = targetNode;
     }
 
-    public ConnectionPoint getSourceNode() {
+    public ConnectionPoint getConnectionPoint() {
         return sourceNode;
     }
 
-    public ConnectionPoint getTargetNode() {
+    public ConnectionPoint getConnectingConnectionPoint() {
         return targetNode;
     }
 

@@ -21,7 +21,7 @@ public class ModEvents {
             if (!NetworkManager.instances.containsKey(level)) {
                 NetworkManager networkManager = new NetworkManager(level);
                 NetworkManager.instances.put(level, networkManager);
-                LOGGER.info("NetworkManager created for level: " + level);
+                LOGGER.info("NetworkManager created for level: " + ((Level) level).dimension());
             }
         }
     }

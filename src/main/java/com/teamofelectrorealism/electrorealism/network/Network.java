@@ -1,35 +1,50 @@
 package com.teamofelectrorealism.electrorealism.network;
 
-import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.apache.commons.lang3.NotImplementedException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Network {
     private Map<ConnectionPoint, BlockEntity> connectorMachineMap = new HashMap<>();
-    private List<Connection> connections;
-    private List<ConnectionPoint> connectionPoints;
+    private Set<Connection> connections;
+    private Set<ConnectionPoint> connectionPoints;
+
+    private boolean isValid;
 
     public Network() {
-        this.connections = new ArrayList<Connection>();
-        this.connectionPoints = new ArrayList<ConnectionPoint>();
+        this.isValid = true;
+        this.connections = new HashSet<>();
+        this.connectionPoints = new HashSet<>();
     }
 
     void registerConnection(Connection connection) {
         connections.add(connection);
-        connectionPoints.add(connection.getSourceNode());
-        connectionPoints.add(connection.getTargetNode());
+        connectionPoints.add(connection.getConnectionPoint());
+        connectionPoints.add(connection.getConnectingConnectionPoint());
     }
 
     // Start Getters/Setters
 
     BlockEntity getMachineFromConnector(ConnectionPoint connectionPoint) {
         return connectorMachineMap.get(connectionPoint);
+    }
+
+    Set<Connection> getConnections() {
+        return connections;
+    }
+
+    Map<ConnectionPoint, BlockEntity> getConnectorMachineMap() {
+        return connectorMachineMap;
+    }
+
+    Set<ConnectionPoint> getConnectionPoints() {
+        return connectionPoints;
+    }
+
+    public void setInvalid() {
+        isValid = false;
     }
 
     // End Getters/Setters
@@ -47,7 +62,7 @@ public class Network {
     }
 
     boolean isValid() {
-        throw new NotImplementedException();
+        return isValid;
     }
 
     void removeInvalidConnections() {
@@ -56,6 +71,10 @@ public class Network {
 
     private static boolean isConnectionInvalid(Connection connection) {
         return !connection.isValid();
+    }
+
+    void printNetwork() {
+        System.out.println(connectorMachineMap);
     }
 
     void tick() {

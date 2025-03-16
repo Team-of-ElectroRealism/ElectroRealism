@@ -8,22 +8,18 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
- * Singleton class
  * All network creations and connection should be made trough this class
  */
 public class NetworkManager {
     public static Map<LevelAccessor, NetworkManager> instances = new HashMap<>();
-    private List<Network> networks;
+    private Set<Network> networks;
 
     public NetworkManager(LevelAccessor levelAccessor) {
         instances.put(levelAccessor, this);
-        networks = new ArrayList<Network>();
+        networks = new HashSet<>();
     }
 
     private Network findOrCreateNetwork(ConnectionPoint connectionPoint) {
@@ -51,8 +47,29 @@ public class NetworkManager {
         return newNetwork;
     }
 
+    private Network mergeNetworks(Network network1, Network network2) {
+        for (Connection connection: network2.getConnections()) {
+            network1.registerConnection(connection);
+        }
+        network2.setInvalid();
+        //removeInvalidNetworks();
+        networks.remove(network2);
+        return network1;
+    }
+
     public void createConnection(Level level, ConnectionPoint connectionPoint1, ConnectionPoint connectionPoint2) {
-        Network network = this.findOrCreateNetwork(connectionPoint1);
+        if (level.isClientSide()) return;
+
+        Network network1 = findNetwork(connectionPoint1);
+        Network network2 = findNetwork(connectionPoint2);
+
+        Network network;
+        if (network1 != null && network2 != null && network1 != network2) {
+            network = mergeNetworks(network1, network2);
+        } else {
+            network = this.findOrCreateNetwork(connectionPoint1);
+        }
+
         Connection connection = new Connection(connectionPoint1, connectionPoint2);
         network.registerConnection(connection);
 
@@ -61,6 +78,11 @@ public class NetworkManager {
 
         if (wireNode1 != null) network.registerConnectorAndMachine(connectionPoint1, wireNode1.getMachine());
         if (wireNode2 != null) network.registerConnectorAndMachine(connectionPoint2, wireNode2.getMachine());
+        System.out.println("Before printNetwork()");
+        network.printNetwork();
+        System.out.println(networks);
+        System.out.println(instances);
+        System.out.println("After printNetwork()");
     }
     
     public void removeConnection(Level level, ConnectionPoint connectionPoint1, ConnectionPoint connectionPoint2) {
