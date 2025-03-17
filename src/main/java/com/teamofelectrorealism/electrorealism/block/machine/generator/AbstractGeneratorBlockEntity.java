@@ -1,13 +1,13 @@
-package com.teamofelectrorealism.electrorealism.block.generator;
+package com.teamofelectrorealism.electrorealism.block.machine.generator;
 
 import com.teamofelectrorealism.electrorealism.block.IPowerProvider;
+import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-public abstract class AbstractGeneratorBlockEntity extends BlockEntity implements IPowerProvider {
+public abstract class AbstractGeneratorBlockEntity extends AbstractMachineBlockEntity implements IPowerProvider {
 
     public AbstractGeneratorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -15,8 +15,6 @@ public abstract class AbstractGeneratorBlockEntity extends BlockEntity implement
 
     @Override
     public abstract int getVoltage();
-
-    public abstract void tick(Level level, BlockPos pos, BlockState state);
 
     protected abstract void transferVoltage(Level level, BlockPos pos);
 }

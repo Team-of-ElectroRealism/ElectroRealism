@@ -1,9 +1,10 @@
-package com.teamofelectrorealism.electrorealism.block.generator.waterwheel;
+package com.teamofelectrorealism.electrorealism.block.machine.generator.solarpanel;
 
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.block.generator.AbstractGeneratorBlock;
-import com.teamofelectrorealism.electrorealism.block.generator.AbstractGeneratorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.AbstractGeneratorBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.AbstractGeneratorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -13,29 +14,28 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-public class WaterWheelBlock extends AbstractGeneratorBlock {
-    public static final MapCodec<WaterWheelBlock> CODEC = simpleCodec(WaterWheelBlock::new);
-    public WaterWheelBlock(Properties properties) {
+public class SolarPanelBlock extends AbstractGeneratorBlock {
+    public static final MapCodec<SolarPanelBlock> CODEC = simpleCodec(SolarPanelBlock::new);
+    public SolarPanelBlock(Properties properties) {
         super(properties);
     }
 
     @Override
-    protected void tick(Level level1, BlockPos pos, BlockState state1, AbstractGeneratorBlockEntity blockEntity) {
+    protected void tick(Level level1, BlockPos pos, BlockState state1, AbstractMachineBlockEntity blockEntity) {
         blockEntity.tick(level1, pos, state1);
     }
 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return new WaterWheelBlockEntity(blockPos, blockState);
+        return new SolarPanelBlockEntity(blockPos, blockState);
     }
 
-    @Override
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
         if(level.isClientSide()) {
             return null;
         }
 
-        return createTickerHelper(blockEntityType, ModBlockEntityTypes.WATER_WHEEL_BE.get(), this::tick);
+        return createTickerHelper(blockEntityType, ModBlockEntityTypes.SOLAR_PANEL_BE.get(), this::tick);
     }
 
     @Override

@@ -1,13 +1,12 @@
-package com.teamofelectrorealism.electrorealism.block.user;
+package com.teamofelectrorealism.electrorealism.block.machine.user;
 
 import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
+import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-public abstract class AbstractPowerUserBlockEntity extends BlockEntity implements IPowerReceiver {
+public abstract class AbstractPowerUserBlockEntity extends AbstractMachineBlockEntity implements IPowerReceiver {
     public AbstractPowerUserBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
     }
@@ -25,6 +24,4 @@ public abstract class AbstractPowerUserBlockEntity extends BlockEntity implement
 
     @Override
     public abstract void setBufferCharge(int charge);
-
-    public abstract void tick(Level level, BlockPos pos, BlockState state);
 }

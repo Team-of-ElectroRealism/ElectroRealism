@@ -1,7 +1,7 @@
 package com.teamofelectrorealism.electrorealism.screen.crusher;
 
 import com.teamofelectrorealism.electrorealism.block.ModBlocks;
-import com.teamofelectrorealism.electrorealism.block.user.crusher.ElectricCrusherBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.user.crusher.ElectricCrusherBlockEntity;
 import com.teamofelectrorealism.electrorealism.screen.ModMenuTypes;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;

@@ -1,27 +1,19 @@
-package com.teamofelectrorealism.electrorealism.block.generator.solarpanel;
+package com.teamofelectrorealism.electrorealism.block.machine.generator.test;
 
+import com.teamofelectrorealism.electrorealism.block.IPowerProvider;
 import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.block.generator.AbstractGeneratorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class SolarPanelBlockEntity extends AbstractGeneratorBlockEntity {
+public class VoltageSourceBlockEntity extends BlockEntity implements IPowerProvider {
     private final int voltage = 230;
 
-    public SolarPanelBlockEntity(BlockPos pos, BlockState blockState) {
-        super(ModBlockEntityTypes.SOLAR_PANEL_BE.get(), pos, blockState);
-    }
-
-    @Override
-    public void tick(Level level, BlockPos pos, BlockState state) {
-        BlockPos skyPos = pos.above();
-        if (level.canSeeSky(skyPos)) {
-            this.transferVoltage(level, pos);
-        }
+    public VoltageSourceBlockEntity(BlockPos pos, BlockState state) {
+        super(ModBlockEntityTypes.VOLTAGE_SOURCE_BE.get(), pos, state);
     }
 
     @Override
@@ -29,8 +21,11 @@ public class SolarPanelBlockEntity extends AbstractGeneratorBlockEntity {
         return voltage;
     }
 
-    @Override
-    protected void transferVoltage(Level level, BlockPos pos) {
+    public void tick(Level level, BlockPos pos, BlockState state) {
+        this.transferVoltage(level, pos);
+    }
+
+    private void transferVoltage(Level level, BlockPos pos) {
         for (Direction facing: Direction.values()) {
             BlockPos neighborPos = pos.offset(facing.getNormal());
             BlockEntity blockEntity = level.getBlockEntity(neighborPos);

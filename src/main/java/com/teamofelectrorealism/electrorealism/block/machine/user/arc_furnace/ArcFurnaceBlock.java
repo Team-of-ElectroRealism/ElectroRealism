@@ -1,9 +1,10 @@
-package com.teamofelectrorealism.electrorealism.block.user.crusher;
+package com.teamofelectrorealism.electrorealism.block.machine.user.arc_furnace;
 
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.block.user.AbstractPowerUserBlock;
-import com.teamofelectrorealism.electrorealism.block.user.AbstractPowerUserBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.user.AbstractPowerUserBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.user.AbstractPowerUserBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -27,24 +28,23 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class ElectricCrusherBlock extends AbstractPowerUserBlock {
-
+public class ArcFurnaceBlock extends AbstractPowerUserBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
-    public static final MapCodec<ElectricCrusherBlock> CODEC = simpleCodec(ElectricCrusherBlock::new);
-    public static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 22, 16);
+    public static final MapCodec<ArcFurnaceBlock> CODEC = simpleCodec(ArcFurnaceBlock::new);
+    public static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 16, 16);
 
-    public ElectricCrusherBlock(Properties properties) {
+    public ArcFurnaceBlock(Properties properties) {
         super(properties);
     }
 
     @Override
-    protected void tick(Level level1, BlockPos pos, BlockState state1, AbstractPowerUserBlockEntity blockEntity) {
+    protected void tick(Level level1, BlockPos pos, BlockState state1, AbstractMachineBlockEntity blockEntity) {
         blockEntity.tick(level1, pos, state1);
     }
 
     @Override
     protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
+        return null;
     }
 
     @Override
@@ -74,15 +74,15 @@ public class ElectricCrusherBlock extends AbstractPowerUserBlock {
 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return new ElectricCrusherBlockEntity(blockPos, blockState);
+        return new ArcFurnaceBlockEntity(blockPos, blockState);
     }
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof ElectricCrusherBlockEntity electricCrusherBlockEntity) {
-                electricCrusherBlockEntity.drops();
+            if (blockEntity instanceof ArcFurnaceBlockEntity arcFurnaceBlockEntity) {
+                arcFurnaceBlockEntity.drops();
                 level.updateNeighbourForOutputSignal(pos, this);
             }
         }
@@ -93,8 +93,8 @@ public class ElectricCrusherBlock extends AbstractPowerUserBlock {
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (!level.isClientSide()) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof ElectricCrusherBlockEntity electricCrusherBlockEntity) {
-                player.openMenu(new SimpleMenuProvider(electricCrusherBlockEntity, Component.literal("Electric Crusher")), pos);
+            if (blockEntity instanceof ArcFurnaceBlockEntity arcFurnaceBlockEntity) {
+                player.openMenu(new SimpleMenuProvider(arcFurnaceBlockEntity, Component.literal("Arch Furnace")), pos);
             } else {
                 throw new IllegalStateException("Our Container provider is missing!");
             }
@@ -108,6 +108,6 @@ public class ElectricCrusherBlock extends AbstractPowerUserBlock {
             return null;
         }
 
-        return createTickerHelper(blockEntityType, ModBlockEntityTypes.ELECTRIC_CRUSHER_BE.get(), this::tick);
+        return createTickerHelper(blockEntityType, ModBlockEntityTypes.ARC_FURNACE_BE.get(), this::tick);
     }
 }

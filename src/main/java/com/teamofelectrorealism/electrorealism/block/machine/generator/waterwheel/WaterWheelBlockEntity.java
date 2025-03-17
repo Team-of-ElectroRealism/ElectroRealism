@@ -1,8 +1,8 @@
-package com.teamofelectrorealism.electrorealism.block.generator.waterwheel;
+package com.teamofelectrorealism.electrorealism.block.machine.generator.waterwheel;
 
 import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.block.generator.AbstractGeneratorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.AbstractGeneratorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;

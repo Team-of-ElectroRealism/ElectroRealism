@@ -2,7 +2,8 @@ package com.teamofelectrorealism.electrorealism.block.connector;
 
 import com.teamofelectrorealism.electrorealism.block.IPowerProvider;
 import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
-import com.teamofelectrorealism.electrorealism.network.Connection;
+import com.teamofelectrorealism.electrorealism.network.Network;
+import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.WireType;
@@ -19,7 +20,7 @@ import javax.annotation.Nullable;
 
 public abstract class AbstractConnectorBlockEntity extends BlockEntity implements IWireNode{
 
-    private Connection connection;
+    private Network network;
     private final ConnectionPoint[] connectionPoints;
     private final IWireNode[] nodeCache;
 
@@ -43,18 +44,14 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         return getBlockPos();
     }
 
-    public Connection getConnection(int pointIndex) {
-        return connection;
-    }
-
-    public void setConnection(int pointIndex, Connection connection) {
-        this.connection = connection;
-    }
-
     @Override
-    public void setConnection(int pointIndex, int connectingPointIndex, WireType wireType, BlockPos pos) {
-        this.connectionPoints[pointIndex] = new ConnectionPoint(this, pointIndex, connectingPointIndex, wireType, pos);
-        if (connection != null) connection.invalidate();
+    public void setConnectionPoint(int index, int connectingIndex, WireType wireType, BlockPos pos) {
+        this.connectionPoints[index] = new ConnectionPoint(this, index, connectingIndex, wireType, pos);
+        if (network != null) NetworkManager.instances.get(level).invalidateNetwork(network);
+    }
+
+    public void setNetwork(Network network) {
+        this.network = network;
     }
 
     @Override
@@ -77,8 +74,8 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         super.loadAdditional(tag, registries);
         invalidateLocalNodes();
         invalidateNodeCache();
-        ListTag nodes = tag.getList(ConnectionPoint.NODES, ListTag.TAG_COMPOUND);
-        nodes.forEach(localNodeTag -> {
+        ListTag connection_points = tag.getList(ConnectionPoint.CONNECTION_POINTS, ListTag.TAG_COMPOUND);
+        connection_points.forEach(localNodeTag -> {
             ConnectionPoint connectionPoint = new ConnectionPoint(this, (CompoundTag) localNodeTag);
             this.connectionPoints[connectionPoint.getPointIndex()] = connectionPoint;
         });
@@ -86,15 +83,15 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        ListTag nodes = new ListTag();
+        ListTag connection_points = new ListTag();
         for(int i = 0; i < getConnectionPointCount(); i++) {
             ConnectionPoint connectionPoint = this.connectionPoints[i];
             if(connectionPoint == null) continue;
             CompoundTag localNodeTag = new CompoundTag();
             connectionPoint.write(localNodeTag);
-            nodes.add(localNodeTag);
+            connection_points.add(localNodeTag);
         }
-        tag.put(ConnectionPoint.NODES, nodes);
+        tag.put(ConnectionPoint.CONNECTION_POINTS, connection_points);
         super.saveAdditional(tag, registries);
     }
     //End serializing
@@ -102,12 +99,11 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
     @Override
     public void removeConnectionPoint(int index, boolean dropWire) {
-        ConnectionPoint node = this.connectionPoints[index];
         this.connectionPoints[index] = null;
         this.nodeCache[index] = null;
 
         invalidateNodeCache();
-        if (connection == null) connection.invalidate();
+        if (network == null) network.invalidate();
     }
 
     //Helpers
