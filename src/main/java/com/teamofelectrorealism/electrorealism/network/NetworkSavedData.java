@@ -1,32 +1,53 @@
 package com.teamofelectrorealism.electrorealism.network;
 
+import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
+
+import java.util.HashSet;
+import java.util.Set;
 
 // https://docs.neoforged.net/docs/1.21.1/datastorage/saveddata
 public class NetworkSavedData extends SavedData {
-    private static NetworkManager networkManager; // Reference to your NetworkManager
 
-    public NetworkSavedData(NetworkManager networkManager) {
-        this.networkManager = networkManager;
+    private Set<Network> networks = new HashSet<>();
+
+    public NetworkSavedData() {
     }
 
+    public static final SavedData.Factory<NetworkSavedData> FACTORY = new SavedData.Factory<>(
+            NetworkSavedData::create,
+            NetworkSavedData::load,
+            null);
+
     // Create new instance of saved data
-    public static NetworkSavedData create(NetworkManager networkManager) {
-        return new NetworkSavedData(networkManager);
+    public static NetworkSavedData create() {
+        return new NetworkSavedData();
     }
 
     // Load existing instance of saved data
-    public static NetworkSavedData load(CompoundTag tag, HolderLookup.Provider lookupProvider) {
-        NetworkSavedData data = NetworkSavedData.create(networkManager);
-        // Load saved data
-        return data;
+    public static NetworkSavedData load(MinecraftServer server) {
+        return server.overworld()
+                .getDataStorage()
+                .computeIfAbsent(FACTORY, ElectroRealism.MODID);
+    }
+
+    private static NetworkSavedData load(CompoundTag tag, HolderLookup.Provider provider) {
+        NetworkSavedData savedData = new NetworkSavedData();
+        savedData.networks = new HashSet<>();
+
+        return savedData;
     }
 
     @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider provider) {
-        // Write data to tag
+        NetworkManager networkManager = ElectroRealism.NETWORK_MANAGER;
+        tag.put("Networks", new CompoundTag());
         return tag;
     }
 
@@ -34,5 +55,9 @@ public class NetworkSavedData extends SavedData {
         // Change data in saved data
         // Call set dirty if data changes
         this.setDirty();
+    }
+
+    public Set<Network> getNetworks() {
+        return networks;
     }
 }

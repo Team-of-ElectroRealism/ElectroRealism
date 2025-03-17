@@ -1,11 +1,12 @@
 package com.teamofelectrorealism.electrorealism.network;
 
-import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
+import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -14,12 +15,29 @@ import java.util.*;
  * All network creations and connection should be made trough this class
  */
 public class NetworkManager {
-    public static Map<LevelAccessor, NetworkManager> instances = new HashMap<>();
-    private Set<Network> networks;
+    private static final Logger LOGGER = LogUtils.getLogger();
 
-    public NetworkManager(LevelAccessor levelAccessor) {
-        instances.put(levelAccessor, this);
+    private static Set<Network> networks;
+
+    private static NetworkSavedData savedData;
+
+    public NetworkManager() {
         networks = new HashSet<>();
+    }
+
+    public static void levelLoaded(LevelAccessor level) {
+        MinecraftServer server = level.getServer();
+        if (server == null || server.overworld() != level) return;
+        
+        networks = new HashSet<>();
+        savedData = null;
+        loadNetworkData(server);
+    }
+
+    private static void loadNetworkData(MinecraftServer server) {
+        if (savedData != null) return;
+        savedData = NetworkSavedData.load(server);
+        networks = savedData.getNetworks();
     }
 
     private Network findOrCreateNetwork(ConnectionPoint connectionPoint) {
@@ -41,9 +59,10 @@ public class NetworkManager {
         return null;
     }
 
-    private Network createNetwork() {
+    public Network createNetwork() {
         Network newNetwork = new Network();
         networks.add(newNetwork);
+        LOGGER.info("New network created with UUID: {}", newNetwork.getNetworkId());
         return newNetwork;
     }
 
@@ -81,7 +100,6 @@ public class NetworkManager {
         System.out.println("Before printNetwork()");
         network.printNetwork();
         System.out.println(networks);
-        System.out.println(instances);
         System.out.println("After printNetwork()");
     }
     
@@ -104,5 +122,9 @@ public class NetworkManager {
             network.tick();
         }
         removeInvalidNetworks();
+    }
+
+    public void invalidateNetwork(Network network) {
+        network.setInvalid();
     }
 }

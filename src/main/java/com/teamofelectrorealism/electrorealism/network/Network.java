@@ -1,12 +1,17 @@
 package com.teamofelectrorealism.electrorealism.network;
 
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
+import com.teamofelectrorealism.electrorealism.power.IWireNode;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.*;
 
 public class Network {
+    private UUID networkId;
+
     private Map<ConnectionPoint, BlockEntity> connectorMachineMap = new HashMap<>();
     private Set<Connection> connections;
     private Set<ConnectionPoint> connectionPoints;
@@ -14,6 +19,7 @@ public class Network {
     private boolean isValid;
 
     public Network() {
+        this.networkId = UUID.randomUUID();
         this.isValid = true;
         this.connections = new HashSet<>();
         this.connectionPoints = new HashSet<>();
@@ -45,6 +51,10 @@ public class Network {
 
     public void setInvalid() {
         isValid = false;
+    }
+
+    public UUID getNetworkId() {
+        return networkId;
     }
 
     // End Getters/Setters

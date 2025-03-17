@@ -15,14 +15,15 @@ public class ModEvents {
 
     @SubscribeEvent
     public static void onLevelLoad(LevelEvent.Load event) {
-        LevelAccessor level = event.getLevel();
+        LevelAccessor world = event.getLevel();
 
-        if (level instanceof Level) {
-            if (!NetworkManager.instances.containsKey(level)) {
-                NetworkManager networkManager = new NetworkManager(level);
-                NetworkManager.instances.put(level, networkManager);
-                LOGGER.info("NetworkManager created for level: " + ((Level) level).dimension());
-            }
-        }
+        NetworkManager.levelLoaded(world);
+    }
+
+    @SubscribeEvent
+    public static void onLevelUnload(LevelEvent.Unload event) {
+        LevelAccessor world = event.getLevel();
+
+
     }
 }

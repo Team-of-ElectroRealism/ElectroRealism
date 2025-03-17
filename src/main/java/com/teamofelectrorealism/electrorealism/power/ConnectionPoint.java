@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class ConnectionPoint {
 
-    public static final String NODES = "nodes";
+    public static final String CONNECTION_POINTS = "connection_points";
     public static final String POINT_INDEX = "point_index";
     public static final String CONNECTING_POINT_INDEX = "connecting_point_index";
     public static final String WIRE_TYPE = "wire_type";

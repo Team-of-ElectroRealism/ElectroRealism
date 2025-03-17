@@ -1,5 +1,6 @@
 package com.teamofelectrorealism.electrorealism.block.connector;
 
+import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.IPowerProvider;
 import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.network.Network;
@@ -29,6 +30,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
         this.connectionPoints = new ConnectionPoint[getConnectionPointCount()];
         this.nodeCache = new IWireNode[getConnectionPointCount()];
+        this.network = ElectroRealism.NETWORK_MANAGER.createNetwork();
     }
 
     // getters/setters
@@ -47,7 +49,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     @Override
     public void setConnectionPoint(int index, int connectingIndex, WireType wireType, BlockPos pos) {
         this.connectionPoints[index] = new ConnectionPoint(this, index, connectingIndex, wireType, pos);
-        if (network != null) NetworkManager.instances.get(level).invalidateNetwork(network);
+        if (network != null) ElectroRealism.NETWORK_MANAGER.invalidateNetwork(network);
     }
 
     public void setNetwork(Network network) {
@@ -103,7 +105,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         this.nodeCache[index] = null;
 
         invalidateNodeCache();
-        if (network == null) network.invalidate();
+        if (network == null) ElectroRealism.NETWORK_MANAGER.invalidateNetwork(network);
     }
 
     //Helpers

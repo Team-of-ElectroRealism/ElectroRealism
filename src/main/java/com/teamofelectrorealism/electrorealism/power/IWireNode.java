@@ -1,8 +1,12 @@
 package com.teamofelectrorealism.electrorealism.power;
 
+import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
 import com.teamofelectrorealism.electrorealism.network.NetworkManager;
+import com.teamofelectrorealism.electrorealism.network.NetworkSavedData;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -34,7 +38,7 @@ public interface IWireNode {
         return WireConnectResult.REMOVED;
     }
 
-    static WireConnectResult connect(Level level, BlockPos pos1, int node1, BlockPos pos2, int node2, WireType wireType) {
+    static WireConnectResult connect(Level level, BlockPos pos1, int connectionPointIndex1, BlockPos pos2, int connectionPointIndex2, WireType wireType) {
         BlockEntity blockEntity1 = level.getBlockEntity(pos1);
         BlockEntity blockEntity2 = level.getBlockEntity(pos2);
         if (blockEntity1 == null || blockEntity2 == null || blockEntity1 == blockEntity2) {
@@ -43,7 +47,7 @@ public interface IWireNode {
         if (!(blockEntity1 instanceof IWireNode iWireNode1) || !(blockEntity2 instanceof IWireNode iWireNode2)) {
             return WireConnectResult.INVALID;
         }
-        if (node1 < 0 || node2 < 0) {
+        if (connectionPointIndex1 < 0 || connectionPointIndex2 < 0) {
             return WireConnectResult.COUNT;
         }
         
@@ -54,22 +58,18 @@ public interface IWireNode {
             if (wireType == WireType.COPPER) return WireConnectResult.REQUIRES_HIGH_CURRENT;
         }
 
-        iWireNode1.setConnection(node1, node2, wireType, iWireNode2.getPos());
-        iWireNode2.setConnection(node2, node1, wireType, iWireNode1.getPos());
+        iWireNode1.setConnectionPoint(connectionPointIndex1, connectionPointIndex2, wireType, iWireNode2.getPos());
+        iWireNode2.setConnectionPoint(connectionPointIndex2, connectionPointIndex1, wireType, iWireNode1.getPos());
 
-        // Ensure NetworkManager is initialized
-        if (!NetworkManager.instances.containsKey(level)) {
-            System.out.println("NetworkManager not initialized for level: " + level);
-            return WireConnectResult.ERROR;
-        }
-
+        System.out.println(level);
         System.out.println(level.dimension());
-        NetworkManager.instances.get(level).createConnection(
+
+        ElectroRealism.NETWORK_MANAGER.createConnection(
                 level,
-                iWireNode1.getConnectionPoint(node1),
-                iWireNode2.getConnectionPoint(node2)
+                iWireNode1.getConnectionPoint(connectionPointIndex1),
+                iWireNode2.getConnectionPoint(connectionPointIndex2)
         );
-        return WireConnectResult.getLink(iWireNode2.isNodeInput(node2), iWireNode2.isNodeOutput(node2));
+        return WireConnectResult.getLink(iWireNode2.isNodeInput(connectionPointIndex2), iWireNode2.isNodeOutput(connectionPointIndex2));
     }
 
     default boolean isNodeInput(int index) {
@@ -80,7 +80,7 @@ public interface IWireNode {
         return true;
     }
 
-    void setConnection(int pointIndex, int connectingPointIndex, WireType wireType, BlockPos pos);
+    void setConnectionPoint(int pointIndex, int connectingPointIndex, WireType wireType, BlockPos pos);
 
     ConnectorType getConnectorType();
 
