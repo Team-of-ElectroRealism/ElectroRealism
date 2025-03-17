@@ -13,7 +13,7 @@ public class ModItems {
     // Items under here
 
     public static final DeferredItem<Item> TEST_ITEM = ITEMS.register("test_item",
-            () -> new Item(new Item.Properties()));
+            () -> new TestItem(new Item.Properties()));
     public static final DeferredItem<Item> COPPER_SPOOL = ITEMS.register("copper_spool",
             () -> new WireSpool(new Item.Properties()));
     public static final DeferredItem<Item> SPOOL = ITEMS.register("spool",

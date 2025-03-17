@@ -3,6 +3,7 @@ package com.teamofelectrorealism.electrorealism.network;
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.apache.commons.lang3.NotImplementedException;
@@ -10,7 +11,7 @@ import org.apache.commons.lang3.NotImplementedException;
 import java.util.*;
 
 public class Network {
-    private UUID networkId;
+    private final UUID networkId;
 
     private Map<ConnectionPoint, BlockEntity> connectorMachineMap = new HashMap<>();
     private Set<Connection> connections;
@@ -20,6 +21,13 @@ public class Network {
 
     public Network() {
         this.networkId = UUID.randomUUID();
+        this.isValid = true;
+        this.connections = new HashSet<>();
+        this.connectionPoints = new HashSet<>();
+    }
+
+    public Network(UUID networkId) {
+        this.networkId = networkId;
         this.isValid = true;
         this.connections = new HashSet<>();
         this.connectionPoints = new HashSet<>();
@@ -68,7 +76,7 @@ public class Network {
     }
 
     boolean containsConnectionPoint(ConnectionPoint connectionPoint) {
-        return connectionPoints.contains(connectionPoint);
+        return getConnectionPoints().contains(connectionPoint);
     }
 
     boolean isValid() {
@@ -83,8 +91,21 @@ public class Network {
         return !connection.isValid();
     }
 
-    void printNetwork() {
-        System.out.println(connectorMachineMap);
+    public CompoundTag write() {
+        CompoundTag tag = new CompoundTag();
+
+        tag.putUUID("network_id", networkId);
+        tag.putBoolean("isvalid", isValid);
+
+        return tag;
+    }
+
+    public Network read(CompoundTag tag) {
+        Network network = new Network(tag.getUUID("network_id"));
+
+        isValid = tag.getBoolean("isvalid");
+
+        return network;
     }
 
     void tick() {

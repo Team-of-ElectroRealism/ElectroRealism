@@ -2,7 +2,6 @@ package com.teamofelectrorealism.electrorealism.event;
 
 import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.network.NetworkManager;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;

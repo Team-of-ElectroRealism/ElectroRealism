@@ -62,7 +62,9 @@ public class NetworkManager {
     public Network createNetwork() {
         Network newNetwork = new Network();
         networks.add(newNetwork);
+
         LOGGER.info("New network created with UUID: {}", newNetwork.getNetworkId());
+
         return newNetwork;
     }
 
@@ -79,15 +81,16 @@ public class NetworkManager {
     public void createConnection(Level level, ConnectionPoint connectionPoint1, ConnectionPoint connectionPoint2) {
         if (level.isClientSide()) return;
 
+        // Always null :thinkies:
         Network network1 = findNetwork(connectionPoint1);
+        LOGGER.info("Found network with UUID: " + network1.getNetworkId());
         Network network2 = findNetwork(connectionPoint2);
+        LOGGER.info("Found network with UUID: " + network2.getNetworkId());
 
         Network network;
-        if (network1 != null && network2 != null && network1 != network2) {
-            network = mergeNetworks(network1, network2);
-        } else {
-            network = this.findOrCreateNetwork(connectionPoint1);
-        }
+        network = mergeNetworks(network1, network2);
+        LOGGER.info("Merged network into UUID: " + network.getNetworkId());
+        if (network1.getNetworkId() == network2.getNetworkId()) System.out.println("Same network");
 
         Connection connection = new Connection(connectionPoint1, connectionPoint2);
         network.registerConnection(connection);
@@ -97,10 +100,10 @@ public class NetworkManager {
 
         if (wireNode1 != null) network.registerConnectorAndMachine(connectionPoint1, wireNode1.getMachine());
         if (wireNode2 != null) network.registerConnectorAndMachine(connectionPoint2, wireNode2.getMachine());
-        System.out.println("Before printNetwork()");
-        network.printNetwork();
-        System.out.println(networks);
-        System.out.println("After printNetwork()");
+
+        for (Network networkObject : networks) {
+            LOGGER.info("Network: {}", networkObject.getNetworkId());
+        }
     }
     
     public void removeConnection(Level level, ConnectionPoint connectionPoint1, ConnectionPoint connectionPoint2) {
@@ -126,5 +129,9 @@ public class NetworkManager {
 
     public void invalidateNetwork(Network network) {
         network.setInvalid();
+    }
+
+    public void removeAllNetworks() {
+        networks = new HashSet<>();
     }
 }
