@@ -2,6 +2,7 @@ package com.teamofelectrorealism.electrorealism.power;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
+import com.teamofelectrorealism.electrorealism.network.INetworkMember;
 import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -61,21 +62,26 @@ public interface IWireNode {
 
         if (!level.isClientSide()) {
             NetworkManager networkManager = ElectroRealism.NETWORK_MANAGER;
-            UUID networkId = networkManager.createOrMergeNetworks(iWireNode1, iWireNode2);
+            INetworkMember networkMember1 = getNetworkMemberFromBlockEntity(blockEntity1);
+            INetworkMember networkMember2 = getNetworkMemberFromBlockEntity(blockEntity2);
+            if (networkMember1 == null || networkMember2 == null) return WireConnectResult.ERROR;
+            UUID networkId = networkManager.createOrMergeNetworks(networkMember1, networkMember2);
 
-            iWireNode1.setNetworkId(networkId);
-            iWireNode2.setNetworkId(networkId);
+            networkMember1.setNetworkId(networkId);
+            networkMember2.setNetworkId(networkId);
 
-            networkManager.registerIWireNodeInNetwork(networkId, iWireNode1);
-            networkManager.registerIWireNodeInNetwork(networkId, iWireNode2);
+            networkManager.registerINetworkMemberInNetwork(networkId, networkMember1);
+            networkManager.registerINetworkMemberInNetwork(networkId, networkMember2);
         }
 
         return WireConnectResult.getLink(iWireNode2.isConnectorInput(connectionPointIndex2), iWireNode2.isConnectorOutput(connectionPointIndex2));
     }
 
-    UUID getNetworkId();
-
-    void setNetworkId(UUID networkId);
+    static INetworkMember getNetworkMemberFromBlockEntity(BlockEntity blockEntity) {
+        if (blockEntity == null) return null;
+        if (!(blockEntity instanceof INetworkMember)) return null;
+        return (INetworkMember) blockEntity;
+    }
 
     BlockPos getPos();
 

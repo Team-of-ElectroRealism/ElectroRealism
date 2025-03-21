@@ -50,6 +50,4 @@ public abstract class AbstractConnectorBlock extends BaseEntityBlock {
 
     @Override
     public abstract @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType);
-
-
 }

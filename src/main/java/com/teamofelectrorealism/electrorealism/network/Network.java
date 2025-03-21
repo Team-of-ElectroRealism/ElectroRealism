@@ -1,7 +1,6 @@
 package com.teamofelectrorealism.electrorealism.network;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
-import com.teamofelectrorealism.electrorealism.power.IWireNode;
 
 import java.util.*;
 
@@ -9,13 +8,13 @@ class Network {
     private final UUID networkId;
     private boolean isValid;
 
-    private Set<IWireNode> iWireNodes;
+    private Set<INetworkMember> networkMembers;
 
     Network() {
         this.networkId = UUID.randomUUID();
         this.isValid = true;
 
-        this.iWireNodes = new HashSet<>();
+        this.networkMembers = new HashSet<>();
         ElectroRealism.NETWORK_MANAGER.addNetwork(this);
     }
 
@@ -31,8 +30,8 @@ class Network {
         return networkId;
     }
 
-    Set<IWireNode> getIWireNodes() {
-        return iWireNodes;
+    Set<INetworkMember> getIWireNodes() {
+        return networkMembers;
     }
 
 //    public CompoundTag write() {
@@ -55,11 +54,11 @@ class Network {
     void tick() {
     }
 
-    void registerIWireNode(IWireNode iWireNode) {
-        iWireNodes.add(iWireNode);
+    void registerINetworkMember(INetworkMember networkMember) {
+        networkMembers.add(networkMember);
     }
 
-    void registerAllIWireNodes(Set<IWireNode> iWireNodes) {
-        this.iWireNodes.addAll(iWireNodes);
+    void registerAllINetworkMembers(Set<INetworkMember> networkMembers) {
+        this.networkMembers.addAll(networkMembers);
     }
 }

@@ -1,12 +1,15 @@
 package com.teamofelectrorealism.electrorealism.block.connector;
 
+import com.teamofelectrorealism.electrorealism.network.INetworkMember;
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.WireType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -16,7 +19,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public abstract class AbstractConnectorBlockEntity extends BlockEntity implements IWireNode{
+public abstract class AbstractConnectorBlockEntity extends BlockEntity implements IWireNode, INetworkMember {
 
     private UUID networkId;
     private final ConnectionPoint[] connectionPoints;
@@ -27,6 +30,26 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         super(type, pos, blockState);
 
         this.connectionPoints = new ConnectionPoint[getConnectionPointCount()];
+    }
+
+    @Nullable
+    public INetworkMember findNetworkMember() {
+        Level level = this.getLevel();
+        if (level == null) return null;
+
+        BlockState state = this.getBlockState();
+        if (!(state.getBlock() instanceof AbstractConnectorBlock connectorBlock)) return null;
+
+        Direction facing = state.getValue(connectorBlock.FACING);
+        Direction oppositeFacing = facing.getOpposite();
+        BlockPos targetPos = this.getBlockPos().relative(oppositeFacing);
+
+        BlockEntity targetBlockEntity = level.getBlockEntity(targetPos);
+        if (targetBlockEntity instanceof INetworkMember networkMember) {
+            return networkMember;
+        }
+
+        return null;
     }
 
     public @Nullable ConnectionPoint getConnectionPoint(int index) {
@@ -51,6 +74,9 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     @Override
     public void setNetworkId(UUID networkId) {
         this.networkId = networkId;
+        if (findNetworkMember() instanceof INetworkMember networkMember) {
+            networkMember.setNetworkId(networkId);
+        }
     }
 
     @Override

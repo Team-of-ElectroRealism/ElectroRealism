@@ -1,7 +1,7 @@
 package com.teamofelectrorealism.electrorealism.item;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
-import com.teamofelectrorealism.electrorealism.power.IWireNode;
+import com.teamofelectrorealism.electrorealism.network.INetworkMember;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
@@ -20,7 +20,7 @@ public class TestItem extends Item {
         BlockPos clickedPos = context.getClickedPos();
         BlockEntity clickedBlockEntity = context.getLevel().getBlockEntity(clickedPos);
 
-        if (clickedBlockEntity instanceof IWireNode && !context.getLevel().isClientSide()) {
+        if (clickedBlockEntity instanceof INetworkMember && !context.getLevel().isClientSide()) {
             ElectroRealism.NETWORK_MANAGER.getNetworkIds();
             return InteractionResult.CONSUME;
         }

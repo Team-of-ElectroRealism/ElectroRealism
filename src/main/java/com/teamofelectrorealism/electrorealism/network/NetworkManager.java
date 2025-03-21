@@ -2,7 +2,6 @@ package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.LevelAccessor;
 import org.slf4j.Logger;
@@ -59,9 +58,9 @@ public class NetworkManager {
         return network.getNetworkId();
     }
 
-    public void registerIWireNodeInNetwork(UUID networkId, IWireNode iWireNode) {
+    public void registerINetworkMemberInNetwork(UUID networkId, INetworkMember networkMember) {
         Network network = findNetwork(networkId);
-        if (network != null) network.registerIWireNode(iWireNode);
+        if (network != null) network.registerINetworkMember(networkMember);
     }
 
     private Network findNetwork(UUID networkId) {
@@ -71,9 +70,9 @@ public class NetworkManager {
         return null;
     }
 
-    public UUID createOrMergeNetworks(IWireNode iWireNode1, IWireNode iWireNode2) {
-        UUID networkId1 = iWireNode1.getNetworkId();
-        UUID networkId2 = iWireNode2.getNetworkId();
+    public UUID createOrMergeNetworks(INetworkMember networkMember1, INetworkMember networkMember2) {
+        UUID networkId1 = networkMember1.getNetworkId();
+        UUID networkId2 = networkMember2.getNetworkId();
 
         if (networkId1 == null && networkId2 == null) {
             // Neither node has a network, create a new one
@@ -103,7 +102,7 @@ public class NetworkManager {
 
         if (network1 != null && network2 != null) {
             // Merge network2 into network1
-            network1.registerAllIWireNodes(network2.getIWireNodes());
+            network1.registerAllINetworkMembers(network2.getIWireNodes());
             network2.setInvalid();
             networks.remove(network2);
             LOGGER.info("Merged network {} into {}", networkId2, networkId1);
@@ -120,9 +119,9 @@ public class NetworkManager {
         return networkId;
     }
 
-    private void updateNetworkIds(UUID networkId, Set<IWireNode> iWireNodes) {
-        for (IWireNode iWireNode : iWireNodes) {
-            iWireNode.setNetworkId(networkId);
+    private void updateNetworkIds(UUID networkId, Set<INetworkMember> networkMembers) {
+        for (INetworkMember networkMember : networkMembers) {
+            networkMember.setNetworkId(networkId);
         }
     }
 }
