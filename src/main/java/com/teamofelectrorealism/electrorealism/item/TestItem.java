@@ -20,8 +20,8 @@ public class TestItem extends Item {
         BlockPos clickedPos = context.getClickedPos();
         BlockEntity clickedBlockEntity = context.getLevel().getBlockEntity(clickedPos);
 
-        if (clickedBlockEntity instanceof IWireNode) {
-            ElectroRealism.NETWORK_MANAGER.removeAllNetworks();
+        if (clickedBlockEntity instanceof IWireNode && !context.getLevel().isClientSide()) {
+            ElectroRealism.NETWORK_MANAGER.getNetworkIds();
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;

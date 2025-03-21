@@ -1,114 +1,67 @@
 package com.teamofelectrorealism.electrorealism.network;
 
+import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
-import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.*;
 
-public class Network {
+class Network {
     private final UUID networkId;
-
-    private Map<ConnectionPoint, BlockEntity> connectorMachineMap = new HashMap<>();
-    private Set<Connection> connections;
-    private Set<ConnectionPoint> connectionPoints;
-
     private boolean isValid;
 
-    public Network() {
+    private Set<BlockPos> memberPos;
+
+    Network() {
         this.networkId = UUID.randomUUID();
         this.isValid = true;
-        this.connections = new HashSet<>();
-        this.connectionPoints = new HashSet<>();
+
+        this.memberPos = new HashSet<>();
+        ElectroRealism.NETWORK_MANAGER.addNetwork(this);
     }
 
-    public Network(UUID networkId) {
-        this.networkId = networkId;
-        this.isValid = true;
-        this.connections = new HashSet<>();
-        this.connectionPoints = new HashSet<>();
-    }
-
-    void registerConnection(Connection connection) {
-        connections.add(connection);
-        connectionPoints.add(connection.getConnectionPoint());
-        connectionPoints.add(connection.getConnectingConnectionPoint());
-    }
-
-    // Start Getters/Setters
-
-    BlockEntity getMachineFromConnector(ConnectionPoint connectionPoint) {
-        return connectorMachineMap.get(connectionPoint);
-    }
-
-    Set<Connection> getConnections() {
-        return connections;
-    }
-
-    Map<ConnectionPoint, BlockEntity> getConnectorMachineMap() {
-        return connectorMachineMap;
-    }
-
-    Set<ConnectionPoint> getConnectionPoints() {
-        return connectionPoints;
-    }
-
-    public void setInvalid() {
+    void setInvalid() {
         isValid = false;
-    }
-
-    public UUID getNetworkId() {
-        return networkId;
-    }
-
-    // End Getters/Setters
-
-    void registerConnectorAndMachine(ConnectionPoint connectionPoint, BlockEntity machine) {
-        connectorMachineMap.put(connectionPoint, machine);
-    }
-
-    void removeConnector(ConnectionPoint connectionPoint) {
-        connectorMachineMap.remove(connectionPoint);
-    }
-
-    boolean containsConnectionPoint(ConnectionPoint connectionPoint) {
-        return getConnectionPoints().contains(connectionPoint);
     }
 
     boolean isValid() {
         return isValid;
     }
 
-    void removeInvalidConnections() {
-        connections.removeIf(Network::isConnectionInvalid);
+    UUID getNetworkId() {
+        return networkId;
     }
 
-    private static boolean isConnectionInvalid(Connection connection) {
-        return !connection.isValid();
+    Set<BlockPos> getMemberPos() {
+        return memberPos;
     }
 
-    public CompoundTag write() {
-        CompoundTag tag = new CompoundTag();
-
-        tag.putUUID("network_id", networkId);
-        tag.putBoolean("isvalid", isValid);
-
-        return tag;
-    }
-
-    public Network read(CompoundTag tag) {
-        Network network = new Network(tag.getUUID("network_id"));
-
-        isValid = tag.getBoolean("isvalid");
-
-        return network;
-    }
+//    public CompoundTag write() {
+//        CompoundTag tag = new CompoundTag();
+//
+//        tag.putUUID("network_id", networkId);
+//        tag.putBoolean("isvalid", isValid);
+//
+//        return tag;
+//    }
+//
+//    public static Network read(CompoundTag tag) {
+//        Network network = new Network(tag.getUUID("network_id")); //todo hmgde
+//
+//        network.isValid = tag.getBoolean("isvalid");
+//
+//        return network;
+//    }
 
     void tick() {
-        removeInvalidConnections();
+    }
+
+    void registerBlockEntityPos(BlockPos blockPos) {
+        memberPos.add(blockPos);
+    }
+
+    void registerAllBlockEntityPos(Set<BlockPos> posSet) {
+        memberPos.addAll(posSet);
     }
 }

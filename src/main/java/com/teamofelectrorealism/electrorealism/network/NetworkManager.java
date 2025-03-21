@@ -1,14 +1,13 @@
 package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.logging.LogUtils;
-import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.slf4j.Logger;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -16,16 +15,21 @@ import java.util.*;
  */
 public class NetworkManager {
     private static final Logger LOGGER = LogUtils.getLogger();
-
-    private static Set<Network> networks;
-
-    private static NetworkSavedData savedData;
+    private Set<Network> networks;
+    private NetworkSavedData savedData;
 
     public NetworkManager() {
         networks = new HashSet<>();
     }
 
-    public static void levelLoaded(LevelAccessor level) {
+    public void getNetworkIds() {
+        LOGGER.info("List all networks:");
+        for (Network network : networks) {
+            LOGGER.info("UUID: {}, Object: {}", network.getNetworkId(), network);
+        }
+    }
+
+    public void levelLoaded(LevelAccessor level) {
         MinecraftServer server = level.getServer();
         if (server == null || server.overworld() != level) return;
         
@@ -34,104 +38,79 @@ public class NetworkManager {
         loadNetworkData(server);
     }
 
-    private static void loadNetworkData(MinecraftServer server) {
+    private void loadNetworkData(MinecraftServer server) {
         if (savedData != null) return;
         savedData = NetworkSavedData.load(server);
         networks = savedData.getNetworks();
     }
 
-    private Network findOrCreateNetwork(ConnectionPoint connectionPoint) {
-        Network network = findNetwork(connectionPoint);
-        if (network == null) {
-            Network newNetwork = createNetwork();
-            return newNetwork;
-        }
-        return network;
-    }
-
-    @Nullable
-    private Network findNetwork(ConnectionPoint connectionPoint) {
-        for (Network network : networks) {
-            if (network.containsConnectionPoint(connectionPoint)) {
-                return network;
-            }
-        }
-        return null;
-    }
-
-    public Network createNetwork() {
-        Network newNetwork = new Network();
-        networks.add(newNetwork);
-
-        LOGGER.info("New network created with UUID: {}", newNetwork.getNetworkId());
-
-        return newNetwork;
-    }
-
-    private Network mergeNetworks(Network network1, Network network2) {
-        for (Connection connection: network2.getConnections()) {
-            network1.registerConnection(connection);
-        }
-        network2.setInvalid();
-        //removeInvalidNetworks();
-        networks.remove(network2);
-        return network1;
-    }
-
-    public void createConnection(Level level, ConnectionPoint connectionPoint1, ConnectionPoint connectionPoint2) {
-        if (level.isClientSide()) return;
-
-        // Always null :thinkies:
-        Network network1 = findNetwork(connectionPoint1);
-        LOGGER.info("Found network with UUID: " + network1.getNetworkId());
-        Network network2 = findNetwork(connectionPoint2);
-        LOGGER.info("Found network with UUID: " + network2.getNetworkId());
-
-        Network network;
-        network = mergeNetworks(network1, network2);
-        LOGGER.info("Merged network into UUID: " + network.getNetworkId());
-        if (network1.getNetworkId() == network2.getNetworkId()) System.out.println("Same network");
-
-        Connection connection = new Connection(connectionPoint1, connectionPoint2);
-        network.registerConnection(connection);
-
-        IWireNode wireNode1 = (IWireNode) level.getBlockEntity(connectionPoint1.getPos());
-        IWireNode wireNode2 = (IWireNode) level.getBlockEntity(connectionPoint2.getPos());
-
-        if (wireNode1 != null) network.registerConnectorAndMachine(connectionPoint1, wireNode1.getMachine());
-        if (wireNode2 != null) network.registerConnectorAndMachine(connectionPoint2, wireNode2.getMachine());
-
-        for (Network networkObject : networks) {
-            LOGGER.info("Network: {}", networkObject.getNetworkId());
-        }
-    }
-    
-    public void removeConnection(Level level, ConnectionPoint connectionPoint1, ConnectionPoint connectionPoint2) {
-        Network network = this.findNetwork(connectionPoint1);
-        if (network == null) return;
-        // todo
-    }
-
-    private void removeInvalidNetworks() {
-        networks.removeIf(NetworkManager::isNetworkInvalid);
-    }
-
-    private static boolean isNetworkInvalid(Network network) {
-        return !network.isValid();
+    public void addNetwork(Network network) {
+        networks.add(network);
     }
 
     public void tick() {
         for (Network network : networks) {
             network.tick();
         }
-        removeInvalidNetworks();
     }
 
-    public void invalidateNetwork(Network network) {
-        network.setInvalid();
+    public UUID createNetwork() {
+        Network network = new Network();
+        LOGGER.info("New network with UUID: {}", network.getNetworkId());
+        return network.getNetworkId();
     }
 
-    public void removeAllNetworks() {
-        networks = new HashSet<>();
+    public void registerBlockEntityPosInNetwork(UUID networkId, BlockPos blockPos) {
+        Network network = findNetwork(networkId);
+        if (network != null) network.registerBlockEntityPos(blockPos);
+    }
+
+    private Network findNetwork(UUID networkId) {
+        for (Network network : networks) {
+            if (network.getNetworkId() == networkId) return network;
+        }
+        return null;
+    }
+
+    public UUID createOrMergeNetworks(IWireNode iWireNode1, IWireNode iWireNode2) {
+        UUID networkId1 = iWireNode1.getNetworkId();
+        UUID networkId2 = iWireNode2.getNetworkId();
+
+        if (networkId1 == null && networkId2 == null) {
+            // Neither node has a network, create a new one
+            return createNetwork();
+        } else if (networkId1 != null && networkId2 == null) {
+            // Only node1 has a network, use it
+            return networkId1;
+        } else if (networkId1 == null && networkId2 != null) {
+            // Only node2 has a network, use it
+            return networkId2;
+        } else {
+            // Both nodes have networks, merge them into network1
+            if (networkId1.equals(networkId2)) {
+                return networkId1;
+            }
+            return mergeNetworks(networkId1, networkId2);
+        }
+    }
+
+    private UUID mergeNetworks(UUID networkId1, UUID networkId2) {
+        Network network1 = findNetwork(networkId1);
+        Network network2 = findNetwork(networkId2);
+
+        if (network1 != null && network2 != null) {
+            // Merge network2 into network1
+            network1.registerAllBlockEntityPos(network2.getMemberPos());
+            network2.setInvalid();
+            networks.remove(network2);
+            LOGGER.info("Merged network {} into {}", networkId2, networkId1);
+            return networkId1;
+        } else if (network1 == null) {
+            LOGGER.error("Network1 not found, but should exist");
+            return networkId2;
+        } else {
+            LOGGER.error("Network2 not found, but should exist");
+            return networkId1;
+        }
     }
 }

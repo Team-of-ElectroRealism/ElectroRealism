@@ -30,6 +30,14 @@ public class NetworkBuilder {
      *  maxLength
      *  RESISTIVITY (ρ)
      *  thickness / cross-sectional area
+     *
+     * AbstractConnectorBlockEntity
+     *  Network
+     *  ConnectionPoints
+     *  SetNetwork
+     *  SetConnection
+     *  Saves ConnectionPoints
+     *
      */
     public NetworkBuilder() {
 

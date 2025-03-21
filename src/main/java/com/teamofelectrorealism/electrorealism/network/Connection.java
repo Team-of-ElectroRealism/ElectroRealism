@@ -8,22 +8,22 @@ public class Connection {
     private final UUID connectionId;
     private boolean isValid;
 
-    private final ConnectionPoint sourceNode;
-    private final ConnectionPoint targetNode;
+    private final ConnectionPoint sourceConnectionPoint;
+    private final ConnectionPoint targetConnectionPoints;
 
-    public Connection(ConnectionPoint sourceNode, ConnectionPoint targetNode) {
+    public Connection(ConnectionPoint sourceConnectionPoint, ConnectionPoint targetConnectionPoints) {
         this.connectionId = UUID.randomUUID();
         this.isValid = true;
-        this.sourceNode = sourceNode;
-        this.targetNode = targetNode;
+        this.sourceConnectionPoint = sourceConnectionPoint;
+        this.targetConnectionPoints = targetConnectionPoints;
     }
 
-    public ConnectionPoint getConnectionPoint() {
-        return sourceNode;
+    public ConnectionPoint getSourceConnectionPoint() {
+        return sourceConnectionPoint;
     }
 
     public ConnectionPoint getConnectingConnectionPoint() {
-        return targetNode;
+        return targetConnectionPoints;
     }
 
     public UUID getConnectionId() {
@@ -36,5 +36,9 @@ public class Connection {
 
     public void invalidate() {
         this.isValid = false;
+    }
+
+    public boolean hasConnectionPoint(ConnectionPoint connectionPoint) {
+        return connectionPoint == this.sourceConnectionPoint || connectionPoint == targetConnectionPoints;
     }
 }

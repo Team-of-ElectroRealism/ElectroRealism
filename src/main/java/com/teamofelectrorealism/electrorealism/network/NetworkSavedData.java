@@ -3,6 +3,8 @@ package com.teamofelectrorealism.electrorealism.network;
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -34,13 +36,15 @@ public class NetworkSavedData extends SavedData {
     public static NetworkSavedData load(MinecraftServer server) {
         return server.overworld()
                 .getDataStorage()
-                .computeIfAbsent(FACTORY, ElectroRealism.MODID);
+                .computeIfAbsent(FACTORY, ElectroRealism.MODID + "_networks");
     }
 
     private static NetworkSavedData load(CompoundTag tag, HolderLookup.Provider provider) {
         NetworkSavedData savedData = new NetworkSavedData();
-        savedData.networks = new HashSet<>();
-
+        ListTag networkList = tag.getList("Networks", Tag.TAG_COMPOUND);
+//        networkList.forEach(networkTag -> {
+//            savedData.networks.add(Network.read((CompoundTag) networkTag));
+//        });
         return savedData;
     }
 

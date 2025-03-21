@@ -47,7 +47,7 @@ public class ConnectionPoint {
         compoundTag.putInt(Z, this.relativePos.getZ());
     }
 
-    public int getPointIndex() {
+    public int getConnectionPointIndex() {
         return pointIndex;
     }
 

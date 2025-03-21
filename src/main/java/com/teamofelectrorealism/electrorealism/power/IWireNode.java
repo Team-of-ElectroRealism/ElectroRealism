@@ -3,16 +3,14 @@ package com.teamofelectrorealism.electrorealism.power;
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
 import com.teamofelectrorealism.electrorealism.network.NetworkManager;
-import com.teamofelectrorealism.electrorealism.network.NetworkSavedData;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.UUID;
 
 public interface IWireNode {
     static WireConnectResult disconnect(Level level, BlockPos pos1, BlockPos pos2) {
@@ -28,8 +26,8 @@ public interface IWireNode {
             return WireConnectResult.NO_CONNECTION;
         }
 
-        ConnectionPoint connectionPoint1 = iWireNode1.getConnectionTo(pos2);
-        ConnectionPoint connectionPoint2 = iWireNode2.getConnectionTo(pos1);
+        ConnectionPoint connectionPoint1 = iWireNode1.getConnectionPointIn(pos2);
+        ConnectionPoint connectionPoint2 = iWireNode2.getConnectionPointIn(pos1);
         if (connectionPoint1 == null || connectionPoint2 == null) {
             return WireConnectResult.NO_CONNECTION;
         }
@@ -61,22 +59,31 @@ public interface IWireNode {
         iWireNode1.setConnectionPoint(connectionPointIndex1, connectionPointIndex2, wireType, iWireNode2.getPos());
         iWireNode2.setConnectionPoint(connectionPointIndex2, connectionPointIndex1, wireType, iWireNode1.getPos());
 
-        System.out.println(level);
-        System.out.println(level.dimension());
+        if (!level.isClientSide()) {
+            NetworkManager networkManager = ElectroRealism.NETWORK_MANAGER;
+            UUID networkId = networkManager.createOrMergeNetworks(iWireNode1, iWireNode2);
 
-        ElectroRealism.NETWORK_MANAGER.createConnection(
-                level,
-                iWireNode1.getConnectionPoint(connectionPointIndex1),
-                iWireNode2.getConnectionPoint(connectionPointIndex2)
-        );
-        return WireConnectResult.getLink(iWireNode2.isNodeInput(connectionPointIndex2), iWireNode2.isNodeOutput(connectionPointIndex2));
+            iWireNode1.setNetworkId(networkId);
+            iWireNode2.setNetworkId(networkId);
+
+            networkManager.registerBlockEntityPosInNetwork(networkId, iWireNode1.getPos());
+            networkManager.registerBlockEntityPosInNetwork(networkId, iWireNode2.getPos());
+        }
+
+        return WireConnectResult.getLink(iWireNode2.isConnectorInput(connectionPointIndex2), iWireNode2.isConnectorOutput(connectionPointIndex2));
     }
 
-    default boolean isNodeInput(int index) {
+    UUID getNetworkId();
+
+    void setNetworkId(UUID networkId);
+
+    BlockPos getPos();
+
+    default boolean isConnectorInput(int index) {
         return true;
     }
 
-    default boolean isNodeOutput(int node) {
+    default boolean isConnectorOutput(int node) {
         return true;
     }
 
@@ -123,72 +130,57 @@ public interface IWireNode {
         return (IWireNode) blockEntity;
     }
 
-    @Nullable
-    static IWireNode getWireNodeFrom(int index, IWireNode wireNode, ConnectionPoint[] connectionPoints, IWireNode[] nodeCache, Level level) {
-        if (!wireNode.hasConnection(index)) return null;
-        // Cache the node if it isn't already.
-        if (nodeCache[index] == null)
-            nodeCache[index] = IWireNode.getWireNode(level, connectionPoints[index].getPos());
-        // If the node is still null, remove it.
-        if (nodeCache[index] == null) wireNode.removeConnectionPoint(index);
-        return nodeCache[index];
-    }
-
-    // Remove Node methods
     void removeConnectionPoint(int index, boolean dropWire);
 
     default void removeConnectionPoint(int index) {
         removeConnectionPoint(index, false);
     }
 
-    default void removeConnectionPoint(ConnectionPoint node, boolean dropWire) {
-        removeConnectionPoint(node.getPointIndex(), dropWire);
+    default void removeConnectionPoint(ConnectionPoint connectionPoint, boolean dropWire) {
+        removeConnectionPoint(connectionPoint.getConnectionPointIndex(), dropWire);
     }
 
-    default void removeConnectionPoint(@NotNull ConnectionPoint node) {
-        removeConnectionPoint(node.getPointIndex());
+    default void removeConnectionPoint(@NotNull ConnectionPoint connectionPoint) {
+        removeConnectionPoint(connectionPoint.getConnectionPointIndex());
     }
-    // End remove Node methods
 
-    default int getConnectingNodeIndex(int index) {
-        ConnectionPoint node = getConnectionPoint(index);
-        int connectingNodeIndex = (node == null) ? -1 : node.getConnectingPointIndex();
+    default int getConnectingConnectionPointIndex(int index) {
+        ConnectionPoint connectionPoint = getConnectionPoint(index);
+        int connectingNodeIndex = (connectionPoint == null) ? -1 : connectionPoint.getConnectingPointIndex();
         return connectingNodeIndex;
     }
 
     @Nullable
-    default BlockPos getNodePos(int index) {
-        ConnectionPoint node = getConnectionPoint(index);
-        BlockPos nodePos = (node == null) ? null : node.getPos();
-        return nodePos;
+    default BlockPos getConnectorPos(int index) {
+        ConnectionPoint connectionPoint = getConnectionPoint(index);
+        BlockPos connectorPos = (connectionPoint == null) ? null : connectionPoint.getPos();
+        return connectorPos;
     }
-
-    BlockPos getPos();
 
     @Nullable
     default WireType getWireType(int index) {
-        ConnectionPoint node = getConnectionPoint(index);
-        WireType wireType = (node == null) ? null : node.getWireType();
+        ConnectionPoint connectionPoint = getConnectionPoint(index);
+        WireType wireType = (connectionPoint == null) ? null : connectionPoint.getWireType();
         return wireType;
     }
 
     @Nullable
-    static WireType getTypeOfConnection(Level world, BlockPos pos1, BlockPos pos2) {
+    static WireType getWireTypeOfConnection(Level world, BlockPos pos1, BlockPos pos2) {
         BlockEntity blockEntity = world.getBlockEntity(pos1);
         if (blockEntity == null) return null;
         if (!(blockEntity instanceof IWireNode wireNode)) return null;
-        ConnectionPoint node = wireNode.getConnectionTo(pos2);
-        if (node == null) return null;
-        return node.getWireType();
+        ConnectionPoint connectionPoint = wireNode.getConnectionPointIn(pos2);
+        if (connectionPoint == null) return null;
+        return connectionPoint.getWireType();
     }
 
     @Nullable
-    default ConnectionPoint getConnectionTo(BlockPos pos) {
+    default ConnectionPoint getConnectionPointIn(BlockPos pos) {
         if (pos == null) return null;
         for (int i = 0; i < getConnectionPointCount(); i++) {
-            ConnectionPoint node = getConnectionPoint(i);
-            if (node == null) continue;
-            if (node.getPos().equals(pos)) return node;
+            ConnectionPoint connectionPoint = getConnectionPoint(i);
+            if (connectionPoint == null) continue;
+            if (connectionPoint.getPos().equals(pos)) return connectionPoint;
         }
         return null;
     }
@@ -211,6 +203,4 @@ public interface IWireNode {
         }
         return false;
     }
-
-    BlockEntity getMachine();
 }

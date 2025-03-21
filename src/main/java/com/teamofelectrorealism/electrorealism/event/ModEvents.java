@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.event;
 
 import com.mojang.logging.LogUtils;
+import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import net.minecraft.world.level.LevelAccessor;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -16,7 +17,7 @@ public class ModEvents {
     public static void onLevelLoad(LevelEvent.Load event) {
         LevelAccessor world = event.getLevel();
 
-        NetworkManager.levelLoaded(world);
+        ElectroRealism.NETWORK_MANAGER.levelLoaded(world);
     }
 
     @SubscribeEvent

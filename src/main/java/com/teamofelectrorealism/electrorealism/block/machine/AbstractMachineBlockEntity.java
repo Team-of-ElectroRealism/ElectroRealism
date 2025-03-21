@@ -1,14 +1,15 @@
 package com.teamofelectrorealism.electrorealism.block.machine;
 
-import com.teamofelectrorealism.electrorealism.network.Network;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.UUID;
+
 public abstract class AbstractMachineBlockEntity extends BlockEntity {
-    private Network network;
+    private UUID networkId;
 
     public AbstractMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -16,11 +17,11 @@ public abstract class AbstractMachineBlockEntity extends BlockEntity {
 
     public abstract void tick(Level level, BlockPos pos, BlockState state);
 
-    public Network getNetwork() {
-        return network;
+    public UUID getNetworkId() {
+        return networkId;
     }
 
-    public void setNetwork(Network network) {
-        this.network = network;
+    public void setNetworkId(UUID networkId) {
+        this.networkId = networkId;
     }
 }

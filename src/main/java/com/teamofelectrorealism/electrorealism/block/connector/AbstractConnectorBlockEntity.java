@@ -1,15 +1,9 @@
 package com.teamofelectrorealism.electrorealism.block.connector;
 
-import com.teamofelectrorealism.electrorealism.ElectroRealism;
-import com.teamofelectrorealism.electrorealism.block.IPowerProvider;
-import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
-import com.teamofelectrorealism.electrorealism.network.Network;
-import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.WireType;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -18,68 +12,75 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public abstract class AbstractConnectorBlockEntity extends BlockEntity implements IWireNode{
 
-    private Network network;
+    private UUID networkId;
     private final ConnectionPoint[] connectionPoints;
-    private final IWireNode[] nodeCache;
+
+    private final Set<ConnectionPoint> wireCache = new HashSet<>();
 
     public AbstractConnectorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
 
         this.connectionPoints = new ConnectionPoint[getConnectionPointCount()];
-        this.nodeCache = new IWireNode[getConnectionPointCount()];
-        this.network = ElectroRealism.NETWORK_MANAGER.createNetwork();
-    }
-
-    // getters/setters
-    public @Nullable IWireNode getWireNode(int index) {
-        return IWireNode.getWireNodeFrom(index, this, this.connectionPoints, this.nodeCache, level);
     }
 
     public @Nullable ConnectionPoint getConnectionPoint(int index) {
         return this.connectionPoints[index];
     }
 
+    @Override
     public BlockPos getPos() {
-        return getBlockPos();
+        return this.getBlockPos();
     }
 
     @Override
-    public void setConnectionPoint(int index, int connectingIndex, WireType wireType, BlockPos pos) {
-        this.connectionPoints[index] = new ConnectionPoint(this, index, connectingIndex, wireType, pos);
-        if (network != null) ElectroRealism.NETWORK_MANAGER.invalidateNetwork(network);
-    }
-
-    public void setNetwork(Network network) {
-        this.network = network;
+    public @Nullable IWireNode getWireNode(int index) {
+        return IWireNode.getWireNode(level, getPos());
     }
 
     @Override
-    public BlockEntity getMachine() {
-        for (Direction facing: Direction.values()) {
-            BlockPos neighborPos = this.getPos().offset(facing.getNormal());
-            BlockEntity blockEntity = level.getBlockEntity(neighborPos);
-            if (blockEntity instanceof IPowerReceiver || blockEntity instanceof IPowerProvider) {
-                return blockEntity;
-            }
-        }
-        return null;
+    public UUID getNetworkId() {
+        return this.networkId;
     }
 
-    // End getters/setters
+    @Override
+    public void setNetworkId(UUID networkId) {
+        this.networkId = networkId;
+    }
+
+    @Override
+    public void setConnectionPoint(int pointIndex, int connectingPointIndex, WireType wireType, BlockPos pos) {
+        this.connectionPoints[pointIndex] = new ConnectionPoint(this, pointIndex, connectingPointIndex, wireType, pos);
+        setChanged();
+
+        // Invalidate network? //todo
+    }
+
+    @Override
+    public void removeConnectionPoint(int index, boolean dropWire) {
+        ConnectionPoint oldConnectionPoint = this.connectionPoints[index];
+        this.connectionPoints[index] = null;
+
+        invalidateConnectionPoints();
+        setChanged();
+
+        if (dropWire && oldConnectionPoint != null) this.wireCache.add(oldConnectionPoint); //todo handle wiredropps
+    }
 
     //Serializing
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        invalidateLocalNodes();
-        invalidateNodeCache();
+        invalidateConnectionPoints();
         ListTag connection_points = tag.getList(ConnectionPoint.CONNECTION_POINTS, ListTag.TAG_COMPOUND);
         connection_points.forEach(localNodeTag -> {
             ConnectionPoint connectionPoint = new ConnectionPoint(this, (CompoundTag) localNodeTag);
-            this.connectionPoints[connectionPoint.getPointIndex()] = connectionPoint;
+            this.connectionPoints[connectionPoint.getConnectionPointIndex()] = connectionPoint;
         });
     }
 
@@ -98,24 +99,16 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     }
     //End serializing
 
-
-    @Override
-    public void removeConnectionPoint(int index, boolean dropWire) {
-        this.connectionPoints[index] = null;
-        this.nodeCache[index] = null;
-
-        invalidateNodeCache();
-        if (network == null) ElectroRealism.NETWORK_MANAGER.invalidateNetwork(network);
-    }
-
     //Helpers
-    public void invalidateLocalNodes() {
+    public void invalidateConnectionPoints() {
         for(int i = 0; i < getConnectionPointCount(); i++)
             this.connectionPoints[i] = null;
     }
 
-    public void invalidateNodeCache() {
-        for(int i = 0; i < getConnectionPointCount(); i++)
-            this.nodeCache[i] = null;
+    public void tick() {
+        if (level == null) return;
+        if (!level.isLoaded(getBlockPos())) return;
+        if (level.isClientSide()) return;
+        setChanged();
     }
 }

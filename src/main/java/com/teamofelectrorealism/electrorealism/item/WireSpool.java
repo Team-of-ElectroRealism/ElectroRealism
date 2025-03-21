@@ -42,7 +42,7 @@ public class WireSpool extends Item {
 
             clickedBlockEntity.setChanged();
 
-            WireType connectionType = IWireNode.getTypeOfConnection(context.getLevel(), clickedPos, getPos(connectionData));
+            WireType connectionType = IWireNode.getWireTypeOfConnection(context.getLevel(), clickedPos, getPos(connectionData));
             if (context.getPlayer() != null && !context.getPlayer().isCreative()) {
                 if (connectResult == WireConnectResult.REMOVED) {
                     itemStackInHand.shrink(1);
@@ -69,7 +69,7 @@ public class WireSpool extends Item {
                 return InteractionResult.PASS;
             }
             if (!isRemover(itemInHand)) {
-                context.getPlayer().displayClientMessage(WireConnectResult.getConnect(clickedIWireNodeBlockEntity.isNodeInput(index), clickedIWireNodeBlockEntity.isNodeOutput(index)).getMessage(), true);
+                context.getPlayer().displayClientMessage(WireConnectResult.getConnect(clickedIWireNodeBlockEntity.isConnectorInput(index), clickedIWireNodeBlockEntity.isConnectorOutput(index)).getMessage(), true);
             }
             itemStackInHand.set(ModDataComponents.WIRE_CONNECTION.value(), new WireConnectionData(clickedIWireNodeBlockEntity.getPos(), index)); // observerPacket? todo
         }

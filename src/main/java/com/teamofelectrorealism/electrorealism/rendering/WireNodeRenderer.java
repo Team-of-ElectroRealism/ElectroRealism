@@ -41,11 +41,11 @@ public class WireNodeRenderer<T extends BlockEntity> implements BlockEntityRende
             IWireNode wireNode = blockEntity.getWireNode(i);
             if (wireNode == null) return;
 
-            Vec3 connectingNodeOffset = wireNode.getConnectionPointOffset(blockEntity.getConnectingNodeIndex(i));
+            Vec3 connectingNodeOffset = wireNode.getConnectionPointOffset(blockEntity.getConnectingConnectionPointIndex(i));
             float connectingNodeOffsetX = ((float) connectingNodeOffset.x());
             float connectingNodeOffsetY = ((float) connectingNodeOffset.y());
             float connectingNodeOffsetZ = ((float) connectingNodeOffset.z());
-            BlockPos connectingPos = blockEntity.getNodePos(i);
+            BlockPos connectingPos = blockEntity.getConnectorPos(i);
 
             float relativeOffsetX = connectingPos.getX() - blockEntity.getPos().getX();
             float relativeOffsetY = connectingPos.getY() - blockEntity.getPos().getY();
