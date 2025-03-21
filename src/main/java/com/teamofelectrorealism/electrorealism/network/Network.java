@@ -30,7 +30,7 @@ class Network {
         return networkId;
     }
 
-    Set<INetworkMember> getIWireNodes() {
+    Set<INetworkMember> getNetworkMembers() {
         return networkMembers;
     }
 

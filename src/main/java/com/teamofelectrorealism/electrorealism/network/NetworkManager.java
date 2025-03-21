@@ -1,7 +1,6 @@
 package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.logging.LogUtils;
-import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.LevelAccessor;
 import org.slf4j.Logger;
@@ -102,7 +101,7 @@ public class NetworkManager {
 
         if (network1 != null && network2 != null) {
             // Merge network2 into network1
-            network1.registerAllINetworkMembers(network2.getIWireNodes());
+            network1.registerAllINetworkMembers(network2.getNetworkMembers());
             network2.setInvalid();
             networks.remove(network2);
             LOGGER.info("Merged network {} into {}", networkId2, networkId1);
@@ -115,13 +114,23 @@ public class NetworkManager {
             networkId = networkId1;
         }
 
-        updateNetworkIds(networkId, findNetwork(networkId).getIWireNodes());
+        updateNetworkIds(networkId, findNetwork(networkId).getNetworkMembers());
         return networkId;
     }
 
     private void updateNetworkIds(UUID networkId, Set<INetworkMember> networkMembers) {
         for (INetworkMember networkMember : networkMembers) {
             networkMember.setNetworkId(networkId);
+        }
+    }
+
+    public void printMembersInNetwork(UUID networkId) {
+        Network network = findNetwork(networkId);
+        Set<INetworkMember> networkMembers = network.getNetworkMembers();
+        if (networkMembers == null) return;
+        LOGGER.info("All members in clicked network with UUID: {}", networkId);
+        for (INetworkMember networkMember : networkMembers) {
+            LOGGER.info("Member: {}", networkMember);
         }
     }
 }

@@ -9,6 +9,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import java.util.UUID;
+
 public class TestItem extends Item {
     public TestItem(Properties properties) {
         super(properties);
@@ -20,8 +22,10 @@ public class TestItem extends Item {
         BlockPos clickedPos = context.getClickedPos();
         BlockEntity clickedBlockEntity = context.getLevel().getBlockEntity(clickedPos);
 
-        if (clickedBlockEntity instanceof INetworkMember && !context.getLevel().isClientSide()) {
+        if (clickedBlockEntity instanceof INetworkMember networkMember && !context.getLevel().isClientSide()) {
+            UUID networkId = networkMember.getNetworkId();
             ElectroRealism.NETWORK_MANAGER.getNetworkIds();
+            ElectroRealism.NETWORK_MANAGER.printMembersInNetwork(networkId);
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;

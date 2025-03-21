@@ -1,5 +1,6 @@
 package com.teamofelectrorealism.electrorealism.block.connector;
 
+import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.network.INetworkMember;
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
@@ -76,6 +77,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         this.networkId = networkId;
         if (findNetworkMember() instanceof INetworkMember networkMember) {
             networkMember.setNetworkId(networkId);
+            ElectroRealism.NETWORK_MANAGER.registerINetworkMemberInNetwork(networkId, networkMember);
         }
     }
 
