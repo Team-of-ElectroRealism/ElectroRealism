@@ -1,9 +1,7 @@
 package com.teamofelectrorealism.electrorealism.network;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
-import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
+import com.teamofelectrorealism.electrorealism.power.IWireNode;
 
 import java.util.*;
 
@@ -11,13 +9,13 @@ class Network {
     private final UUID networkId;
     private boolean isValid;
 
-    private Set<BlockPos> memberPos;
+    private Set<IWireNode> iWireNodes;
 
     Network() {
         this.networkId = UUID.randomUUID();
         this.isValid = true;
 
-        this.memberPos = new HashSet<>();
+        this.iWireNodes = new HashSet<>();
         ElectroRealism.NETWORK_MANAGER.addNetwork(this);
     }
 
@@ -33,8 +31,8 @@ class Network {
         return networkId;
     }
 
-    Set<BlockPos> getMemberPos() {
-        return memberPos;
+    Set<IWireNode> getIWireNodes() {
+        return iWireNodes;
     }
 
 //    public CompoundTag write() {
@@ -57,11 +55,11 @@ class Network {
     void tick() {
     }
 
-    void registerBlockEntityPos(BlockPos blockPos) {
-        memberPos.add(blockPos);
+    void registerIWireNode(IWireNode iWireNode) {
+        iWireNodes.add(iWireNode);
     }
 
-    void registerAllBlockEntityPos(Set<BlockPos> posSet) {
-        memberPos.addAll(posSet);
+    void registerAllIWireNodes(Set<IWireNode> iWireNodes) {
+        this.iWireNodes.addAll(iWireNodes);
     }
 }

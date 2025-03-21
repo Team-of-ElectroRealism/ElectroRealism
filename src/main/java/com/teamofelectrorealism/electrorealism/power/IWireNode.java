@@ -66,8 +66,8 @@ public interface IWireNode {
             iWireNode1.setNetworkId(networkId);
             iWireNode2.setNetworkId(networkId);
 
-            networkManager.registerBlockEntityPosInNetwork(networkId, iWireNode1.getPos());
-            networkManager.registerBlockEntityPosInNetwork(networkId, iWireNode2.getPos());
+            networkManager.registerIWireNodeInNetwork(networkId, iWireNode1);
+            networkManager.registerIWireNodeInNetwork(networkId, iWireNode2);
         }
 
         return WireConnectResult.getLink(iWireNode2.isConnectorInput(connectionPointIndex2), iWireNode2.isConnectorOutput(connectionPointIndex2));
