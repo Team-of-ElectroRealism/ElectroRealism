@@ -1,27 +1,22 @@
 package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
-import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBlock;
-import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlock;
-import com.teamofelectrorealism.electrorealism.block.generator.test.VoltageSourceBlock;
-import com.teamofelectrorealism.electrorealism.block.generator.waterwheel.WaterWheelBlock;
-import com.teamofelectrorealism.electrorealism.block.arc_furnace.ArcFurnaceBlock;
+import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.user.crusher.ElectricCrusherBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.solarpanel.SolarPanelBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.test.VoltageSourceBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.waterwheel.WaterWheelBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.user.arc_furnace.ArcFurnaceBlock;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
-import net.minecraft.client.resources.model.Material;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.DropExperienceBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.function.Supplier;
 
@@ -64,6 +59,12 @@ public class ModBlocks {
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));
 
+    public static final DeferredBlock<Block> SMALL_CONNECTOR = registerBlock("small_connector",
+            () -> new SmallConnectorBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion()));
+
     public static final DeferredBlock<CopperWireBlock> COPPER_WIRE = BLOCKS.register("copper_wire",
             () -> new CopperWireBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
@@ -72,8 +73,6 @@ public class ModBlocks {
                     .strength(0.2F)
                     .sound(SoundType.METAL)
             ));
-
-
 
     // Stop Blocks
 
@@ -90,6 +89,4 @@ public class ModBlocks {
     private static <T extends Block> void registerBlockItem(String name, DeferredBlock<T> block) {
         ModItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
     }
-
-
 }
