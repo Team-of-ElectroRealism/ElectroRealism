@@ -1,0 +1,11 @@
+{
+  "type": "electrorealism:crushing",
+  "ingredient": [
+    {
+      "item": "minecraft:iron_ore"
+    }
+  ],
+  "result": {
+    "id": "electrorealism:test_item"
+  }
+}

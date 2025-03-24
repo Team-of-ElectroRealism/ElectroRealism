@@ -15,6 +15,13 @@ public class ModItems {
             () -> new BlockItem(ModBlocks.COPPER_WIRE.get(), new Item.Properties()));
 
 
+    // Items under here
+
+    public static final DeferredItem<Item> TEST_ITEM = ITEMS.register("test_item",
+            () -> new Item(new Item.Properties()));
+
+    // Stop items
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }
