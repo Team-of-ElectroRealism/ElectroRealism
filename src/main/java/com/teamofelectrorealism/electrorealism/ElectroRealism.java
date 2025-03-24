@@ -49,6 +49,7 @@ public class ElectroRealism
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
     public ElectroRealism(IEventBus modEventBus, ModContainer modContainer)
     {
+
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::setupRenderers);
@@ -58,8 +59,6 @@ public class ElectroRealism
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
         NeoForge.EVENT_BUS.register(this);
 
-        ModCreativeModeTabs.register(modEventBus);
-
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModBlockEntityTypes.register(modEventBus);
@@ -67,6 +66,7 @@ public class ElectroRealism
         ModRecipes.register(modEventBus);
         ModDataComponents.register(modEventBus);
 
+        ModCreativeModeTabs.register(modEventBus);
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
 
@@ -95,6 +95,7 @@ public class ElectroRealism
     {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
             event.accept(ModBlocks.PROGRAMMER_BLOCK);
+            event.accept(ModBlocks.COPPER_WIRE);
             event.accept(ModBlocks.ELECTRIC_CRUSHER);
             event.accept(ModBlocks.ARC_FURNACE);
         }

@@ -11,6 +11,7 @@ import com.teamofelectrorealism.electrorealism.item.ModItems;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
@@ -64,7 +65,20 @@ public class ModBlocks {
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));
 
+    public static final DeferredBlock<CopperWireBlock> COPPER_WIRE = BLOCKS.register("copper_wire",
+            () -> new CopperWireBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .noCollission()
+                    .instabreak()
+                    .strength(0.2F)
+                    .sound(SoundType.METAL)
+            ));
+
     // Stop Blocks
+
+    public static void register(IEventBus eventBus) {
+        BLOCKS.register(eventBus);
+    }
 
     private static  <T extends Block> DeferredBlock<T> registerBlock(String name, Supplier<T> block) {
         DeferredBlock<T> toReturn = BLOCKS.register(name, block);
@@ -74,9 +88,5 @@ public class ModBlocks {
 
     private static <T extends Block> void registerBlockItem(String name, DeferredBlock<T> block) {
         ModItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
-    }
-
-    public static void register(IEventBus eventBus) {
-        BLOCKS.register(eventBus);
     }
 }
