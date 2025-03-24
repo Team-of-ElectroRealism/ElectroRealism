@@ -1,9 +1,11 @@
 package com.teamofelectrorealism.electrorealism;
 
+import com.ibm.icu.impl.ICUService;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.ModBlocks;
 import com.teamofelectrorealism.electrorealism.item.ModCreativeModeTabs;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
+import net.minecraft.world.item.*;
 import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.screen.ModMenuTypes;
 import com.teamofelectrorealism.electrorealism.screen.arc_furnace.ArcFurnaceScreen;
@@ -18,10 +20,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -43,6 +41,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import static com.teamofelectrorealism.electrorealism.block.ModBlocks.BLOCKS;
+
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(ElectroRealism.MODID)
 public class ElectroRealism
@@ -56,6 +56,7 @@ public class ElectroRealism
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
     public ElectroRealism(IEventBus modEventBus, ModContainer modContainer)
     {
+
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
@@ -64,14 +65,13 @@ public class ElectroRealism
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
         NeoForge.EVENT_BUS.register(this);
 
-        ModCreativeModeTabs.register(modEventBus);
-
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModBlockEntityTypes.register(modEventBus);
         ModMenuTypes.register(modEventBus);
         ModRecipes.register(modEventBus);
 
+        ModCreativeModeTabs.register(modEventBus);
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
 
@@ -96,10 +96,12 @@ public class ElectroRealism
     {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
             event.accept(ModBlocks.PROGRAMMER_BLOCK);
+            event.accept(ModBlocks.COPPER_WIRE);
             event.accept(ModBlocks.ELECTRIC_CRUSHER);
             event.accept(ModBlocks.ARC_FURNACE);
         }
     }
+
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
