@@ -17,7 +17,7 @@ public class ModCreativeModeTabs {
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ElectroRealism.MODID);
 
     public static final Supplier<CreativeModeTab> ELECTROREALISM_ITEMS_TAB = CREATIVE_MODE_TAB.register("electrorealism_items_tab",
-            () -> CreativeModeTab.builder().icon(() -> new ItemStack(ModBlocks.PROGRAMMER_BLOCK.get()))
+            () -> CreativeModeTab.builder().icon(() -> new ItemStack(ModItems.COPPER_SPOOL.get()))
                     .title(Component.translatable("creativetab.electrorealism.electrorealism_items"))
                     .displayItems((itemDisplayParameters, output) -> {
 
@@ -29,7 +29,7 @@ public class ModCreativeModeTabs {
                     }).build());
 
     public static final Supplier<CreativeModeTab> ELECTROREALISM_BLOCKS_TAB = CREATIVE_MODE_TAB.register("electrorealism_blocks_tab",
-            () -> CreativeModeTab.builder().icon(() -> new ItemStack(ModBlocks.PROGRAMMER_BLOCK.get()))
+            () -> CreativeModeTab.builder().icon(() -> new ItemStack(ModBlocks.ARC_FURNACE.get()))
                     .withTabsBefore(ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "electrorealism_items_tab"))
                     .title(Component.translatable("creativetab.electrorealism.electrorealism_blocks"))
                     .displayItems((itemDisplayParameters, output) -> {
@@ -42,6 +42,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.SOLAR_PANEL);
                         output.accept(ModBlocks.WATER_WHEEL);
                         output.accept(ModBlocks.SMALL_CONNECTOR);
+                        output.accept(ModBlocks.COPPER_WIRE);
 
                     }).build());
 
