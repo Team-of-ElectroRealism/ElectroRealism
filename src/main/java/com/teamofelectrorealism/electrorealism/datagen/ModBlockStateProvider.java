@@ -17,7 +17,6 @@ public class ModBlockStateProvider extends BlockStateProvider {
         blockWithItem(ModBlocks.PROGRAMMER_BLOCK);
         blockWithItem(ModBlocks.VOLTAGE_SOURCE);
         blockWithItem(ModBlocks.SOLAR_PANEL);
-        blockWithItem(ModBlocks.WATER_WHEEL);
     }
 
     private void blockWithItem(DeferredBlock<?> deferredBlock) {
