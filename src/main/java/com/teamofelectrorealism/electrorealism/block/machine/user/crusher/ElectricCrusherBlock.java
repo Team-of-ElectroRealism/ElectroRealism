@@ -31,7 +31,6 @@ public class ElectricCrusherBlock extends AbstractPowerUserBlock {
 
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final MapCodec<ElectricCrusherBlock> CODEC = simpleCodec(ElectricCrusherBlock::new);
-    public static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 22, 16);
 
     public ElectricCrusherBlock(Properties properties) {
         super(properties);
@@ -65,11 +64,6 @@ public class ElectricCrusherBlock extends AbstractPowerUserBlock {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING);
-    }
-
-    @Override
-    public VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos blockPos, CollisionContext collisionContext) {
-        return SHAPE;
     }
 
     @Override
