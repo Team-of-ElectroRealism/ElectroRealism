@@ -43,6 +43,8 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.WATER_WHEEL);
                         output.accept(ModBlocks.SMALL_CONNECTOR);
                         output.accept(ModBlocks.COPPER_WIRE);
+                        output.accept(ModBlocks.STRIPPED_DARK_OAK_FENCE);
+                        output.accept(ModBlocks.STONE_WALL);
 
                     }).build());
 

@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.custom.Mounting_PlateBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.user.crusher.ElectricCrusherBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.solarpanel.SolarPanelBlock;
@@ -10,6 +11,7 @@ import com.teamofelectrorealism.electrorealism.block.machine.user.arc_furnace.Ar
 import com.teamofelectrorealism.electrorealism.item.ModItems;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -17,6 +19,7 @@ import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.function.Supplier;
 
@@ -74,6 +77,18 @@ public class ModBlocks {
                     .sound(SoundType.METAL)
             ));
 
+    public static final DeferredBlock<Block> STRIPPED_DARK_OAK_FENCE = registerBlock("stripped_dark_oak_fence",
+            () -> new FenceBlock(BlockBehaviour.Properties.of().strength(4f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<Block> STONE_WALL = registerBlock("stone_wall",
+            () -> new WallBlock(BlockBehaviour.Properties.of().strength(4f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<Block> MOUNTING_PLATE = registerBlock("mounting_plate",
+            () -> new Mounting_PlateBlock(BlockBehaviour.Properties.of()
+                    .strength(1.0f)
+                    .noOcclusion()
+                    .isRedstoneConductor((state, getter, pos) -> false)
+                    .isSuffocating((state, getter, pos) -> false)
+                    .isViewBlocking((state, getter, pos) -> false)));
+
     // Stop Blocks
 
     public static void register(IEventBus eventBus) {
@@ -89,4 +104,6 @@ public class ModBlocks {
     private static <T extends Block> void registerBlockItem(String name, DeferredBlock<T> block) {
         ModItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
     }
+
+
 }

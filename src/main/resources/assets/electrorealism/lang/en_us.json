@@ -4,6 +4,11 @@
   "block.electrorealism.electric_crusher": "Electric Crusher",
   "block.electrorealism.voltage_source": "Voltage Source",
   "block.electrorealism.water_wheel": "Water Wheel",
+  "block.electrorealism.stripped_dark_oak_fence": "Stripped Dark Oak Fence",
+  "block.electrorealism.stone_wall": "Stone Wall",
+  "block.electrorealism.mounting_plate": "Mounting Plate",
+
+  "item.electrorealism.test_item": "Test Item",
   "block.electrorealism.arc_furnace": "Arc Furnace",
   "block.electrorealism.small_connector": "Small Connector",
 

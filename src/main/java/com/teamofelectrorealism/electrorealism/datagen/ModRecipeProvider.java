@@ -7,6 +7,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
@@ -41,6 +42,23 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
                 .define('G', Items.COAL)
                 .define('B', Items.BRICK)
                 .unlockedBy(getHasName(ModBlocks.ARC_FURNACE.get()), has(ModBlocks.ARC_FURNACE.get()))
+                .save(recipeOutput);
+
+        // Fence recipe
+        shaped(RecipeCategory.DECORATIONS, ModBlocks.STRIPPED_DARK_OAK_FENCE.get(), 3)
+                .pattern("W#W")
+                .pattern("W#W")
+                .define('#', Items.STICK)
+                .define('W', Items.STRIPPED_DARK_OAK_LOG)
+                .unlockedBy("has_stripped_dark_oak_log", has(Items.STRIPPED_DARK_OAK_LOG))
+                .save(recipeOutput);
+
+        // Wall recipe
+        shaped(RecipeCategory.DECORATIONS, ModBlocks.STONE_WALL.get(), 6)
+                .pattern("###")
+                .pattern("###")
+                .define('#', Items.STONE)
+                .unlockedBy("has_stone", has(Items.STONE))
                 .save(recipeOutput);
 
         shaped(RecipeCategory.MISC, ModBlocks.WATER_WHEEL)
