@@ -2,7 +2,11 @@ package com.teamofelectrorealism.electrorealism.datagen;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.ModBlocks;
+import net.minecraft.client.model.MinecartModel;
 import net.minecraft.data.PackOutput;
+import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.level.block.FenceBlock;
+import net.minecraft.world.level.block.WallBlock;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -18,6 +22,9 @@ public class ModBlockStateProvider extends BlockStateProvider {
         blockWithItem(ModBlocks.VOLTAGE_SOURCE);
         blockWithItem(ModBlocks.SOLAR_PANEL);
         blockWithItem(ModBlocks.WATER_WHEEL);
+
+        fenceBlock(((FenceBlock) ModBlocks.STRIPPED_DARK_OAK_FENCE.get()), mcLoc("block/stripped_dark_oak_log"));
+        wallBlock(((WallBlock) ModBlocks.STONE_WALL.get()), mcLoc("block/stone"));
     }
 
     private void blockWithItem(DeferredBlock<?> deferredBlock) {

@@ -2,6 +2,7 @@ package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBlock;
+import com.teamofelectrorealism.electrorealism.block.custom.Mounting_PlateBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.test.VoltageSourceBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.waterwheel.WaterWheelBlock;
@@ -13,9 +14,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.DropExperienceBlock;
-import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
@@ -73,7 +72,17 @@ public class ModBlocks {
                     .sound(SoundType.METAL)
             ));
 
-
+    public static final DeferredBlock<Block> STRIPPED_DARK_OAK_FENCE = registerBlock("stripped_dark_oak_fence",
+            () -> new FenceBlock(BlockBehaviour.Properties.of().strength(4f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<Block> STONE_WALL = registerBlock("stone_wall",
+            () -> new WallBlock(BlockBehaviour.Properties.of().strength(4f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<Block> MOUNTING_PLATE = registerBlock("mounting_plate",
+            () -> new Mounting_PlateBlock(BlockBehaviour.Properties.of()
+                    .strength(1.0f)
+                    .noOcclusion()
+                    .isRedstoneConductor((state, getter, pos) -> false)
+                    .isSuffocating((state, getter, pos) -> false)
+                    .isViewBlocking((state, getter, pos) -> false)));
 
     // Stop Blocks
 

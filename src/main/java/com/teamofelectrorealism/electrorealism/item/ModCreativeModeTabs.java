@@ -39,6 +39,8 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.VOLTAGE_SOURCE);
                         output.accept(ModBlocks.SOLAR_PANEL);
                         output.accept(ModBlocks.WATER_WHEEL);
+                        output.accept(ModBlocks.STRIPPED_DARK_OAK_FENCE);
+                        output.accept(ModBlocks.STONE_WALL);
 
                     }).build());
 
