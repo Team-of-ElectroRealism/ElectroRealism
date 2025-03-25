@@ -7,14 +7,18 @@ import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarP
 import com.teamofelectrorealism.electrorealism.block.generator.test.VoltageSourceBlock;
 import com.teamofelectrorealism.electrorealism.block.generator.waterwheel.WaterWheelBlock;
 import com.teamofelectrorealism.electrorealism.block.arc_furnace.ArcFurnaceBlock;
+import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.user.crusher.ElectricCrusherBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.solarpanel.SolarPanelBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.test.VoltageSourceBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.waterwheel.WaterWheelBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.user.arc_furnace.ArcFurnaceBlock;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
-import net.minecraft.client.resources.model.Material;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
@@ -59,6 +63,12 @@ public class ModBlocks {
 
     public static final DeferredBlock<Block> WATER_WHEEL = registerBlock("water_wheel",
             () -> new WaterWheelBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion()));
+
+    public static final DeferredBlock<Block> SMALL_CONNECTOR = registerBlock("small_connector",
+            () -> new SmallConnectorBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));

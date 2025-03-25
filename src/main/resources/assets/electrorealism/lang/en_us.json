@@ -10,7 +10,29 @@
 
   "item.electrorealism.test_item": "Test Item",
   "block.electrorealism.arc_furnace": "Arc Furnace",
+  "block.electrorealism.small_connector": "Small Connector",
+
+  "item.electrorealism.test_item": "Test Item",
+  "item.electrorealism.spool": "Spool",
+  "item.electrorealism.copper_spool": "Copper Spool",
 
   "creativetab.electrorealism.electrorealism_items": "ElectroRealism Items",
-  "creativetab.electrorealism.electrorealism_blocks": "ElectroRealism Blocks"
+  "creativetab.electrorealism.electrorealism_blocks": "ElectroRealism Blocks",
+
+  "statusbar.electrorealism.wire.linked": "Nodes linked",
+  "statusbar.electrorealism.wire.linked_in": "Wire linked to input",
+  "statusbar.electrorealism.wire.linked_out": "Wire linked to output",
+
+  "statusbar.electrorealism.wire.connect": "Wire connector selected",
+  "statusbar.electrorealism.wire.connect_in": "Wire connector input selected",
+  "statusbar.electrorealism.wire.connect_out": "Wire connector output selected",
+
+  "statusbar.electrorealism.wire.long": "Wire is too long",
+  "statusbar.electrorealism.wire.count": "Wire node is full",
+  "statusbar.electrorealism.wire.removed": "Wire removed",
+  "statusbar.electrorealism.wire.exists": "Wire connection already exists",
+  "statusbar.electrorealism.wire.no_connection": "Wire not connected here",
+  "statusbar.electrorealism.wire.invalid": "Invalid connection",
+  "statusbar.electrorealism.wire.error": "No NetworkManager for this level",
+  "statusbar.electrorealism.wire.requires_high_current": "This connection requires a high current wire"
 }

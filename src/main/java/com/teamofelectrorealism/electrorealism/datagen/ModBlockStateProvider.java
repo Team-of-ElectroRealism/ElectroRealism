@@ -2,9 +2,7 @@ package com.teamofelectrorealism.electrorealism.datagen;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.ModBlocks;
-import net.minecraft.client.model.MinecartModel;
 import net.minecraft.data.PackOutput;
-import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.level.block.FenceBlock;
 import net.minecraft.world.level.block.WallBlock;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;

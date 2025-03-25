@@ -26,6 +26,7 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
         this.dropSelf(ModBlocks.STONE_WALL.get());
         this.dropSelf(ModBlocks.COPPER_WIRE.get());
         this.dropSelf(ModBlocks.MOUNTING_PLATE.get());
+        this.dropSelf(ModBlocks.SMALL_CONNECTOR.get());
     }
 
     @Override

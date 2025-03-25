@@ -25,6 +25,8 @@ public class ModItemModelProvider extends ItemModelProvider {
 
         fenceItem(ModBlocks.STRIPPED_DARK_OAK_FENCE, mcLoc("block/stripped_dark_oak_log"));
         wallItem(ModBlocks.STONE_WALL, mcLoc("block/stone"));
+        basicItem(ModItems.COPPER_SPOOL.get());
+        basicItem(ModItems.SPOOL.get());
     }
 
     private ItemModelBuilder handheldItem(DeferredItem<?> item) {

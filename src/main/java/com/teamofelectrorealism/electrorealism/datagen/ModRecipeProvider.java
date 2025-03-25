@@ -8,7 +8,10 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.conditions.IConditionBuilder;
 
 import java.util.concurrent.CompletableFuture;
@@ -30,6 +33,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
                 .define('O', Items.IRON_NUGGET)
                 .unlockedBy(getHasName(ModBlocks.PROGRAMMER_BLOCK.get()), has(ModBlocks.PROGRAMMER_BLOCK.get()))
                 .save(recipeOutput);
+
         shaped(RecipeCategory.MISC, ModBlocks.ARC_FURNACE)
                 .pattern("CGC")
                 .pattern("BGB")
@@ -55,6 +59,15 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
                 .pattern("###")
                 .define('#', Items.STONE)
                 .unlockedBy("has_stone", has(Items.STONE))
+                .save(recipeOutput);
+
+        shaped(RecipeCategory.MISC, ModBlocks.WATER_WHEEL)
+                .pattern("PPP")
+                .pattern("PIP")
+                .pattern("PPP")
+                .define('P', ItemTags.PLANKS)
+                .define('I', Items.IRON_INGOT)
+                .unlockedBy(getHasName(ModBlocks.WATER_WHEEL.get()), has(ModBlocks.WATER_WHEEL.get()))
                 .save(recipeOutput);
     }
 }

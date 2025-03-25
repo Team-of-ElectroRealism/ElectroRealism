@@ -1,12 +1,12 @@
 package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
-import com.teamofelectrorealism.electrorealism.block.crusher.ElectricCrusherBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.arc_furnace.ArcFurnaceBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlock;
-import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.generator.test.VoltageSourceBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.generator.waterwheel.WaterWheelBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.user.crusher.ElectricCrusherBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.user.arc_furnace.ArcFurnaceBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.solarpanel.SolarPanelBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.test.VoltageSourceBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.waterwheel.WaterWheelBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
@@ -44,6 +44,10 @@ public class ModBlockEntityTypes {
     public static final Supplier<BlockEntityType<WaterWheelBlockEntity>> WATER_WHEEL_BE =
             BLOCK_ENTITY_TYPES.register("water_wheel_be",
                     () -> BlockEntityType.Builder.of(WaterWheelBlockEntity::new, ModBlocks.WATER_WHEEL.get()).build(null));
+
+    public static final Supplier<BlockEntityType<SmallConnectorBlockEntity>> SMALL_CONNECTOR_BE =
+            BLOCK_ENTITY_TYPES.register("small_connector_be",
+                    () -> BlockEntityType.Builder.of(SmallConnectorBlockEntity::new, ModBlocks.SMALL_CONNECTOR.get()).build(null));
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITY_TYPES.register(eventBus);
