@@ -37,7 +37,7 @@ public class DataGenerators {
         dataGenerator.addProvider(event.includeClient(), new ModItemModelProvider(packOutput, existingFileHelper));
         dataGenerator.addProvider(event.includeClient(), new ModBlockStateProvider(packOutput, existingFileHelper));
 
-        dataGenerator.addProvider(event.includeServer(), new ModDatapackProvider(packOutput, lookupProvider));
+        //dataGenerator.addProvider(event.includeServer(), new ModDatapackProvider(packOutput, lookupProvider)); not in use
         dataGenerator.addProvider(event.includeServer(), new ModWorldGenProvider(packOutput, lookupProvider));
     }
 }
