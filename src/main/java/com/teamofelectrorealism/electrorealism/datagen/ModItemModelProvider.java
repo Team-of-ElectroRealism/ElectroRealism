@@ -27,6 +27,10 @@ public class ModItemModelProvider extends ItemModelProvider {
         wallItem(ModBlocks.STONE_WALL, mcLoc("block/stone"));
         basicItem(ModItems.COPPER_SPOOL.get());
         basicItem(ModItems.SPOOL.get());
+        basicItem(ModItems.RAW_BAUXITE.get());
+        basicItem(ModItems.ALUMINIUM_INGOT.get());
+        basicItem(ModItems.ALUMNIA_POWDER.get());
+        basicItem(ModItems.ENRICHED_ALUMNIA.get());
     }
 
     private ItemModelBuilder handheldItem(DeferredItem<?> item) {

@@ -20,6 +20,9 @@ public class ModBlockStateProvider extends BlockStateProvider {
         blockWithItem(ModBlocks.VOLTAGE_SOURCE);
         blockWithItem(ModBlocks.SOLAR_PANEL);
         blockWithItem(ModBlocks.WATER_WHEEL);
+        blockWithItem(ModBlocks.ALUMINIUM_BLOCK);
+        blockWithItem(ModBlocks.BAUXITE_ORE);
+        blockWithItem(ModBlocks.DEEPSLATE_BAUXITE_ORE);
 
         fenceBlock(((FenceBlock) ModBlocks.STRIPPED_DARK_OAK_FENCE.get()), mcLoc("block/stripped_dark_oak_log"));
         wallBlock(((WallBlock) ModBlocks.STONE_WALL.get()), mcLoc("block/stone"));

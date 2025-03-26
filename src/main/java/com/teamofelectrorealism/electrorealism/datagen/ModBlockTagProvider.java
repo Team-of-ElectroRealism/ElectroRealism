@@ -17,6 +17,14 @@ public class ModBlockTagProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
+        this.tag(BlockTags.MINEABLE_WITH_PICKAXE)
+                .add(ModBlocks.BAUXITE_ORE.get())
+                .add(ModBlocks.DEEPSLATE_BAUXITE_ORE.get())
+                .add(ModBlocks.ALUMINIUM_BLOCK.get());
+
+        this.tag(BlockTags.NEEDS_IRON_TOOL)
+                .add(ModBlocks.BAUXITE_ORE.get())
+                .add(ModBlocks.DEEPSLATE_BAUXITE_ORE.get());
 
         tag(BlockTags.WOODEN_FENCES).add(ModBlocks.STRIPPED_DARK_OAK_FENCE.get());
         tag(BlockTags.WALLS).add(ModBlocks.STONE_WALL.get());

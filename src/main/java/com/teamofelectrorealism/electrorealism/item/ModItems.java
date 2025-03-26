@@ -23,6 +23,14 @@ public class ModItems {
             () -> new WireSpool(new Item.Properties()));
     public static final DeferredItem<Item> SPOOL = ITEMS.register("spool",
             () -> new WireSpool(new Item.Properties()));
+    public static final DeferredItem<Item> RAW_BAUXITE = ITEMS.register("raw_bauxite",
+            () -> new Item(new Item.Properties()));
+    public static final DeferredItem<Item> ALUMINIUM_INGOT = ITEMS.register("aluminium_ingot",
+            () -> new Item(new Item.Properties()));
+    public static final DeferredItem<Item> ALUMNIA_POWDER = ITEMS.register("alumnia_powder",
+            () -> new Item(new Item.Properties()));
+    public static final DeferredItem<Item> ENRICHED_ALUMNIA = ITEMS.register("enriched_alumnia",
+            () -> new Item(new Item.Properties()));
 
     // Stop items
 

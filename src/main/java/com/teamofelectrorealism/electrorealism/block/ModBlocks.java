@@ -9,6 +9,7 @@ import com.teamofelectrorealism.electrorealism.block.machine.generator.test.Volt
 import com.teamofelectrorealism.electrorealism.block.machine.generator.waterwheel.WaterWheelBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.user.arc_furnace.ArcFurnaceBlock;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.*;
@@ -78,9 +79,15 @@ public class ModBlocks {
             ));
 
     public static final DeferredBlock<Block> STRIPPED_DARK_OAK_FENCE = registerBlock("stripped_dark_oak_fence",
-            () -> new FenceBlock(BlockBehaviour.Properties.of().strength(4f).requiresCorrectToolForDrops()));
+            () -> new FenceBlock(BlockBehaviour.Properties.of()
+                    .strength(4f)
+                    .requiresCorrectToolForDrops()));
+
     public static final DeferredBlock<Block> STONE_WALL = registerBlock("stone_wall",
-            () -> new WallBlock(BlockBehaviour.Properties.of().strength(4f).requiresCorrectToolForDrops()));
+            () -> new WallBlock(BlockBehaviour.Properties.of()
+                    .strength(4f)
+                    .requiresCorrectToolForDrops()));
+
     public static final DeferredBlock<Block> MOUNTING_PLATE = registerBlock("mounting_plate",
             () -> new Mounting_PlateBlock(BlockBehaviour.Properties.of()
                     .strength(1.0f)
@@ -89,6 +96,20 @@ public class ModBlocks {
                     .isSuffocating((state, getter, pos) -> false)
                     .isViewBlocking((state, getter, pos) -> false)));
 
+    public static final DeferredBlock<Block> BAUXITE_ORE = registerBlock("bauxite_ore",
+            () -> new DropExperienceBlock(UniformInt.of(2, 5), BlockBehaviour.Properties.of()
+                    .strength(4f)
+                    .requiresCorrectToolForDrops()));
+
+    public static final DeferredBlock<Block> DEEPSLATE_BAUXITE_ORE = registerBlock("deepslate_bauxite_ore",
+            () -> new DropExperienceBlock(UniformInt.of(3, 6), BlockBehaviour.Properties.of()
+                    .strength(5f)
+                    .requiresCorrectToolForDrops()));
+
+    public static final DeferredBlock<Block> ALUMINIUM_BLOCK = registerBlock("aluminium_block",
+            () -> new Block(BlockBehaviour.Properties.of()
+                    .strength(4f)
+                    .requiresCorrectToolForDrops()));
     // Stop Blocks
 
     public static void register(IEventBus eventBus) {
