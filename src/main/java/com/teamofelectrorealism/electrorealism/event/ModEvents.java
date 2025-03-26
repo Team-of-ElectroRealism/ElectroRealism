@@ -1,8 +1,11 @@
 package com.teamofelectrorealism.electrorealism.event;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
-import com.teamofelectrorealism.electrorealism.network.NetworkManager;
+import com.teamofelectrorealism.electrorealism.item.ModItems;
+import com.teamofelectrorealism.electrorealism.rendering.HighlightNetworks;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.LevelAccessor;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
