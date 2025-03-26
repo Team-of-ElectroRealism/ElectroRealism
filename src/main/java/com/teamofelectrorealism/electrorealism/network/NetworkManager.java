@@ -1,11 +1,14 @@
 package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.logging.LogUtils;
+import com.teamofelectrorealism.electrorealism.rendering.HighlightNetworks;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.LevelAccessor;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * All network creations and connection should be made trough this class
@@ -133,4 +136,18 @@ public class NetworkManager {
             LOGGER.info("Member: {}", networkMember);
         }
     }
+
+    public Map<UUID, List<BlockPos>> getNetworksData() {
+        Map<UUID, List<BlockPos>> data = new HashMap<>();
+        for (Network network : networks) {
+            if (network.isValid()) {
+                List<BlockPos> blockPositions = network.getNetworkMembers().stream()
+                        .map(INetworkMember::getPos)
+                        .collect(Collectors.toList());
+                data.put(network.getNetworkId(), blockPositions);
+            }
+        }
+        return data;
+    }
+
 }
