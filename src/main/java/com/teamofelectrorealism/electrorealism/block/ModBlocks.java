@@ -5,6 +5,7 @@ import com.teamofelectrorealism.electrorealism.block.custom.ModFlammableRotatedP
 import com.teamofelectrorealism.electrorealism.block.custom.Mounting_PlateBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.user.crusher.ElectricCrusherBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.combustion.CombustionGeneratorBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.solarpanel.SolarPanelBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.test.VoltageSourceBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.waterwheel.WaterWheelBlock;
@@ -58,6 +59,12 @@ public class ModBlocks {
 
     public static final DeferredBlock<Block> SOLAR_PANEL = registerBlock("solar_panel",
             () -> new SolarPanelBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion()));
+
+    public static final DeferredBlock<Block> COMBUSTION_GENERATOR = registerBlock("smeltables_generator",
+            () -> new CombustionGeneratorBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));
