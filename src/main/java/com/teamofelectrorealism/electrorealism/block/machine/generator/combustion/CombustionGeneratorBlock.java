@@ -1,8 +1,9 @@
-package com.teamofelectrorealism.electrorealism.block.generator.combustion;
+package com.teamofelectrorealism.electrorealism.block.machine.generator.combustion;
 
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.block.generator.GeneratorBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.AbstractGeneratorBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -27,17 +28,17 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class CombustionGeneratorBlock extends GeneratorBlock {
+public class CombustionGeneratorBlock extends AbstractGeneratorBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
-    public static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 18, 16);
     public static final MapCodec<CombustionGeneratorBlock> CODEC = simpleCodec(CombustionGeneratorBlock::new);
 
     public CombustionGeneratorBlock(Properties properties) {
         super(properties);
     }
 
-    private static void tick(Level level1, BlockPos pos, BlockState state1, CombustionGeneratorBlockEntity blockEntity) {
+    @Override
+    protected void tick(Level level1, BlockPos pos, BlockState state1, AbstractMachineBlockEntity blockEntity) {
         blockEntity.tick(level1, pos, state1);
     }
 
@@ -52,7 +53,7 @@ public class CombustionGeneratorBlock extends GeneratorBlock {
             return null;
         }
 
-        return createTickerHelper(blockEntityType, ModBlockEntityTypes.COMBUSTION_GENERATOR_BE.get(), CombustionGeneratorBlock::tick);
+        return createTickerHelper(blockEntityType, ModBlockEntityTypes.COMBUSTION_GENERATOR_BE.get(), this::tick);
     }
 
     @Override
@@ -78,11 +79,6 @@ public class CombustionGeneratorBlock extends GeneratorBlock {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, LIT);
-    }
-
-    @Override
-    public VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos blockPos, CollisionContext collisionContext) {
-        return SHAPE;
     }
 
     @Override

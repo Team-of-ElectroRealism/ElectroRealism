@@ -11,11 +11,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "electrorealism:combustion_generator"
+          "name": "electrorealism:smeltables_generator"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "electrorealism:blocks/combustion_generator"
+  "random_sequence": "electrorealism:blocks/smeltables_generator"
 }

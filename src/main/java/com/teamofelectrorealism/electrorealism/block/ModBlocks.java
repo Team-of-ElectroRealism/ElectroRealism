@@ -63,7 +63,7 @@ public class ModBlocks {
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));
 
-    public static final DeferredBlock<Block> COMBUSTION_GENERATOR = registerBlock("combustion_generator",
+    public static final DeferredBlock<Block> COMBUSTION_GENERATOR = registerBlock("smeltables_generator",
             () -> new CombustionGeneratorBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)

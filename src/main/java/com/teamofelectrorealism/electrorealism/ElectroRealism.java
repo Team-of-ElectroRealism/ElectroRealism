@@ -69,7 +69,6 @@ public class ElectroRealism
         ModRecipes.register(modEventBus);
         ModDataComponents.register(modEventBus);
 
-        ModCreativeModeTabs.register(modEventBus);
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
 

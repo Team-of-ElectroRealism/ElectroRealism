@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "electrorealism:block/smeltables_generator",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "electrorealism:block/smeltables_generator"
+    },
+    "facing=south": {
+      "model": "electrorealism:block/smeltables_generator",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "electrorealism:block/smeltables_generator",
+      "y": 270
+    }
+  }
+}
