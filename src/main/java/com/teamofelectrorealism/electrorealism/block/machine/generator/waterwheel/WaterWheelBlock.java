@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.AbstractGeneratorBlock;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.AbstractGeneratorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -32,10 +31,6 @@ public class WaterWheelBlock extends AbstractGeneratorBlock {
 
     @Override
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if(level.isClientSide()) {
-            return null;
-        }
-
         return createTickerHelper(blockEntityType, ModBlockEntityTypes.WATER_WHEEL_BE.get(), this::tick);
     }
 

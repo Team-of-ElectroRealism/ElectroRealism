@@ -5,7 +5,7 @@ import com.teamofelectrorealism.electrorealism.block.custom.ModFlammableRotatedP
 import com.teamofelectrorealism.electrorealism.block.custom.Mounting_PlateBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.user.crusher.ElectricCrusherBlock;
-import com.teamofelectrorealism.electrorealism.block.generator.combustion.CombustionGeneratorBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.combustion.CombustionGeneratorBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.solarpanel.SolarPanelBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.test.VoltageSourceBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.waterwheel.WaterWheelBlock;
