@@ -27,6 +27,8 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
     private final Set<ConnectionPoint> wireCache = new HashSet<>();
 
+    private static final String NETWORK_KEY = "networkid";
+
     public AbstractConnectorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
 
