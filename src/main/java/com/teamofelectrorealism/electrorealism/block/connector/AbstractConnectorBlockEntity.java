@@ -27,6 +27,8 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
     private final Set<ConnectionPoint> wireCache = new HashSet<>();
 
+    private static final String NETWORK_KEY = "networkid";
+
     public AbstractConnectorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
 
@@ -74,10 +76,25 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
     @Override
     public void setNetworkId(UUID networkId) {
-        this.networkId = networkId;
-        if (findNetworkMember() instanceof INetworkMember networkMember) {
-            networkMember.setNetworkId(networkId);
-            ElectroRealism.NETWORK_MANAGER.registerINetworkMemberInNetwork(networkId, networkMember);
+        if (this.networkId == null) {
+            INetworkMember networkMember = findNetworkMember();
+            if (networkMember != null) {
+                UUID neighborNetworkId = networkMember.getNetworkId();
+                if (neighborNetworkId != null) {
+                    networkId = neighborNetworkId;
+                } else {
+                    // Neighbor has no ID, ensure it gets the correct ID during connect()
+                    if (networkId != null) {
+                        networkMember.setNetworkId(networkId);
+                        ElectroRealism.NETWORK_MANAGER.registerINetworkMemberInNetwork(networkId, networkMember);
+                    }
+                }
+            }
+        }
+
+        if (networkId != null) {
+            this.networkId = networkId;
+            setChanged();
         }
     }
 
@@ -87,6 +104,22 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         setChanged();
 
         // Invalidate network? //todo
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if (this.level != null && !this.level.isClientSide && this.networkId == null) {
+            INetworkMember adjacentMember = findNetworkMember();
+            if (adjacentMember != null) {
+                UUID adjacentMemberNetworkId = adjacentMember.getNetworkId();
+                if (adjacentMemberNetworkId != null) {
+                    this.networkId = adjacentMemberNetworkId;
+                    ElectroRealism.NETWORK_MANAGER.registerINetworkMemberInNetwork(this.networkId, this);
+                    setChanged();
+                }
+            }
+        }
     }
 
     @Override
@@ -104,6 +137,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        if (tag.contains(NETWORK_KEY)) this.networkId = tag.getUUID(NETWORK_KEY);
         invalidateConnectionPoints();
         ListTag connection_points = tag.getList(ConnectionPoint.CONNECTION_POINTS, ListTag.TAG_COMPOUND);
         connection_points.forEach(localNodeTag -> {
@@ -114,6 +148,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        if (this.networkId != null) tag.putUUID(NETWORK_KEY, this.networkId);
         ListTag connection_points = new ListTag();
         for(int i = 0; i < getConnectionPointCount(); i++) {
             ConnectionPoint connectionPoint = this.connectionPoints[i];
