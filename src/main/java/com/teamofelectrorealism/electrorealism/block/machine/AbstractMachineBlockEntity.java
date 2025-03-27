@@ -33,4 +33,16 @@ public abstract class AbstractMachineBlockEntity extends BlockEntity implements 
     public BlockPos getPos() {
         return this.getBlockPos();
     }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        if (this.networkId != null) tag.putUUID(NETWORK_KEY, this.networkId);
+        super.saveAdditional(tag, registries);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        if (tag.contains(NETWORK_KEY)) this.networkId = tag.getUUID(NETWORK_KEY);
+    }
 }
