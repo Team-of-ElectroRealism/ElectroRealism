@@ -12,6 +12,8 @@ import java.util.UUID;
 public abstract class AbstractMachineBlockEntity extends BlockEntity implements INetworkMember {
     private UUID networkId;
 
+    private static final String NETWORK_KEY = "networkid";
+
     public AbstractMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
     }
