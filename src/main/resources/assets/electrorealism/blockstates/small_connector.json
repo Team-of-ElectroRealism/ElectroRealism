@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "electrorealism:block/small_connector",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "electrorealism:block/small_connector",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "electrorealism:block/small_connector",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "electrorealism:block/small_connector",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "electrorealism:block/small_connector"
+    },
+    "facing=west": {
+      "model": "electrorealism:block/small_connector",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

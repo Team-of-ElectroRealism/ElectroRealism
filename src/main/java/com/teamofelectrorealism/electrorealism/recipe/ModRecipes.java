@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.recipe;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.recipe.arc_furnace.ArcFurnaceRecipe;
 import com.teamofelectrorealism.electrorealism.recipe.crusher.ElectricCrusherRecipe;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -22,6 +23,16 @@ public class ModRecipes {
                 @Override
                 public String toString() {
                     return "crushing";
+                }
+            });
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<ArcFurnaceRecipe>> ARC_FURNACE_SERIALIZER =
+            SERIALIZERS.register("smelting", ArcFurnaceRecipe.Serializer::new);
+    public static final DeferredHolder<RecipeType<?>, RecipeType<ArcFurnaceRecipe>> ARC_FURNACE_TYPE =
+            RECIPE_TYPES.register("smelting", () -> new RecipeType<ArcFurnaceRecipe>() {
+                @Override
+                public String toString() {
+                    return "smelting";
                 }
             });
 

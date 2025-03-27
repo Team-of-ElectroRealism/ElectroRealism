@@ -7,6 +7,12 @@ import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarP
 import com.teamofelectrorealism.electrorealism.block.generator.solarpanel.SolarPanelBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.generator.test.VoltageSourceBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.generator.waterwheel.WaterWheelBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.user.crusher.ElectricCrusherBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.user.arc_furnace.ArcFurnaceBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.solarpanel.SolarPanelBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.test.VoltageSourceBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.waterwheel.WaterWheelBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
@@ -20,7 +26,18 @@ public class ModBlockEntityTypes {
 
     public static final Supplier<BlockEntityType<ElectricCrusherBlockEntity>> ELECTRIC_CRUSHER_BE =
             BLOCK_ENTITY_TYPES.register("electric_crusher_be",
-                    () -> BlockEntityType.Builder.of(ElectricCrusherBlockEntity::new, ModBlocks.ELECTRIC_CRUSHER.get()).build(null));
+                    () -> BlockEntityType.Builder.of(
+                            ElectricCrusherBlockEntity::new,
+                            ModBlocks.ELECTRIC_CRUSHER.get()
+                    )
+                    .build(null));
+    public static final Supplier<BlockEntityType<ArcFurnaceBlockEntity>> ARC_FURNACE_BE =
+            BLOCK_ENTITY_TYPES.register("arc_furnace_entity",
+                    () -> BlockEntityType.Builder.of(
+                            ArcFurnaceBlockEntity::new,
+                            ModBlocks.ARC_FURNACE.get()
+                    )
+                    .build(null));
 
     public static final Supplier<BlockEntityType<VoltageSourceBlockEntity>> VOLTAGE_SOURCE_BE =
             BLOCK_ENTITY_TYPES.register("voltage_source_be",
@@ -37,6 +54,10 @@ public class ModBlockEntityTypes {
     public static final Supplier<BlockEntityType<CombustionGeneratorBlockEntity>> COMBUSTION_GENERATOR_BE =
             BLOCK_ENTITY_TYPES.register("combustion_generator_be",
                     () -> BlockEntityType.Builder.of(CombustionGeneratorBlockEntity::new, ModBlocks.COMBUSTION_GENERATOR.get()).build(null));
+
+    public static final Supplier<BlockEntityType<SmallConnectorBlockEntity>> SMALL_CONNECTOR_BE =
+            BLOCK_ENTITY_TYPES.register("small_connector_be",
+                    () -> BlockEntityType.Builder.of(SmallConnectorBlockEntity::new, ModBlocks.SMALL_CONNECTOR.get()).build(null));
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITY_TYPES.register(eventBus);
