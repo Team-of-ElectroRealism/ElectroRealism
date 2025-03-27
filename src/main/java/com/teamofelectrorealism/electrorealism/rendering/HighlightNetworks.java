@@ -1,12 +1,10 @@
 package com.teamofelectrorealism.electrorealism.rendering;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 
@@ -55,7 +53,6 @@ public class HighlightNetworks {
 
             // Generate a unique color based on the network id.
             int color = getColorForNetwork(networkId);
-            System.out.println("Rendering network " + networkId + " with " + blockList.size() + " blocks.");
 
             // Render each block in this network.
             for (BlockPos pos : blockList) {
