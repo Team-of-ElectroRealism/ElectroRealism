@@ -116,6 +116,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        if (this.networkId != null) tag.putUUID(NETWORK_KEY, this.networkId);
         ListTag connection_points = new ListTag();
         for(int i = 0; i < getConnectionPointCount(); i++) {
             ConnectionPoint connectionPoint = this.connectionPoints[i];
