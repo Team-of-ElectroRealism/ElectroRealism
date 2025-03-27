@@ -8,6 +8,8 @@
   "block.electrorealism.water_wheel": "Water Wheel",
   "block.electrorealism.arc_furnace": "Arc Furnace",
   "block.electrorealism.small_connector": "Small Connector",
+  "block.electrorealism.large_connector": "Large Connector",
+  "block.electrorealism.duo_connector": "Duo Connector",
 
   "block.electrorealism.stripped_dark_oak_fence": "Stripped Dark Oak Fence",
   "block.electrorealism.stone_wall": "Stone Wall",
