@@ -31,12 +31,20 @@ public class ModItemModelProvider extends ItemModelProvider {
         basicItem(ModItems.ALUMINIUM_INGOT.get());
         basicItem(ModItems.ALUMNIA_POWDER.get());
         basicItem(ModItems.ENRICHED_ALUMNIA.get());
+
+        saplingItem(ModBlocks.RUBBER_SAPLING);
     }
 
     private ItemModelBuilder handheldItem(DeferredItem<?> item) {
         return withExistingParent(item.getId().getPath(),
                 ResourceLocation.parse("item/handheld")).texture("layer0",
                 ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID,"item/" + item.getId().getPath()));
+    }
+
+    private ItemModelBuilder saplingItem(DeferredBlock<Block> item) {
+        return withExistingParent(item.getId().getPath(),
+                ResourceLocation.parse("item/generated")).texture("layer0",
+                ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID,"block/" + item.getId().getPath()));
     }
 
     public void fenceItem(DeferredBlock<Block> block, ResourceLocation baseTexture) {

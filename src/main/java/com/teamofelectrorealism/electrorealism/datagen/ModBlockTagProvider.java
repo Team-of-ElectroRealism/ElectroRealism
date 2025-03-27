@@ -29,5 +29,10 @@ public class ModBlockTagProvider extends BlockTagsProvider {
         tag(BlockTags.WOODEN_FENCES).add(ModBlocks.STRIPPED_DARK_OAK_FENCE.get());
         tag(BlockTags.WALLS).add(ModBlocks.STONE_WALL.get());
 
+        this.tag(BlockTags.LOGS_THAT_BURN)
+                .add(ModBlocks.RUBBER_LOG.get())
+                .add(ModBlocks.RUBBER_WOOD.get())
+                .add(ModBlocks.STRIPPED_RUBBER_LOG.get())
+                .add(ModBlocks.STRIPPED_RUBBER_WOOD.get());
     }
 }
