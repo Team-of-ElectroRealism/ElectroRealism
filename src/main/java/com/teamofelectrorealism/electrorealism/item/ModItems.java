@@ -2,8 +2,11 @@ package com.teamofelectrorealism.electrorealism.item;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.ModBlocks;
+import com.teamofelectrorealism.electrorealism.item.tool.DrillItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.PickaxeItem;
+import net.minecraft.world.item.Tiers;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -31,6 +34,10 @@ public class ModItems {
             () -> new Item(new Item.Properties()));
     public static final DeferredItem<Item> ENRICHED_ALUMNIA = ITEMS.register("enriched_alumnia",
             () -> new Item(new Item.Properties()));
+
+    public static final DeferredItem<Item> POWER_DRILL = ITEMS.register("power_drill",
+            () -> new DrillItem(Tiers.DIAMOND,
+                    new Item.Properties().attributes(PickaxeItem.createAttributes(Tiers.DIAMOND, 3, -3f))));
 
     // Stop items
 

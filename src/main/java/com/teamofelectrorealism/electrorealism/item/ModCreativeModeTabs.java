@@ -25,6 +25,10 @@ public class ModCreativeModeTabs {
                         output.accept(ModItems.TEST_ITEM);
                         output.accept(ModItems.SPOOL);
                         output.accept(ModItems.COPPER_SPOOL);
+                        output.accept(ModItems.ALUMINIUM_INGOT);
+                        output.accept(ModItems.ALUMNIA_POWDER);
+                        output.accept(ModItems.ENRICHED_ALUMNIA);
+                        output.accept(ModItems.POWER_DRILL);
 
                     }).build());
 
