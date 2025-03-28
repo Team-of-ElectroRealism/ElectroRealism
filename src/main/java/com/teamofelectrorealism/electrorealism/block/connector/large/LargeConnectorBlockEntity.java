@@ -12,7 +12,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class LargeConnectorBlockEntity extends AbstractConnectorBlockEntity {
 
-    private final static float OFFSET_HEIGHT = 3f;
+    private final static float OFFSET_HEIGHT = 1f;
     public final static Vec3 OFFSET_DOWN = new Vec3(0f, OFFSET_HEIGHT/16f, 0f);
     public final static Vec3 OFFSET_UP = new Vec3(0f, -OFFSET_HEIGHT/16f, 0f);
     public final static Vec3 OFFSET_NORTH = new Vec3(0f, 0f, OFFSET_HEIGHT/16f);

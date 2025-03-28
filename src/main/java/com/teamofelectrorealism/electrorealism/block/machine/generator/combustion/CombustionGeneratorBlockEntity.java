@@ -110,19 +110,17 @@ public class CombustionGeneratorBlockEntity extends AbstractGeneratorBlockEntity
     @Override
     public boolean isFacePositiveTerminal(BlockState state, Direction faceAccessed) {
         Direction machineFacing = state.getValue(CombustionGeneratorBlock.FACING);
-        Direction rightFace = machineFacing.getCounterClockWise();
         Direction leftFace = machineFacing.getClockWise();
 
-        return faceAccessed == rightFace || faceAccessed == leftFace;
+        return faceAccessed == leftFace;
     }
 
     @Override
     public boolean isFaceNegativeTerminal(BlockState state, Direction faceAccessed) {
         Direction machineFacing = state.getValue(CombustionGeneratorBlock.FACING);
         Direction rightFace = machineFacing.getCounterClockWise();
-        Direction leftFace = machineFacing.getClockWise();
 
-        return faceAccessed == rightFace || faceAccessed == leftFace;
+        return faceAccessed == rightFace;
     }
 
     private void removeFuel() {
