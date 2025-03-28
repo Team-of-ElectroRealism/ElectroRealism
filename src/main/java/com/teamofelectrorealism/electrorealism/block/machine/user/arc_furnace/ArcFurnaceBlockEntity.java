@@ -8,6 +8,7 @@ import com.teamofelectrorealism.electrorealism.recipe.arc_furnace.ArcFurnaceReci
 import com.teamofelectrorealism.electrorealism.recipe.arc_furnace.ArcFurnaceRecipeInput;
 import com.teamofelectrorealism.electrorealism.screen.arc_furnace.ArcFurnaceMenu;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -186,6 +187,22 @@ public class ArcFurnaceBlockEntity extends AbstractPowerUserBlockEntity implemen
         } else {
             smeltingProgress = 0;
         }
+    }
+
+    @Override
+    public boolean isFacePositiveTerminal(BlockState state, Direction faceAccessed) {
+        Direction machineFacing = state.getValue(ArcFurnaceBlock.FACING);
+        Direction backFace = machineFacing.getOpposite();
+
+        return faceAccessed == backFace;
+    }
+
+    @Override
+    public boolean isFaceNegativeTerminal(BlockState state, Direction faceAccessed) {
+        Direction machineFacing = state.getValue(ArcFurnaceBlock.FACING);
+        Direction backFace = machineFacing.getOpposite();
+
+        return faceAccessed == backFace;
     }
 
     private boolean hasBufferEnoughCharge() {

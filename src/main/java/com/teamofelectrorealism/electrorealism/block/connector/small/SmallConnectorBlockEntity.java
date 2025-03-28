@@ -4,6 +4,7 @@ import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
+import com.teamofelectrorealism.electrorealism.block.connector.TerminalType;
 import com.teamofelectrorealism.electrorealism.power.WireType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -54,11 +55,9 @@ public class SmallConnectorBlockEntity extends AbstractConnectorBlockEntity {
             case EAST -> OFFSET_EAST;
         };
     }
-    /*
-    // For testing
+
     @Override
-    public Vec3 getNodeOffset(int node) {
-        return Vec3.ZERO;
+    public TerminalType getTerminalType(int index) {
+        return null;
     }
-     */
 }

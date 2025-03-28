@@ -55,6 +55,8 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         return null;
     }
 
+    public abstract TerminalType getTerminalType(int index);
+
     public @Nullable ConnectionPoint getConnectionPoint(int index) {
         return this.connectionPoints[index];
     }

@@ -24,6 +24,17 @@ public class SolarPanelBlockEntity extends AbstractGeneratorBlockEntity {
         }
     }
 
+    // needs changing when block gets FACING value todo
+    @Override
+    public boolean isFacePositiveTerminal(BlockState state, Direction faceAccessed) {
+        return true;
+    }
+
+    @Override
+    public boolean isFaceNegativeTerminal(BlockState state, Direction faceAccessed) {
+        return true;
+    }
+
     @Override
     public int getVoltage() {
         return voltage;

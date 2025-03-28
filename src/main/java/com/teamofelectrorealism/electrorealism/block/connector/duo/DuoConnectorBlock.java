@@ -3,8 +3,11 @@ package com.teamofelectrorealism.electrorealism.block.connector.duo;
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlock;
+import com.teamofelectrorealism.electrorealism.block.connector.TerminalType;
+import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -27,20 +30,13 @@ public class DuoConnectorBlock extends AbstractConnectorBlock {
     public static final VoxelShape WEST_SHAPE = Block.box(11, 6, 2, 16, 10, 14);
     public static final VoxelShape EAST_SHAPE = Block.box(0, 6, 2, 5, 10, 14);
 
+
     public DuoConnectorBlock(Properties properties) {
         super(properties);
     }
 
     private static void tick(Level level1, BlockPos blockPos, BlockState blockState1, DuoConnectorBlockEntity blockEntity) {
         blockEntity.tick(level1, blockPos, blockState1);
-    }
-
-    @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (level.isClientSide()) {
-            return null;
-        }
-        return createTickerHelper(blockEntityType, ModBlockEntityTypes.DUO_CONNECTOR_BE.get(), DuoConnectorBlock::tick);
     }
 
     @Override
@@ -59,10 +55,44 @@ public class DuoConnectorBlock extends AbstractConnectorBlock {
     }
 
     @Override
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
+        Level level = context.getLevel();
+        Direction facePlacedOn = context.getClickedFace();
+        BlockPos adjacentPos = context.getClickedPos().relative(facePlacedOn.getOpposite());
+        BlockEntity adjacentBE = level.getBlockEntity(adjacentPos);
+        BlockState adjacentState = level.getBlockState(adjacentPos);
+
+        boolean isValidPlacement = false;
+
+        if (adjacentBE instanceof AbstractMachineBlockEntity machineBE) {
+            // Check if the face supports both terminals
+            boolean faceIsPositive = machineBE.isFacePositiveTerminal(adjacentState, facePlacedOn);
+            boolean faceIsNegative = machineBE.isFaceNegativeTerminal(adjacentState, facePlacedOn);
+
+            if (faceIsPositive && faceIsNegative) {
+                isValidPlacement = true;
+            }
+        }
+
+        if (isValidPlacement) {
+            return this.defaultBlockState().setValue(FACING, facePlacedOn);
+        } else {
+            return null; // Prevent placement
+        }
+    }
+
+    @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return new DuoConnectorBlockEntity(blockPos, blockState);
     }
 
+    @Override
+    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
+        if (level.isClientSide()) {
+            return null;
+        }
+        return createTickerHelper(blockEntityType, ModBlockEntityTypes.DUO_CONNECTOR_BE.get(), DuoConnectorBlock::tick);
+    }
 
     @Override
     protected MapCodec<? extends BaseEntityBlock> codec() {

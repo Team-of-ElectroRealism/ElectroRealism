@@ -31,6 +31,17 @@ public class WaterWheelBlockEntity extends AbstractGeneratorBlockEntity {
         }
     }
 
+    // needs changing when block gets FACING value todo
+    @Override
+    public boolean isFacePositiveTerminal(BlockState state, Direction faceAccessed) {
+        return true;
+    }
+
+    @Override
+    public boolean isFaceNegativeTerminal(BlockState state, Direction faceAccessed) {
+        return true;
+    }
+
     @Override
     protected void transferVoltage(Level level, BlockPos pos) {
         for (Direction facing: Direction.values()) {
