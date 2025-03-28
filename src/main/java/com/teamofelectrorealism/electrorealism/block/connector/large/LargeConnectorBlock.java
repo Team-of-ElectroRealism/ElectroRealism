@@ -22,10 +22,10 @@ public class LargeConnectorBlock extends AbstractConnectorBlock {
     public static final VoxelShape BASE_SHAPE = Block.box(5, 0, 5, 11, 7, 11);
     public static final VoxelShape UP_SHAPE = BASE_SHAPE;
     public static final VoxelShape DOWN_SHAPE = BASE_SHAPE.move(0, 9/16f, 0);
-    public static final VoxelShape NORTH_SHAPE = Block.box(5, 5, 11, 11, 11, 18);
-    public static final VoxelShape SOUTH_SHAPE = Block.box(5, 5, -2, 11, 11, 5);
-    public static final VoxelShape WEST_SHAPE = Block.box(11, 5, 5, 18, 11, 11);
-    public static final VoxelShape EAST_SHAPE = Block.box(-2, 5, 5, 5, 11, 11);
+    public static final VoxelShape NORTH_SHAPE = Block.box(5, 5, 9, 11, 11, 16);
+    public static final VoxelShape SOUTH_SHAPE = Block.box(5, 5, 0, 11, 11, 7);
+    public static final VoxelShape WEST_SHAPE = Block.box(9, 5, 5, 16, 11, 11);
+    public static final VoxelShape EAST_SHAPE = Block.box(0, 5, 5, 7, 11, 11);
 
     public LargeConnectorBlock(Properties properties) {
         super(properties);
