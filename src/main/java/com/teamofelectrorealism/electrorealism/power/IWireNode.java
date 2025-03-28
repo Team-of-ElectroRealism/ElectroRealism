@@ -122,8 +122,32 @@ public interface IWireNode {
 
     Vec3 getConnectionPointOffset(int node);
 
+    /**
+     * Get the {@link IWireNode} at the given index.
+     *
+     * @param   index
+     *          The index of the node.
+     *
+     * @return  The {@link IWireNode} at the given index, or null if the node
+     *          doesn't exist.
+     */
     @Nullable
     IWireNode getWireNode(int index);
+
+    /**
+     * Used by {@link IWireNode#getWireNode(int)} to get a cached
+     * {@link IWireNode}.
+     */
+    @Nullable
+    static IWireNode getWireNodeFrom(int index, IWireNode iWireNode, ConnectionPoint[] connectionPoints, IWireNode[] nodeCache, Level level) {
+        if (!iWireNode.hasConnection(index)) return null;
+        // Cache the node if it isn't already.
+        if (nodeCache[index] == null)
+            nodeCache[index] = IWireNode.getWireNode(level, connectionPoints[index].getPos());
+        // If the node is still null, remove it.
+        if (nodeCache[index] == null) iWireNode.removeConnectionPoint(index);
+        return nodeCache[index];
+    }
 
     static IWireNode getWireNode(Level level, BlockPos pos) {
         if(pos == null)
