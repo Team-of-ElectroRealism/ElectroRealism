@@ -24,8 +24,9 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
     private UUID networkId;
     private final ConnectionPoint[] connectionPoints;
+    private final IWireNode[] iWireNodeCache;
 
-    private final Set<ConnectionPoint> wireCache = new HashSet<>();
+    private final Set<ConnectionPoint> connectionPointCache = new HashSet<>();
 
     private static final String NETWORK_KEY = "networkid";
 
@@ -33,6 +34,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         super(type, pos, blockState);
 
         this.connectionPoints = new ConnectionPoint[getConnectionPointCount()];
+        this.iWireNodeCache = new IWireNode[getConnectionPointCount()];
     }
 
     @Nullable
@@ -55,6 +57,8 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         return null;
     }
 
+    public abstract TerminalType getTerminalType(int index);
+
     public @Nullable ConnectionPoint getConnectionPoint(int index) {
         return this.connectionPoints[index];
     }
@@ -66,7 +70,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
     @Override
     public @Nullable IWireNode getWireNode(int index) {
-        return IWireNode.getWireNode(level, getPos());
+        return IWireNode.getWireNodeFrom(index, this, this.connectionPoints, this.iWireNodeCache, level);
     }
 
     @Override
@@ -130,7 +134,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         invalidateConnectionPoints();
         setChanged();
 
-        if (dropWire && oldConnectionPoint != null) this.wireCache.add(oldConnectionPoint); //todo handle wiredropps
+        if (dropWire && oldConnectionPoint != null) this.connectionPointCache.add(oldConnectionPoint); //todo handle wiredropps
     }
 
     //Serializing

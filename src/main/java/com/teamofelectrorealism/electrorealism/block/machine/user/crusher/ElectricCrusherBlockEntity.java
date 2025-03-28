@@ -8,6 +8,7 @@ import com.teamofelectrorealism.electrorealism.recipe.crusher.ElectricCrusherRec
 import com.teamofelectrorealism.electrorealism.recipe.crusher.ElectricCrusherRecipeInput;
 import com.teamofelectrorealism.electrorealism.screen.crusher.ElectricCrusherMenu;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -166,6 +167,16 @@ public class ElectricCrusherBlockEntity extends AbstractPowerUserBlockEntity imp
         } else {
             crushingProgress = 0;
         }
+    }
+
+    @Override
+    public boolean isFacePositiveTerminal(BlockState state, Direction faceAccessed) {
+        return faceAccessed.getAxis().isHorizontal();
+    }
+
+    @Override
+    public boolean isFaceNegativeTerminal(BlockState state, Direction faceAccessed) {
+        return faceAccessed.getAxis().isHorizontal();
     }
 
     private boolean hasBufferEnoughCharge() {

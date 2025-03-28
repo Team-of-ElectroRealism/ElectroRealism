@@ -8,6 +8,8 @@
   "block.electrorealism.water_wheel": "Water Wheel",
   "block.electrorealism.arc_furnace": "Arc Furnace",
   "block.electrorealism.small_connector": "Small Connector",
+  "block.electrorealism.large_connector": "Large Connector",
+  "block.electrorealism.duo_connector": "Duo Connector",
 
   "block.electrorealism.stripped_dark_oak_fence": "Stripped Dark Oak Fence",
   "block.electrorealism.stone_wall": "Stone Wall",
@@ -46,5 +48,7 @@
   "statusbar.electrorealism.wire.no_connection": "Wire not connected here",
   "statusbar.electrorealism.wire.invalid": "Invalid connection",
   "statusbar.electrorealism.wire.error": "No NetworkManager for this level",
-  "statusbar.electrorealism.wire.requires_high_current": "This connection requires a high current wire"
+  "statusbar.electrorealism.wire.requires_high_current": "This connection requires a high current wire",
+
+  "statusbar.electrorealism.connector_set": "Connector terminal mode toggled"
 }

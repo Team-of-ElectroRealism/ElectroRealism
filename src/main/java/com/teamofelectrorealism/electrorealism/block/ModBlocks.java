@@ -1,6 +1,8 @@
 package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.connector.duo.DuoConnectorBlock;
+import com.teamofelectrorealism.electrorealism.block.connector.large.LargeConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.custom.ModFlammableRotatedPillarBlock;
 import com.teamofelectrorealism.electrorealism.block.custom.Mounting_PlateBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlock;
@@ -77,6 +79,18 @@ public class ModBlocks {
 
     public static final DeferredBlock<Block> SMALL_CONNECTOR = registerBlock("small_connector",
             () -> new SmallConnectorBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion()));
+
+    public static final DeferredBlock<Block> LARGE_CONNECTOR = registerBlock("large_connector",
+            () -> new LargeConnectorBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion()));
+
+    public static final DeferredBlock<Block> DUO_CONNECTOR = registerBlock("duo_connector",
+            () -> new DuoConnectorBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));

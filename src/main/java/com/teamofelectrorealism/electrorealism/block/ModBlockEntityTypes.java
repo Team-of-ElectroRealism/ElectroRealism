@@ -1,6 +1,8 @@
 package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.connector.duo.DuoConnectorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.connector.large.LargeConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.combustion.CombustionGeneratorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.solarpanel.SolarPanelBlockEntity;
@@ -53,6 +55,14 @@ public class ModBlockEntityTypes {
     public static final Supplier<BlockEntityType<SmallConnectorBlockEntity>> SMALL_CONNECTOR_BE =
             BLOCK_ENTITY_TYPES.register("small_connector_be",
                     () -> BlockEntityType.Builder.of(SmallConnectorBlockEntity::new, ModBlocks.SMALL_CONNECTOR.get()).build(null));
+
+    public static final Supplier<BlockEntityType<LargeConnectorBlockEntity>> LARGE_CONNECTOR_BE =
+            BLOCK_ENTITY_TYPES.register("large_connector_be",
+                    () -> BlockEntityType.Builder.of(LargeConnectorBlockEntity::new, ModBlocks.LARGE_CONNECTOR.get()).build(null));
+
+    public static final Supplier<BlockEntityType<DuoConnectorBlockEntity>> DUO_CONNECTOR_BE =
+            BLOCK_ENTITY_TYPES.register("duo_connector_be",
+                    () -> BlockEntityType.Builder.of(DuoConnectorBlockEntity::new, ModBlocks.DUO_CONNECTOR.get()).build(null));
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITY_TYPES.register(eventBus);

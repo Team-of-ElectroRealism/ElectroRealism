@@ -1,7 +1,7 @@
 {
 	"credit": "Made by Danders",
 	"textures": {
-		"1": "electrorealism:block/small_connector_ring",
+		"1": "electrorealism:block/small_connector_ring_positive",
 		"2": "minecraft:block/cobblestone",
 		"3": "minecraft:block/copper_block",
 		"particle": "minecraft:block/copper_block"

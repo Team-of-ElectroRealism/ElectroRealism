@@ -38,8 +38,13 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
         this.dropSelf(ModBlocks.STONE_WALL.get());
         this.dropSelf(ModBlocks.COPPER_WIRE.get());
         this.dropSelf(ModBlocks.MOUNTING_PLATE.get());
+
         this.dropSelf(ModBlocks.SMALL_CONNECTOR.get());
+        this.dropSelf(ModBlocks.LARGE_CONNECTOR.get());
+        this.dropSelf(ModBlocks.DUO_CONNECTOR.get());
+
         this.dropSelf(ModBlocks.ALUMINIUM_BLOCK.get());
+
         this.add(ModBlocks.BAUXITE_ORE.get(),
                 block -> createOreDrop(ModBlocks.BAUXITE_ORE.get(), ModItems.RAW_BAUXITE.get()));
         this.add(ModBlocks.DEEPSLATE_BAUXITE_ORE.get(),
