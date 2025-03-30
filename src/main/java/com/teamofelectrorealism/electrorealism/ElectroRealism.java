@@ -91,6 +91,8 @@ public class ElectroRealism
 
     private void setupRenderers(final FMLCommonSetupEvent event) {
         BlockEntityRenderers.register(ModBlockEntityTypes.SMALL_CONNECTOR_BE.get(), ConnectorRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntityTypes.LARGE_CONNECTOR_BE.get(), ConnectorRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntityTypes.DUO_CONNECTOR_BE.get(), ConnectorRenderer::new);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event)
