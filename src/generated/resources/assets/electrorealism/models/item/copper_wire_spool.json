@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "electrorealism:item/copper_spool"
+    "layer0": "electrorealism:item/copper_wire_spool"
   }
 }

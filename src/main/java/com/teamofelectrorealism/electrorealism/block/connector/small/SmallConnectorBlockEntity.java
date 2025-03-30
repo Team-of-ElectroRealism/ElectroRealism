@@ -5,7 +5,6 @@ import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnector
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
 import com.teamofelectrorealism.electrorealism.block.connector.TerminalType;
-import com.teamofelectrorealism.electrorealism.power.WireType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;

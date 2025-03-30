@@ -6,7 +6,6 @@ import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -25,7 +24,8 @@ public class ModItemModelProvider extends ItemModelProvider {
 
         fenceItem(ModBlocks.STRIPPED_DARK_OAK_FENCE, mcLoc("block/stripped_dark_oak_log"));
         wallItem(ModBlocks.STONE_WALL, mcLoc("block/stone"));
-        basicItem(ModItems.COPPER_SPOOL.get());
+        basicItem(ModItems.COPPER_WIRE_SPOOL.get());
+        basicItem(ModItems.ALUMINUM_WIRE_SPOOL.get());
         basicItem(ModItems.SPOOL.get());
         basicItem(ModItems.RAW_BAUXITE.get());
         basicItem(ModItems.ALUMINIUM_INGOT.get());

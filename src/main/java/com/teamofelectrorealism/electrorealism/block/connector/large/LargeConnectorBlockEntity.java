@@ -56,7 +56,14 @@ public class LargeConnectorBlockEntity extends AbstractConnectorBlockEntity {
     }
 
     @Override
-    public TerminalType getTerminalType(int index) {
-        return null;
+    public TerminalType getTerminalType(int index) { // Return non-nullable TerminalType
+        // Read the type DIRECTLY from the BlockState property
+        BlockState blockState = this.getBlockState();
+        if (blockState.hasProperty(LargeConnectorBlock.TERMINAL_TYPE)) {
+            // Ignore index for LargeConnector, it represents a single type dictated by its state
+            return blockState.getValue(LargeConnectorBlock.TERMINAL_TYPE);
+        }
+        // Fallback if property is missing (shouldn't happen)
+        return TerminalType.None;
     }
 }

@@ -5,7 +5,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public enum WireType {
-    COPPER(0, 17.54e-9, 100.0, 200, 116, 86, ModItems.COPPER_SPOOL.toStack());
+    COPPER(0, 17.54e-9, 100.0, 200, 116, 86, ModItems.COPPER_WIRE_SPOOL.toStack()),
+    ALUMINUM(1, 27.7e-9, 80.0, 192, 192, 192, ModItems.ALUMINUM_WIRE_SPOOL.toStack());
 
     //should add CAPACITY, INDUCTANCE, THICKNESS, not MAX_CURRENT maybe?
     private final int ID, COLOR_RED, COLOR_GREEN, COLOR_BLUE;
@@ -25,6 +26,7 @@ public enum WireType {
     public static WireType fromIndex(int index) {
         return switch (index) {
             case 0 -> COPPER;
+            case 1 -> ALUMINUM;
             default -> null;
         };
     }
@@ -54,8 +56,11 @@ public enum WireType {
     }
 
     public static WireType of(Item item) {
-        if (item == ModItems.COPPER_SPOOL.get()) {
+        if (item == ModItems.COPPER_WIRE_SPOOL.get()) {
             return WireType.COPPER;
+        }
+        if (item == ModItems.ALUMINUM_WIRE_SPOOL.get()) {
+            return WireType.ALUMINUM;
         }
         return WireType.COPPER;
     }

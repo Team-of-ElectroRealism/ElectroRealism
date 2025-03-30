@@ -17,14 +17,15 @@ public class ModCreativeModeTabs {
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ElectroRealism.MODID);
 
     public static final Supplier<CreativeModeTab> ELECTROREALISM_ITEMS_TAB = CREATIVE_MODE_TAB.register("electrorealism_items_tab",
-            () -> CreativeModeTab.builder().icon(() -> new ItemStack(ModItems.COPPER_SPOOL.get()))
+            () -> CreativeModeTab.builder().icon(() -> new ItemStack(ModItems.COPPER_WIRE_SPOOL.get()))
                     .title(Component.translatable("creativetab.electrorealism.electrorealism_items"))
                     .displayItems((itemDisplayParameters, output) -> {
 
                         // Items to be added to the tab
                         output.accept(ModItems.TEST_ITEM);
                         output.accept(ModItems.SPOOL);
-                        output.accept(ModItems.COPPER_SPOOL);
+                        output.accept(ModItems.COPPER_WIRE_SPOOL);
+                        output.accept(ModItems.ALUMINUM_WIRE_SPOOL);
 
                     }).build());
 
