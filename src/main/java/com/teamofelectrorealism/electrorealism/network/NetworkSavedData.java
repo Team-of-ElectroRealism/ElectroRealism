@@ -38,7 +38,7 @@ public class NetworkSavedData extends SavedData {
      */
     public static final SavedData.Factory<NetworkSavedData> FACTORY = new SavedData.Factory<>(
             NetworkSavedData::create,
-            NetworkSavedData::LoadFromNbt,
+            NetworkSavedData::loadFromNbt,
             null);
 
     /**
@@ -75,7 +75,7 @@ public class NetworkSavedData extends SavedData {
      * @return A {@link NetworkSavedData} instance loaded from the NBT data.
      * @Logs: Exception If there is an error loading a network from the NBT data.
      */
-    private static NetworkSavedData LoadFromNbt(CompoundTag tag, HolderLookup.Provider provider) {
+    private static NetworkSavedData loadFromNbt(CompoundTag tag, HolderLookup.Provider provider) {
         LOGGER.info("Loading NetworkSavedData from NBT.");
         NetworkSavedData savedData = new NetworkSavedData();
         Set<Network> loadedNetworks = new HashSet<>();
