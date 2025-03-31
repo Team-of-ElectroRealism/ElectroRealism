@@ -148,25 +148,15 @@ public class NetworkSavedData extends SavedData {
      * @param currentNetworksFromManager The current set of {@link Network} from the manager.
      */
     public void updateNetworkData(Set<Network> currentNetworksFromManager) {
-        // Log the state *before* comparison
         int currentInternalSize = this.networks.size();
         int incomingSize = currentNetworksFromManager.size();
         LOGGER.debug("updateNetworkData called. Internal size: {}, Incoming size: {}", currentInternalSize, incomingSize);
-        // Optional: Log details of incoming networks' member counts
-        // currentNetworksFromManager.forEach(n -> LOGGER.trace("  Incoming Network {} has {} positions.", n.getNetworkId(), n.getMemberPositions().size()));
 
 
-        // Compare based on the Set's equals method (relies on Network.equals/hashCode)
         if (!this.networks.equals(currentNetworksFromManager)) {
-            // Log the counts of the internal set being replaced
-            // this.networks.forEach(n -> LOGGER.trace("  Old Internal Network {} had {} positions.", n.getNetworkId(), n.getMemberPositions().size()));
-
-            // Create a new set from the manager's data
             this.networks = new HashSet<>(currentNetworksFromManager);
             LOGGER.info("Network data CHANGED. Updating internal set (new size: {}) and marking dirty.", this.networks.size());
-            // Log the counts of the *new* internal set
-            // this.networks.forEach(n -> LOGGER.trace("  New Internal Network {} has {} positions.", n.getNetworkId(), n.getMemberPositions().size()));
-            setDirty(true); // Explicitly set dirty
+            setDirty();
         } else {
             LOGGER.debug("Network data appears unchanged, not marking as dirty.");
         }
