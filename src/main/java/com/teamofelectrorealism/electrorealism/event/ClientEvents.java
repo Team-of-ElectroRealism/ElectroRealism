@@ -36,7 +36,7 @@ public class ClientEvents {
 
         NetworkManager networkManager = ElectroRealism.NETWORK_MANAGER;
 
-        HighlightNetworks.highlightNetwork(networkManager.getNetworksData());
+        HighlightNetworks.highlightNetwork(networkManager.getNetworksDataForClient());
         HighlightNetworks.renderHighlights(poseStack, buffer, partialTick);
     }
 }
