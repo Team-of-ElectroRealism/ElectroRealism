@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.logging.LogUtils;
+import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -350,6 +351,24 @@ public class NetworkManager {
                 LOGGER.trace("Cannot update BE Network ID at {}: Chunk not loaded.", pos);
             }
         }
+    }
+
+    /**
+     * Removes a connector from a network.
+     * Removes the connector from the runtime members and the member positions.
+     * @param networkId The ID of the network to remove the connector from.
+     * @param connectorBlockEntity The connector to remove.
+     * @param pos The position of the connector.
+     */
+    public void removeConnectorFromNetwork(UUID networkId, AbstractConnectorBlockEntity connectorBlockEntity, BlockPos pos) {
+        Network network = findNetwork(networkId);
+        if (network == null) {
+            LOGGER.error("Tried removing connector, but network was null with UUID: {}", networkId);
+            return;
+        }
+        network.removeRuntimeMember(connectorBlockEntity);
+        network.removeMemberPosition(pos);
+        markDataDirty();
     }
 
     // --- Ticking ---

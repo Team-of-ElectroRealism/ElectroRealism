@@ -2,6 +2,7 @@ package com.teamofelectrorealism.electrorealism.block.connector;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.network.INetworkMember;
+import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.WireType;
@@ -87,7 +88,6 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
                 if (neighborNetworkId != null) {
                     networkId = neighborNetworkId;
                 } else {
-                    // Neighbor has no ID, ensure it gets the correct ID during connect()
                     if (networkId != null) {
                         networkMember.setNetworkId(networkId);
                         ElectroRealism.NETWORK_MANAGER.registerINetworkMemberInNetwork(networkId, networkMember);
@@ -124,6 +124,16 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
                 }
             }
         }
+    }
+
+    @Override
+    public void setRemoved() {
+        NetworkManager networkManager = ElectroRealism.NETWORK_MANAGER;
+        for (int i = 0; connectionPoints.length > i; i++) {
+            removeConnectionPoint(i, true);
+            networkManager.removeConnectorFromNetwork(networkId, this, getPos());
+        }
+        super.setRemoved();
     }
 
     @Override
