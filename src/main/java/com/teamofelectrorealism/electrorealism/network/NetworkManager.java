@@ -7,9 +7,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.slf4j.Logger;
+import com.teamofelectrorealism.electrorealism.power.IWireNode;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Manages the creation, loading, saving, and merging of electrical networks.
@@ -163,6 +165,8 @@ public class NetworkManager {
      */
     public UUID createNetwork() {
         Network network = new Network();
+        LOGGER.info("New network with UUID: {}", network.getNetworkId());
+        LOGGER.info("Total networks: {}", networks.size());
         LOGGER.info("Initiated creation of new network with UUID: {}", network.getNetworkId());
         return network.getNetworkId();
     }
@@ -437,5 +441,93 @@ public class NetworkManager {
     @Nullable
     public NetworkSavedData getSavedData() {
         return savedData;
+    }
+
+    public void removeNode(INetworkMember member) {
+        Network network = getNetworkForMember(member);
+        if (network == null) {
+            LOGGER.warn("[NETWORK] Tried to remove member at {}, but no matching network found", member.getPos());
+            return;
+        }
+        network.removeMemberInternal(member);
+
+        if (network.getNetworkMembers().isEmpty()) {
+            LOGGER.info("[NETWORK] Network {} is empty after removal. Removing it.", network.getNetworkId());
+            network.setInvalid();
+            networks.remove(network);
+            markDataDirty();
+        } else {
+            splitNetworkIfDisconnected(network);
+        }
+    }
+
+    private void splitNetworkIfDisconnected(Network originalNetwork) {
+        Set<INetworkMember> allMembers = originalNetwork.getNetworkMembers();
+        Set<BlockPos> visited = new HashSet<>();
+        List<Set<INetworkMember>> connectedGroups = new ArrayList<>();
+
+        for (INetworkMember member : allMembers) {
+            if (visited.contains(member.getPos())) continue;
+
+            Set<INetworkMember> group = new HashSet<>();
+            Queue<INetworkMember> queue = new LinkedList<>();
+            queue.add(member);
+
+            while (!queue.isEmpty()) {
+                INetworkMember current = queue.poll();
+                BlockPos currentPos = current.getPos();
+
+                if (!visited.add(currentPos)) continue;
+                group.add(current);
+
+                for (INetworkMember potentialNeighbor : allMembers) {
+                    if (!visited.contains(potentialNeighbor.getPos()) &&
+                            areConnected(current, potentialNeighbor)) {
+                        queue.add(potentialNeighbor);
+                    }
+                }
+            }
+
+            if (!group.isEmpty()) {
+                connectedGroups.add(group);
+            }
+        }
+
+        if (connectedGroups.size() <= 1) return;
+
+        // Remove the original network
+        networks.remove(originalNetwork);
+        originalNetwork.setInvalid();
+
+        for (Set<INetworkMember> group : connectedGroups) {
+            Network newNetwork = new Network();
+            newNetwork.registerAllNetworkMembers(group);
+            updateNetworkIds(newNetwork.getNetworkId(), group);
+            networks.add(newNetwork);
+            LOGGER.info("Created new network {} with {} members after split", newNetwork.getNetworkId(), group.size());
+        }
+
+        if (savedData != null) savedData.setDirty();
+    }
+
+    private boolean areConnected(INetworkMember a, INetworkMember b) {
+        if (!(a instanceof IWireNode wireA) || !(b instanceof IWireNode wireB)) return false;
+        return wireA.hasConnectionTo(b.getPos());
+    }
+
+    private void updateNetworkIds(UUID networkId, Set<INetworkMember> members) {
+        for (INetworkMember member : members) {
+            member.setNetworkId(networkId);
+        }
+    }
+
+    public Network getNetworkForMember(INetworkMember member) {
+        for (Network network : networks) {
+            if (!network.isValid()) continue;
+            if (network.getNetworkMembers().stream().anyMatch(m -> m.getPos().equals(member.getPos()))) {
+                return network;
+            }
+        }
+        return null;
     }
 }

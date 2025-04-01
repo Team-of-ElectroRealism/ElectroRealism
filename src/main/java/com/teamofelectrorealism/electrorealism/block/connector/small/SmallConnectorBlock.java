@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.TerminalType;
+import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -110,5 +111,22 @@ public class SmallConnectorBlock extends AbstractConnectorBlock {
     @Override
     protected MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
+    }
+
+    @Override
+    public void onRemove(BlockState oldState, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (!level.isClientSide && (!oldState.is(newState.getBlock()) || !newState.hasBlockEntity())) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof IWireNode wireNode) {
+                for (int i = 0; i < wireNode.getConnectionPointCount(); i++) {
+                    BlockPos connectedPos = wireNode.getConnectorPos(i);
+                    if (connectedPos != null) {
+                        IWireNode.disconnect(level, pos, connectedPos); // Will drop wire & clean up
+                    }
+                }
+            }
+        }
+
+        super.onRemove(oldState, level, pos, newState, isMoving);
     }
 }

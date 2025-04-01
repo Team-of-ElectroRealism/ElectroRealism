@@ -44,6 +44,11 @@ public class SmallConnectorBlockEntity extends AbstractConnectorBlockEntity {
     }
 
     @Override
+    public Level getLevelFromSelf() {
+        return this.getLevel();
+    }
+
+    @Override
     public Vec3 getConnectionPointOffset(int node) {
         return switch (getBlockState().getValue(AbstractConnectorBlock.FACING)) {
             case DOWN -> OFFSET_DOWN;

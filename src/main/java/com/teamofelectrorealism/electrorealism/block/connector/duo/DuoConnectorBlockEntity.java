@@ -117,6 +117,11 @@ public class DuoConnectorBlockEntity extends AbstractConnectorBlockEntity {
     }
 
     @Override
+    public Level getLevelFromSelf() {
+        return this.getLevel();
+    }
+
+    @Override
     public Vec3 getConnectionPointOffset(int node) {
         // Return different offsets for node 0 and node 1 based on FACING
         // These offsets are relative to the block's center (0.5, 0.5, 0.5)

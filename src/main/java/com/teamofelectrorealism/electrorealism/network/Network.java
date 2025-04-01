@@ -255,4 +255,26 @@ class Network {
     public int hashCode() {
         return Objects.hash(networkId);
     }
+
+    public void registerAllNetworkMembers(Set<INetworkMember> members) {
+        for (INetworkMember member : members) {
+            addRuntimeMember(member);
+        }
+    }
+
+    void removeMemberInternal(INetworkMember member) {
+        LOGGER.debug("Removing member {} from network {}", member.getPos(), networkId);
+
+        for (INetworkMember m : networkMembers) {
+            LOGGER.debug("  Before remove: contains member at {}", m.getPos());
+        }
+
+        boolean removed = networkMembers.removeIf(m -> m.getPos().equals(member.getPos()));
+        memberPositions.remove(member.getPos());
+        member.setNetworkId(null);
+
+        LOGGER.debug("Removed? {}", removed);
+        LOGGER.debug("After removal: {} members, {} positions", networkMembers.size(), memberPositions.size());
+    }
+
 }
