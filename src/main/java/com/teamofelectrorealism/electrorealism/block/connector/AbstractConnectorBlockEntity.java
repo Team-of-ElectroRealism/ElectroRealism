@@ -138,13 +138,8 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
     @Override
     public void removeConnectionPoint(int index, boolean dropWire) {
-        ConnectionPoint oldConnectionPoint = this.connectionPoints[index];
         this.connectionPoints[index] = null;
-
-        invalidateConnectionPoints();
         setChanged();
-
-        if (dropWire && oldConnectionPoint != null) this.connectionPointCache.add(oldConnectionPoint); //todo handle wiredropps
     }
 
     //Serializing
@@ -152,7 +147,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         if (tag.contains(NETWORK_KEY)) this.networkId = tag.getUUID(NETWORK_KEY);
-        invalidateConnectionPoints();
+        disconnectAllConnections();
         ListTag connection_points = tag.getList(ConnectionPoint.CONNECTION_POINTS, ListTag.TAG_COMPOUND);
         connection_points.forEach(localNodeTag -> {
             ConnectionPoint connectionPoint = new ConnectionPoint(this, (CompoundTag) localNodeTag);
@@ -177,15 +172,26 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     //End serializing
 
     //Helpers
-    public void invalidateConnectionPoints() {
-        for(int i = 0; i < getConnectionPointCount(); i++)
-            this.connectionPoints[i] = null;
+    public void disconnectAllConnections() {
+        if (this.level == null || this.level.isClientSide()) return;
+
+        for (int i = 0; i < getConnectionPointCount(); i++) {
+            BlockPos other = getConnectorPos(i);
+            if (other != null) {
+                IWireNode.disconnect(this.level, this.getBlockPos(), other);
+            }
+        }
     }
 
-    public void tick() {
-        if (level == null) return;
-        if (!level.isLoaded(getBlockPos())) return;
-        if (level.isClientSide()) return;
-        setChanged();
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof INetworkMember other)) return false;
+        return this.getPos().equals(other.getPos());
+    }
+
+    @Override
+    public int hashCode() {
+        return this.getPos().hashCode();
     }
 }
