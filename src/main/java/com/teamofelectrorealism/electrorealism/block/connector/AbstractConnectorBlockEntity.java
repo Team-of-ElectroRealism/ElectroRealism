@@ -192,6 +192,8 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         if (tag.contains(NETWORK_KEY)) this.networkId = tag.getUUID(NETWORK_KEY);
+        Arrays.fill(this.connectionPoints, null);
+        Arrays.fill(this.iWireNodeCache, null);
         ListTag connection_points = tag.getList(ConnectionPoint.CONNECTION_POINTS, ListTag.TAG_COMPOUND);
         connection_points.forEach(connectionPointTag -> {
             ConnectionPoint connectionPoint = new ConnectionPoint(this, (CompoundTag) connectionPointTag);
