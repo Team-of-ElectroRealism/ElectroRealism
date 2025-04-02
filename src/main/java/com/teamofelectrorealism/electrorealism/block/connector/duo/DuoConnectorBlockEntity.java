@@ -128,37 +128,37 @@ public class DuoConnectorBlockEntity extends AbstractConnectorBlockEntity {
         }
         Direction facing = blockState.getValue(AbstractConnectorBlock.FACING);
 
-        float separation = 4/16f;
-        float baseOffset = 2/16f;
+        float separation = 8/16f;
+        float baseOffset = 5/16f;
         float center = 8/16f;
 
         Vec3 offset0 = Vec3.ZERO;
         Vec3 offset1 = Vec3.ZERO;
 
         switch (facing) {
-            case DOWN: // On ceiling, facing down. Separate along X. Point 0 = -X, Point 1 = +X
-                offset0 = new Vec3(center - separation / 2, 1.0 - baseOffset, center);
-                offset1 = new Vec3(center + separation / 2, 1.0 - baseOffset, center);
-                break;
-            case UP: // On floor, facing up. Separate along X. Point 0 = -X, Point 1 = +X
+            case DOWN: // Originally on ceiling, facing down. Inverted to floor.
                 offset0 = new Vec3(center - separation / 2, baseOffset, center);
                 offset1 = new Vec3(center + separation / 2, baseOffset, center);
                 break;
-            case NORTH: // On South wall, facing North (-Z). Separate along X. Point 0 = -X, Point 1 = +X
-                offset0 = new Vec3(center - separation / 2, center, baseOffset); // Z is near 0 edge
-                offset1 = new Vec3(center + separation / 2, center, baseOffset);
+            case UP: // Originally on floor, facing up. Inverted to ceiling.
+                offset0 = new Vec3(center - separation / 2, 1.0 - baseOffset, center);
+                offset1 = new Vec3(center + separation / 2, 1.0 - baseOffset, center);
                 break;
-            case SOUTH: // On North wall, facing South (+Z). Separate along X. Point 0 = -X, Point 1 = +X
-                offset0 = new Vec3(center - separation / 2, center, 1.0 - baseOffset); // Z is near 1 edge
+            case NORTH: // Originally on South wall (z = baseOffset), facing North. Inverted to North wall.
+                offset0 = new Vec3(center - separation / 2, center, 1.0 - baseOffset); // z is now near 1 edge
                 offset1 = new Vec3(center + separation / 2, center, 1.0 - baseOffset);
                 break;
-            case WEST: // On East wall, facing West (-X). Separate along Z. Point 0 = -Z, Point 1 = +Z
-                offset0 = new Vec3(baseOffset, center, center - separation / 2); // X is near 0 edge
-                offset1 = new Vec3(baseOffset, center, center + separation / 2);
+            case SOUTH: // Originally on North wall (z = 1.0 - baseOffset), facing South. Inverted to South wall.
+                offset0 = new Vec3(center - separation / 2, center, baseOffset); // z is now near 0 edge
+                offset1 = new Vec3(center + separation / 2, center, baseOffset);
                 break;
-            case EAST: // On West wall, facing East (+X). Separate along Z. Point 0 = -Z, Point 1 = +Z
-                offset0 = new Vec3(1.0 - baseOffset, center, center - separation / 2); // X is near 1 edge
+            case WEST: // Originally on East wall (x = baseOffset), facing West. Inverted to West wall.
+                offset0 = new Vec3(1.0 - baseOffset, center, center - separation / 2); // x is now near 1 edge
                 offset1 = new Vec3(1.0 - baseOffset, center, center + separation / 2);
+                break;
+            case EAST: // Originally on West wall (x = 1.0 - baseOffset), facing East. Inverted to East wall.
+                offset0 = new Vec3(baseOffset, center, center - separation / 2); // x is now near 0 edge
+                offset1 = new Vec3(baseOffset, center, center + separation / 2);
                 break;
         }
 
@@ -176,6 +176,27 @@ public class DuoConnectorBlockEntity extends AbstractConnectorBlockEntity {
             determineAttachedTerminalTypes();
         }
     }
+
+    public int getAvailableNode(Vec3 clickLocation) {
+        // Get the block center (block position + 0.5, 0.5, 0.5)
+        Vec3 blockCenter = Vec3.atCenterOf(this.worldPosition);
+        // Convert click location to local coordinates relative to the block center
+        Vec3 localHit = clickLocation.subtract(blockCenter);
+
+        // Retrieve connection point offsets (relative to block center)
+        Vec3 cp0 = this.getConnectionPointOffset(0);
+        Vec3 cp1 = this.getConnectionPointOffset(1);
+
+        // Determine the targeted node based on which offset is closer.
+        int selectedNode = (localHit.distanceTo(cp0) < localHit.distanceTo(cp1)) ? 0 : 1;
+
+        // Only allow a new connection if the selected node is not already occupied.
+        if (getConnectionPoint(selectedNode) != null) {
+            return -1;
+        }
+        return selectedNode;
+    }
+
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {

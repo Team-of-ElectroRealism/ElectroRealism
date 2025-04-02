@@ -61,7 +61,7 @@ public class HighlightNetworks {
                 double y = pos.getY() - camPos.y;
                 double z = pos.getZ() - camPos.z;
 
-                RenderOutlineUtil.drawOutline(poseStack, buffer, x, y, z, color);
+                RenderOutlineUtil.drawBox(poseStack, buffer, x, y, z, color);
             }
         }
     }
