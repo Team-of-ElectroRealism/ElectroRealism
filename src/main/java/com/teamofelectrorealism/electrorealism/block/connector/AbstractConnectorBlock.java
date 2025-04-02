@@ -39,6 +39,14 @@ public abstract class AbstractConnectorBlock extends BaseEntityBlock {
         return this.defaultBlockState().setValue(FACING, dir);
     }
 
+    /**
+     * Checks if this block can stay at the current position.
+     *
+     * @param state The current block state.
+     * @param level The level the block is in.
+     * @param pos   The position of the block.
+     * @return True if the block can stay, false otherwise.
+     */
     // https://github.com/Creators-of-Create/Create/blob/mc1.20.1/dev/src/main/java/com/simibubi/create/content/kinetics/crank/HandCrankBlock.java#L90
     @Override
     protected boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
@@ -47,6 +55,17 @@ public abstract class AbstractConnectorBlock extends BaseEntityBlock {
         BlockState neighbour = level.getBlockState(neighbourPos);
         return !neighbour.getCollisionShape(level, neighbourPos).isEmpty();
     }
+
+    /**
+     * Called when a neighboring block changes.
+     *
+     * @param state          The current block state.
+     * @param level          The level the block is in.
+     * @param pos            The position of the block.
+     * @param neighborBlock  The block that changed.
+     * @param neighborPos    The position of the block that changed.
+     * @param movedByPiston  Whether the change was caused by a piston.
+     */
 
     // https://github.com/Creators-of-Create/Create/blob/mc1.20.1/dev/src/main/java/com/simibubi/create/content/kinetics/crank/HandCrankBlock.java#L100
     @Override

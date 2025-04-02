@@ -217,7 +217,8 @@ public class NetworkManager {
     }
 
     /**
-     * Determines the correct network ID when connecting two members, creating or merging networks as needed.
+     * Determines the correct network when connecting two members, creating or merging networks as needed.
+     * Sets the network ID on both members and registers them in the resulting network.
      * @param networkMember1 First member being connected.
      * @param networkMember2 Second member being connected.
      * @return The UUID of the resulting network.
@@ -227,113 +228,80 @@ public class NetworkManager {
         UUID networkId1 = networkMember1.getNetworkId();
         UUID networkId2 = networkMember2.getNetworkId();
         UUID resultingNetworkId;
+        Network resultingNetwork;
 
         if (networkId1 == null && networkId2 == null) {
-            resultingNetworkId = createNetwork();
-            LOGGER.info("Connecting two members with no existing networks. Created new network: {}", resultingNetworkId);
-
-            Network newNetwork = findNetwork(resultingNetworkId);
-            if (newNetwork != null) {
-                LOGGER.debug("Adding initial members ({}, {}) to new network {}",
-                        networkMember1.getPos().toShortString(),
-                        networkMember2.getPos().toShortString(),
-                        resultingNetworkId);
-
-                newNetwork.addMemberPosition(networkMember1.getPos());
-                newNetwork.addMemberPosition(networkMember2.getPos());
-
-                newNetwork.addRuntimeMember(networkMember1);
-                newNetwork.addRuntimeMember(networkMember2);
-
-                markDataDirty();
-            } else {
-                LOGGER.error("Newly created network {} could not be found immediately!", resultingNetworkId);
-            }
+            // Case 1: Neither member has a network - Create a new one
+            Network newNetwork = new Network();
+            resultingNetworkId = newNetwork.getNetworkId();
+            resultingNetwork = newNetwork;
+            LOGGER.info("Connecting two members ({}, {}) with no existing networks. Created new network: {}",
+                    networkMember1.getPos().toShortString(), networkMember2.getPos().toShortString(), resultingNetworkId);
 
         } else if (networkId1 != null && networkId2 == null) {
             resultingNetworkId = networkId1;
+            resultingNetwork = findNetwork(networkId1);
             LOGGER.info("Connecting member {} without network to existing network: {}", networkMember2.getPos().toShortString(), resultingNetworkId);
-            Network network1 = findNetwork(networkId1);
-            if (network1 != null) {
-                network1.addRuntimeMember(networkMember2);
-                markDataDirty();
-            } else {
-                LOGGER.error("Network {} not found during connection, but member {} reported it!", networkId1, networkMember1.getPos());
-            }
+
         } else if (networkId1 == null && networkId2 != null) {
-            // Only node2 has a network, use it (Symmetrical to above)
             resultingNetworkId = networkId2;
+            resultingNetwork = findNetwork(networkId2);
             LOGGER.info("Connecting member {} without network to existing network: {}", networkMember1.getPos().toShortString(), resultingNetworkId);
-            Network network2 = findNetwork(networkId2);
-            if (network2 != null) {
-                network2.addRuntimeMember(networkMember1);
-                markDataDirty();
-            } else {
-                LOGGER.error("Network {} not found during connection, but member {} reported it!", networkId2, networkMember2.getPos());
-            }
+
         } else {
             if (networkId1.equals(networkId2)) {
                 resultingNetworkId = networkId1;
-                LOGGER.debug("Connecting two members already in the same network: {}", resultingNetworkId);
-                Network network = findNetwork(resultingNetworkId);
-                if (network != null) {
-                    network.addRuntimeMember(networkMember1);
-                    network.addRuntimeMember(networkMember2);
-                }
+                resultingNetwork = findNetwork(networkId1);
+                LOGGER.debug("Connecting two members ({}, {}) already in the same network: {}", networkMember1.getPos().toShortString(), networkMember2.getPos().toShortString(), resultingNetworkId);
             } else {
-                LOGGER.info("Connecting members from different networks ({} and {}). Merging...", networkId1, networkId2);
-                resultingNetworkId = mergeNetworks(networkId1, networkId2);
+                LOGGER.info("Connecting members ({}, {}) from different networks ({} and {}). Merging...", networkMember1.getPos().toShortString(), networkMember2.getPos().toShortString(), networkId1, networkId2);
+                Network network1 = findNetwork(networkId1);
+                Network network2 = findNetwork(networkId2);
+
+                if (network1 == null && network2 == null) {
+                    LOGGER.error("Attempted to merge two non-existent networks: {} and {}. Creating new.", networkId1, networkId2);
+                    resultingNetwork = new Network();
+                    resultingNetworkId = resultingNetwork.getNetworkId();
+                } else if (network1 == null) {
+                    LOGGER.warn("Network {} to merge into not found. Using Network {} as primary.", networkId1, networkId2);
+                    resultingNetworkId = networkId2;
+                    resultingNetwork = network2;
+                } else if (network2 == null) {
+                    LOGGER.warn("Network {} to be merged not found. Keeping Network {} as is.", networkId2, networkId1);
+                    resultingNetworkId = networkId1;
+                    resultingNetwork = network1;
+                } else {
+                    network1.mergeMembersFrom(network2);
+                    network2.setInvalid();
+                    networks.remove(network2);
+                    updateNetworkIdsOnBlockEntities(networkId1, network2.getMemberPositions());
+                    resultingNetworkId = networkId1;
+                    resultingNetwork = network1;
+                    LOGGER.info("Merge complete. Resulting network: {}", resultingNetworkId);
+                }
             }
         }
 
-        if (resultingNetworkId != null) {
-            if (!resultingNetworkId.equals(networkMember1.getNetworkId())) {
-                networkMember1.setNetworkId(resultingNetworkId);
-            }
-            if (!resultingNetworkId.equals(networkMember2.getNetworkId())) {
-                networkMember2.setNetworkId(resultingNetworkId);
-            }
+        if (resultingNetwork != null && resultingNetworkId != null) {
+            networkMember1.setNetworkId(resultingNetworkId);
+            networkMember2.setNetworkId(resultingNetworkId);
+
+            resultingNetwork.addRuntimeMember(networkMember1);
+            resultingNetwork.addRuntimeMember(networkMember2);
+
+            markDataDirty();
         } else {
-            LOGGER.error("Resulting network ID was null after createOrMerge! Member1: {}, Member2: {}", networkMember1.getPos().toShortString(), networkMember2.getPos().toShortString());
+            LOGGER.error("Resulting network or ID was null after createOrMerge! Member1: {}, Member2: {}. Assigning new network as fallback.", networkMember1.getPos().toShortString(), networkMember2.getPos().toShortString());
+            Network fallbackNetwork = new Network();
+            resultingNetworkId = fallbackNetwork.getNetworkId();
+            networkMember1.setNetworkId(resultingNetworkId);
+            networkMember2.setNetworkId(resultingNetworkId);
+            fallbackNetwork.addRuntimeMember(networkMember1);
+            fallbackNetwork.addRuntimeMember(networkMember2);
+            markDataDirty();
         }
 
         return resultingNetworkId;
-    }
-
-    /**
-     * Merges network2 into network1. Network1 becomes the dominant network.
-     * Updates member IDs and marks data as dirty.
-     * @param networkId1 The ID of the network to merge into.
-     * @param networkId2 The ID of the network to be merged and removed.
-     * @return The UUID of the merged network (networkId1).
-     * @see Network
-     */
-    private UUID mergeNetworks(UUID networkId1, UUID networkId2) {
-        Network network1 = findNetwork(networkId1);
-        Network network2 = findNetwork(networkId2);
-
-        if (network1 == null && network2 == null) {
-            LOGGER.error("Attempted to merge two non-existent networks: {} and {}", networkId1, networkId2);
-            return createNetwork();
-        } else if (network1 == null) {
-            LOGGER.warn("Network {} to merge into not found. Using Network {} as primary.", networkId1, networkId2);
-            markDataDirty();
-            return networkId2;
-        } else if (network2 == null) {
-            LOGGER.warn("Network {} to be merged not found. Keeping Network {} as is.", networkId2, networkId1);
-            markDataDirty();
-            return networkId1;
-        }
-
-        LOGGER.info("Merging Network {} into Network {}", networkId2, networkId1);
-        network1.mergeMembersFrom(network2);
-        network2.setInvalid();
-        networks.remove(network2);
-
-        updateNetworkIdsOnBlockEntities(networkId1, network2.getMemberPositions());
-
-        markDataDirty();
-        return networkId1;
     }
 
     /**

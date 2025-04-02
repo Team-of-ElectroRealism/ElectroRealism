@@ -132,6 +132,10 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         }
     }
 
+    /**
+     * Removes the block entity from the network when it is removed from the world.
+     * Also calls the super method to perform default removal actions.
+     */
     @Override
     public void setRemoved() {
         if (this.level != null && !this.level.isClientSide) {
