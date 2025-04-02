@@ -647,8 +647,23 @@ public class NetworkManager {
         return savedData;
     }
 
-    private boolean areConnected(INetworkMember a, INetworkMember b) {
-        if (!(a instanceof IWireNode wireA) || !(b instanceof IWireNode wireB)) return false;
-        return wireA.hasConnectionTo(b.getPos());
+    /**
+     * Checks if there is networkMember1 direct connection between two network members.
+     *
+     * @param networkMember1 The first network member.
+     * @param networkMember2 The second network member.
+     * @return True if there is networkMember1 direct connection, false otherwise.
+     */
+    private boolean hasConnection(INetworkMember networkMember1, INetworkMember networkMember2) {
+        if (networkMember1 instanceof AbstractConnectorBlockEntity connectorA && networkMember2 instanceof AbstractMachineBlockEntity machineB) {
+            if (connectorA.findNetworkMember() == machineB) return true;
+        }
+        if (networkMember2 instanceof AbstractConnectorBlockEntity connectorB && networkMember1 instanceof AbstractMachineBlockEntity machineA) {
+            if (connectorB.findNetworkMember() == machineA) return true;
+        }
+        if (networkMember1 instanceof IWireNode wireA && networkMember2 instanceof IWireNode wireB) {
+            return wireA.hasConnectionTo(networkMember2.getPos());
+        }
+        return false;
     }
 }
