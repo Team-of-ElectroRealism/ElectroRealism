@@ -196,7 +196,7 @@ public class NetworkManager {
      * @return The found Network, or null if not found.
      */
     @Nullable
-    private Network findNetwork(INetworkMember networkMember) {
+    public Network findNetwork(INetworkMember networkMember) {
         return findNetwork(networkMember.getNetworkId());
     }
 
@@ -386,6 +386,180 @@ public class NetworkManager {
         markDataDirty();
     }
 
+    /**
+     * Removes a member from its network, cleaning up connections and potentially splitting the network.
+     * @param networkMember The member to remove.
+     * @see INetworkMember
+     */
+    public void removeNetworkMember(INetworkMember networkMember) {
+        Network network = findNetwork(networkMember);
+        if (network == null) {
+            LOGGER.warn("Tried to remove member at {}, but no matching network found (or member had no network ID).", networkMember.getPos());
+            return;
+        } else {
+            LOGGER.warn("Found member {} in network {} by position lookup.", networkMember.getPos(), network.getNetworkId());
+        }
+
+        if (networkMember instanceof IWireNode wireNodeMember && this.server != null) {
+            ServerLevel level = this.server.overworld();
+            if (level != null) {
+                LOGGER.debug("Cleaning connections for removed member {} in network {}", networkMember.getPos(), network.getNetworkId());
+                for (int i = 0; i < wireNodeMember.getConnectionPointCount(); i++) {
+                    if (wireNodeMember.hasConnection(i)) {
+                        ConnectionPoint connectionPoint = wireNodeMember.getConnectionPoint(i);
+                        if(connectionPoint == null) continue;
+
+                        BlockPos otherPos = connectionPoint.getPos();
+                        WireType wireType = connectionPoint.getWireType();
+
+                        BlockEntity otherBE = level.getBlockEntity(otherPos);
+                        if (otherBE instanceof IWireNode otherNode) {
+                            ConnectionPoint otherConnectionPoint = otherNode.getConnectionPointIn(networkMember.getPos());
+                            if (otherConnectionPoint != null) {
+                                int otherNodeIndex = otherConnectionPoint.getConnectionPointIndex();
+                                otherNode.removeConnectionPoint(otherNodeIndex, false);
+                                LOGGER.trace("  - Notified node at {} to remove connection point index {}", otherPos, otherNodeIndex);
+                            } else {
+                                LOGGER.warn("  - Could not find return connection point on node at {} pointing to {}", otherPos, networkMember.getPos());
+                            }
+                        } else {
+                            LOGGER.warn("  - Could not find IWireNode at connected position {}", otherPos);
+                        }
+
+                        if (wireType != null && !level.isClientSide()) {
+                            Vec3 dropPos = Vec3.atCenterOf(networkMember.getPos()).add(Vec3.atCenterOf(otherPos)).scale(0.5);
+                            ItemStack droppedWire = wireType.getSourceDrop();
+                            level.addFreshEntity(new ItemEntity(level, dropPos.x, dropPos.y, dropPos.z, droppedWire));
+                            LOGGER.trace("  - Dropped wire item of type {} at midpoint", wireType.name());
+                        }
+
+                        wireNodeMember.removeConnectionPoint(i, false);
+                        LOGGER.trace("  - Cleared local connection point index {}", i);
+                    }
+                }
+            } else {
+                LOGGER.error("Cannot clean connections for member {}: ServerLevel is null.", networkMember.getPos());
+            }
+        }
+
+        network.removeNetworkMember(networkMember);
+        LOGGER.debug("Removed member {} from Network {} internal lists.", networkMember.getPos(), network.getNetworkId());
+
+        if (network.getNetworkMembers().isEmpty()) {
+            LOGGER.info("Network {} is empty after removal. Removing network.", network.getNetworkId());
+            network.setInvalid();
+            networks.remove(network);
+            markDataDirty();
+        } else {
+            LOGGER.debug("Checking if network {} needs splitting after member removal.", network.getNetworkId());
+            splitNetworkIfDisconnected(network);
+            markDataDirty();
+        }
+    }
+
+    /**
+     * Public method called when a connection between two members is removed
+     * (e.g., by the Spool item), without the members themselves being removed.
+     * This triggers a check to see if the network needs to be split.
+     *
+     * @param member1 The first member involved in the removed connection.
+     * @param member2 The second member involved in the removed connection.
+     */
+    public void checkNetworkConnectivityAfterConnectionRemoval(@Nullable INetworkMember member1, @Nullable INetworkMember member2) {
+        if (member1 == null || member2 == null) {
+            LOGGER.warn("checkNetworkConnectivityAfterConnectionRemoval called with null member(s).");
+            return;
+        }
+
+        Network network1 = findNetwork(member1);
+        Network network2 = findNetwork(member2);
+
+        Network networkToCheck = null;
+        if (network1 != null && network1.equals(network2)) {
+            networkToCheck = network1;
+        } else if (network1 != null) {
+            networkToCheck = network1;
+            LOGGER.warn("Members {} and {} were in different networks ({}, {}) or one network was null during connection removal check. Checking network {}.",
+                    member1.getPos().toShortString(), member2.getPos().toShortString(),
+                    network1 != null ? network1.getNetworkId() : "null",
+                    network2 != null ? network2.getNetworkId() : "null",
+                    networkToCheck.getNetworkId());
+        } else if (network2 != null) {
+            networkToCheck = network2;
+            LOGGER.warn("Member {} network was null, checking network {} for member {} after connection removal.",
+                    member1.getPos().toShortString(), networkToCheck.getNetworkId(), member2.getPos().toShortString());
+        }
+
+        if (networkToCheck != null && networkToCheck.isValid()) {
+            LOGGER.debug("Checking network {} for splits after connection removal between {} and {}.",
+                    networkToCheck.getNetworkId(), member1.getPos().toShortString(), member2.getPos().toShortString());
+            splitNetworkIfDisconnected(networkToCheck);
+            markDataDirty();
+        } else {
+            LOGGER.warn("Could not find a valid network to check for splits after connection removal between {} and {}.",
+                    member1.getPos().toShortString(), member2.getPos().toShortString());
+        }
+    }
+
+    /**
+     * Splits a network into multiple networks if it becomes disconnected.
+     * This happens when a member is removed and the network is no longer a single connected graph.
+     * @param originalNetwork The network to check for disconnection.
+     */
+    private void splitNetworkIfDisconnected(Network originalNetwork) {
+        Set<INetworkMember> allMembers = originalNetwork.getNetworkMembers();
+        Set<BlockPos> visited = new HashSet<>();
+        List<Set<INetworkMember>> connectedGroups = new ArrayList<>();
+
+        for (INetworkMember member : allMembers) {
+            if (visited.contains(member.getPos())) continue;
+
+            Set<INetworkMember> group = new HashSet<>();
+            Queue<INetworkMember> queue = new LinkedList<>();
+            queue.add(member);
+
+            while (!queue.isEmpty()) {
+                INetworkMember current = queue.poll();
+                BlockPos currentPos = current.getPos();
+
+                if (!visited.add(currentPos)) continue;
+                group.add(current);
+
+                for (INetworkMember potentialNeighbor : allMembers) {
+                    if (!visited.contains(potentialNeighbor.getPos()) &&
+                            areConnected(current, potentialNeighbor)) {
+                        queue.add(potentialNeighbor);
+                    }
+                }
+            }
+
+            if (!group.isEmpty()) {
+                connectedGroups.add(group);
+            }
+        }
+
+        if (connectedGroups.size() <= 1) return;
+
+        networks.remove(originalNetwork);
+        originalNetwork.setInvalid();
+
+        for (Set<INetworkMember> group : connectedGroups) {
+            Network newNetwork = new Network();
+            newNetwork.registerAllNetworkMembers(group);
+            updateNetworkIds(newNetwork.getNetworkId(), group);
+            networks.add(newNetwork);
+            LOGGER.info("Created new network {} with {} members after split", newNetwork.getNetworkId(), group.size());
+        }
+
+        if (savedData != null) savedData.setDirty();
+    }
+
+    private void updateNetworkIds(UUID networkId, Set<INetworkMember> members) {
+        for (INetworkMember member : members) {
+            member.setNetworkId(networkId);
+        }
+    }
+
     // --- Ticking ---
 
     /**
@@ -473,138 +647,8 @@ public class NetworkManager {
         return savedData;
     }
 
-    /**
-     * Removes a member from its network, cleaning up connections and potentially splitting the network.
-     * @param networkMember The member to remove.
-     * @see INetworkMember
-     */
-    public void removeNetworkMember(INetworkMember networkMember) {
-        Network network = findNetwork(networkMember);
-        if (network == null) {
-            LOGGER.warn("Tried to remove member at {}, but no matching network found (or member had no network ID).", networkMember.getPos());
-            return;
-        } else {
-            LOGGER.warn("Found member {} in network {} by position lookup.", networkMember.getPos(), network.getNetworkId());
-        }
-
-        if (networkMember instanceof IWireNode wireNodeMember && this.server != null) {
-            ServerLevel level = this.server.overworld();
-            if (level != null) {
-                LOGGER.debug("Cleaning connections for removed member {} in network {}", networkMember.getPos(), network.getNetworkId());
-                for (int i = 0; i < wireNodeMember.getConnectionPointCount(); i++) {
-                    if (wireNodeMember.hasConnection(i)) {
-                        ConnectionPoint connectionPoint = wireNodeMember.getConnectionPoint(i);
-                        if(connectionPoint == null) continue;
-
-                        BlockPos otherPos = connectionPoint.getPos();
-                        WireType wireType = connectionPoint.getWireType();
-
-                        BlockEntity otherBE = level.getBlockEntity(otherPos);
-                        if (otherBE instanceof IWireNode otherNode) {
-                            ConnectionPoint otherConnectionPoint = otherNode.getConnectionPointIn(networkMember.getPos());
-                            if (otherConnectionPoint != null) {
-                                int otherNodeIndex = otherConnectionPoint.getConnectionPointIndex();
-                                otherNode.removeConnectionPoint(otherNodeIndex, false);
-                                LOGGER.trace("  - Notified node at {} to remove connection point index {}", otherPos, otherNodeIndex);
-                            } else {
-                                LOGGER.warn("  - Could not find return connection point on node at {} pointing to {}", otherPos, networkMember.getPos());
-                            }
-                        } else {
-                            LOGGER.warn("  - Could not find IWireNode at connected position {}", otherPos);
-                        }
-
-                        if (wireType != null && !level.isClientSide()) {
-                            Vec3 dropPos = Vec3.atCenterOf(networkMember.getPos()).add(Vec3.atCenterOf(otherPos)).scale(0.5);
-                            ItemStack droppedWire = wireType.getSourceDrop();
-                            level.addFreshEntity(new ItemEntity(level, dropPos.x, dropPos.y, dropPos.z, droppedWire));
-                            LOGGER.trace("  - Dropped wire item of type {} at midpoint", wireType.name());
-                        }
-
-                        wireNodeMember.removeConnectionPoint(i, false);
-                        LOGGER.trace("  - Cleared local connection point index {}", i);
-                    }
-                }
-            } else {
-                LOGGER.error("Cannot clean connections for member {}: ServerLevel is null.", networkMember.getPos());
-            }
-        }
-
-        network.removeNetworkMember(networkMember);
-        LOGGER.debug("Removed member {} from Network {} internal lists.", networkMember.getPos(), network.getNetworkId());
-
-        if (network.getNetworkMembers().isEmpty()) {
-            LOGGER.info("Network {} is empty after removal. Removing network.", network.getNetworkId());
-            network.setInvalid();
-            networks.remove(network);
-            markDataDirty();
-        } else {
-            LOGGER.debug("Checking if network {} needs splitting after member removal.", network.getNetworkId());
-            splitNetworkIfDisconnected(network);
-            markDataDirty();
-        }
-    }
-
-    /**
-     * Splits a network into multiple networks if it becomes disconnected.
-     * This happens when a member is removed and the network is no longer a single connected graph.
-     * @param originalNetwork The network to check for disconnection.
-     */
-    private void splitNetworkIfDisconnected(Network originalNetwork) {
-        Set<INetworkMember> allMembers = originalNetwork.getNetworkMembers();
-        Set<BlockPos> visited = new HashSet<>();
-        List<Set<INetworkMember>> connectedGroups = new ArrayList<>();
-
-        for (INetworkMember member : allMembers) {
-            if (visited.contains(member.getPos())) continue;
-
-            Set<INetworkMember> group = new HashSet<>();
-            Queue<INetworkMember> queue = new LinkedList<>();
-            queue.add(member);
-
-            while (!queue.isEmpty()) {
-                INetworkMember current = queue.poll();
-                BlockPos currentPos = current.getPos();
-
-                if (!visited.add(currentPos)) continue;
-                group.add(current);
-
-                for (INetworkMember potentialNeighbor : allMembers) {
-                    if (!visited.contains(potentialNeighbor.getPos()) &&
-                            areConnected(current, potentialNeighbor)) {
-                        queue.add(potentialNeighbor);
-                    }
-                }
-            }
-
-            if (!group.isEmpty()) {
-                connectedGroups.add(group);
-            }
-        }
-
-        if (connectedGroups.size() <= 1) return;
-
-        networks.remove(originalNetwork);
-        originalNetwork.setInvalid();
-
-        for (Set<INetworkMember> group : connectedGroups) {
-            Network newNetwork = new Network();
-            newNetwork.registerAllNetworkMembers(group);
-            updateNetworkIds(newNetwork.getNetworkId(), group);
-            networks.add(newNetwork);
-            LOGGER.info("Created new network {} with {} members after split", newNetwork.getNetworkId(), group.size());
-        }
-
-        if (savedData != null) savedData.setDirty();
-    }
-
     private boolean areConnected(INetworkMember a, INetworkMember b) {
         if (!(a instanceof IWireNode wireA) || !(b instanceof IWireNode wireB)) return false;
         return wireA.hasConnectionTo(b.getPos());
-    }
-
-    private void updateNetworkIds(UUID networkId, Set<INetworkMember> members) {
-        for (INetworkMember member : members) {
-            member.setNetworkId(networkId);
-        }
     }
 }

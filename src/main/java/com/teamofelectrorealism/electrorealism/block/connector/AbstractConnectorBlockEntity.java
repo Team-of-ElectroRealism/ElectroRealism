@@ -6,15 +6,22 @@ import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.WireType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -133,11 +140,46 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         super.setRemoved();
     }
 
+    /**
+     * Removes a connection point at the specified index.
+     *
+     * @param index    The index of the connection point to remove.
+     * @param dropWire Whether to drop the wire connected to this point.
+     */
     @Override
     public void removeConnectionPoint(int index, boolean dropWire) {
-        this.connectionPoints[index] = null;
-        this.iWireNodeCache[index] = null;
-        setChanged();
+        if (this.connectionPoints[index] != null) {
+            this.connectionPoints[index] = null;
+            if (index < this.iWireNodeCache.length) {
+                this.iWireNodeCache[index] = null;
+            }
+            setChanged();
+
+            if (this.level != null && !this.level.isClientSide()) {
+                this.level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), 3);
+            }
+        }
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
+        BlockState oldState = this.getBlockState();
+        loadAdditional(tag, registries);
+        if (this.level != null && this.level.isClientSide) {
+            Minecraft mc = Minecraft.getInstance();
+            mc.levelRenderer.setBlockDirty(getBlockPos(), oldState, getBlockState());
+        }
+    }
+
+    @Override
+    public @org.jetbrains.annotations.Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     //Serializing
