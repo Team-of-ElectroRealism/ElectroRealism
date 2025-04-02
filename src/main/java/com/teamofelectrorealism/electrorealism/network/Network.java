@@ -2,6 +2,7 @@ package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.*;
 import org.slf4j.Logger;
@@ -106,10 +107,30 @@ class Network {
      */
     void addRuntimeMember(INetworkMember member) {
         if (member != null) {
-            // Add to runtime set
             this.networkMembers.add(member);
-            // Ensure position is also tracked
-            this.memberPositions.add(member.getPos());
+            addMemberPosition(member.getPos());
+        }
+    }
+
+    /**
+     * Removes a runtime member from the network.
+     *
+     * @param member The member to remove.
+     */
+    void removeRuntimeMember(INetworkMember member) {
+        if (member != null) {
+            this.networkMembers.remove(member);
+        }
+    }
+
+    /**
+     * Removes a member position from the network.
+     *
+     * @param pos The position of the member to remove.
+     */
+    void removeMemberPosition(BlockPos pos) {
+        if (pos != null) {
+            this.memberPositions.remove(pos);
         }
     }
 
@@ -254,5 +275,19 @@ class Network {
     @Override
     public int hashCode() {
         return Objects.hash(networkId);
+    }
+
+    public void registerAllNetworkMembers(Set<INetworkMember> members) {
+        for (INetworkMember member : members) {
+            addRuntimeMember(member);
+        }
+    }
+
+    void removeNetworkMember(INetworkMember member) {
+        if (member != null) {
+            removeRuntimeMember(member);
+            removeMemberPosition(member.getPos());
+            member.setNetworkId(null);
+        }
     }
 }

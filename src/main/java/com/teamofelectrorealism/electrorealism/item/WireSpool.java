@@ -1,15 +1,20 @@
 package com.teamofelectrorealism.electrorealism.item;
 
+import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.datacomponents.ModDataComponents;
 import com.teamofelectrorealism.electrorealism.datacomponents.WireConnectionData;
+import com.teamofelectrorealism.electrorealism.network.INetworkMember;
+import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.WireConnectResult;
 import com.teamofelectrorealism.electrorealism.power.WireType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class WireSpool extends Item {
@@ -17,11 +22,20 @@ public class WireSpool extends Item {
         super(properties);
     }
 
+    /**
+     * Handles the interaction when a wire spool item is used on a block.
+     * It manages the connection and disconnection of wires between {@link IWireNode} instances.
+     *
+     * @param context The context of the item usage.
+     * @return {@link InteractionResult#SUCCESS} if the action was successful,
+     *         {@link InteractionResult#FAIL} if the action failed, {@link InteractionResult#PASS} otherwise.
+     */
     @Override
     public InteractionResult useOn(UseOnContext context) {
         ItemStack itemStackInHand = context.getItemInHand();
         BlockPos clickedPos = context.getClickedPos();
-        BlockEntity clickedBlockEntity = context.getLevel().getBlockEntity(clickedPos);
+        Level level = context.getLevel();
+        BlockEntity clickedBlockEntity = level.getBlockEntity(clickedPos);
 
         WireConnectionData connectionData = itemStackInHand.get(ModDataComponents.WIRE_CONNECTION.value());
 
@@ -30,63 +44,94 @@ public class WireSpool extends Item {
         }
         Item itemInHand = itemStackInHand.getItem();
 
-        if (connectionData != null && connectionData.pos() != null) { // second click
+        if (connectionData != null && connectionData.pos() != null) { // Second click
             WireConnectResult connectResult;
             BlockPos targetPos = connectionData.pos();
+            BlockEntity targetBlockEntity = level.getBlockEntity(targetPos);
 
-            if(isRemover(itemInHand)) {
-                connectResult = IWireNode.disconnect(context.getLevel(), clickedPos, targetPos);
-            } else {
-                connectResult = IWireNode.connect(context.getLevel(), getPos(connectionData), getNode(connectionData), clickedPos, clickedIWireNodeBlockEntity.getAvailableNode(context.getClickLocation()), WireType.of(itemInHand));
+            if (!(targetBlockEntity instanceof IWireNode)) {
+                itemStackInHand.set(ModDataComponents.WIRE_CONNECTION.value(), null);
+                if (context.getPlayer() != null) {
+                    context.getPlayer().displayClientMessage(WireConnectResult.INVALID.getMessage(), true);
+                }
+                return InteractionResult.FAIL;
             }
 
-            clickedBlockEntity.setChanged();
+            if(isRemover(itemInHand)) {
+                connectResult = IWireNode.disconnect(level, clickedPos, targetPos);
 
-            WireType connectionType = IWireNode.getWireTypeOfConnection(context.getLevel(), clickedPos, getPos(connectionData));
-            if (context.getPlayer() != null && !context.getPlayer().isCreative()) {
-                if (connectResult == WireConnectResult.REMOVED) {
-                    itemStackInHand.shrink(1);
-                    ItemStack stack = connectionType.getSourceDrop();
-                    boolean shouldDrop = !context.getPlayer().addItem(stack);
-                    if (shouldDrop) context.getPlayer().drop(stack, false);
+                if (!level.isClientSide() && connectResult == WireConnectResult.REMOVED) {
+                    NetworkManager networkManager = ElectroRealism.NETWORK_MANAGER;
+                    INetworkMember member1 = IWireNode.getNetworkMemberFromBlockEntity(clickedBlockEntity);
+                    INetworkMember member2 = IWireNode.getNetworkMemberFromBlockEntity(targetBlockEntity);
+
+                    networkManager.checkNetworkConnectivityAfterConnectionRemoval(member1, member2);
+                }
+
+            } else {
+                connectResult = IWireNode.connect(level, getPos(connectionData), getNode(connectionData), clickedPos, clickedIWireNodeBlockEntity.getAvailableNode(context.getClickLocation()), WireType.of(itemInHand));
+                if (connectResult.isConnected() || connectResult.isLinked()) {
+                    if (context.getPlayer() != null && !context.getPlayer().isCreative()) {
+                        itemStackInHand.shrink(1);
+                    }
                 }
             }
 
             itemStackInHand.set(ModDataComponents.WIRE_CONNECTION.value(), null);
-            context.getPlayer().displayClientMessage(connectResult.getMessage(), true);
-        }
+            if (context.getPlayer() != null) {
+                context.getPlayer().displayClientMessage(connectResult.getMessage(), true);
+            }
 
-        else { // First click
+        } else { // First click
             if (context.getPlayer() == null) return InteractionResult.PASS;
+
+            int index;
+
             if (isRemover(itemInHand)) {
                 if (!clickedIWireNodeBlockEntity.hasAnyConnection()) {
                     context.getPlayer().displayClientMessage(WireConnectResult.NO_CONNECTION.getMessage(), true);
-                    return InteractionResult.CONSUME;
+                    return InteractionResult.FAIL;
                 }
-            }
-            int index = clickedIWireNodeBlockEntity.getAvailableNode(context.getClickLocation());
-            if (index < 0) {
-                return InteractionResult.PASS;
-            }
-            if (!isRemover(itemInHand)) {
+                // Storing -1 indicates it's the first click of a remove action.
+                index = -1;
+                context.getPlayer().displayClientMessage(WireConnectResult.getConnect(clickedIWireNodeBlockEntity.isConnectorInput(index), clickedIWireNodeBlockEntity.isConnectorOutput(index)).getMessage(), true);
+
+            } else { // Connecting
+                index = clickedIWireNodeBlockEntity.getAvailableNode(context.getClickLocation());
+                if (index < 0) {
+                    context.getPlayer().displayClientMessage(WireConnectResult.COUNT.getMessage(), true);
+                    return InteractionResult.FAIL;
+                }
                 context.getPlayer().displayClientMessage(WireConnectResult.getConnect(clickedIWireNodeBlockEntity.isConnectorInput(index), clickedIWireNodeBlockEntity.isConnectorOutput(index)).getMessage(), true);
             }
-            itemStackInHand.set(ModDataComponents.WIRE_CONNECTION.value(), new WireConnectionData(clickedIWireNodeBlockEntity.getPos(), index)); // observerPacket? todo
+
+            itemStackInHand.set(ModDataComponents.WIRE_CONNECTION.value(), new WireConnectionData(clickedIWireNodeBlockEntity.getPos(), index));
         }
-        return InteractionResult.CONSUME;
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     private static boolean isRemover(Item item) {
         return item == ModItems.SPOOL.get();
     }
 
+    /**
+     * Retrieves the block position from the given wire connection data.
+     *
+     * @param wireConnectionData The wire connection data containing the block position.
+     * @return The block position, or null if the position is not set.
+     */
     public static BlockPos getPos(WireConnectionData wireConnectionData) {
         if (wireConnectionData.pos() == null) {
             return null;
         }
         return wireConnectionData.pos();
     }
-
+    /**
+     * Retrieves the node index from the given wire connection data.
+     *
+     * @param wireConnectionData The wire connection data containing the node index.
+     * @return The node index, or -1 if the node is not set.
+     */
     public static int getNode(WireConnectionData wireConnectionData) {
         if (wireConnectionData.node() == -1) {
             return -1;

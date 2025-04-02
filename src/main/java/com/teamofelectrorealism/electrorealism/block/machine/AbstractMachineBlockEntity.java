@@ -1,6 +1,8 @@
 package com.teamofelectrorealism.electrorealism.block.machine;
 
+import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.network.INetworkMember;
+import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -53,6 +55,19 @@ public abstract class AbstractMachineBlockEntity extends BlockEntity implements 
     @Override
     public BlockPos getPos() {
         return this.getBlockPos();
+    }
+
+    /**
+     * Called when the BlockEntity is being removed from the level.
+     * Notifies the NetworkManager to remove this machine from its network.
+     */
+    @Override
+    public void setRemoved() {
+        if (this.level != null && !this.level.isClientSide()) {
+            NetworkManager networkManager = ElectroRealism.NETWORK_MANAGER;
+            networkManager.removeNetworkMember(this);
+        }
+        super.setRemoved();
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.TerminalType;
+import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
