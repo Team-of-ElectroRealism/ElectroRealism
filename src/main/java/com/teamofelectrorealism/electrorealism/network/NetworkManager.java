@@ -2,6 +2,7 @@ package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import com.teamofelectrorealism.electrorealism.power.WireType;
 import net.minecraft.core.BlockPos;
