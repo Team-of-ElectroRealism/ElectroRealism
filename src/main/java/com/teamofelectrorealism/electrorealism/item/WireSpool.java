@@ -90,7 +90,7 @@ public class WireSpool extends Item {
             if (isRemover(itemInHand)) {
                 if (!clickedIWireNodeBlockEntity.hasAnyConnection()) {
                     context.getPlayer().displayClientMessage(WireConnectResult.NO_CONNECTION.getMessage(), true);
-                    return InteractionResult.FAIL; // Fail if trying to remove from node with no connections
+                    return InteractionResult.FAIL;
                 }
                 // Storing -1 indicates it's the first click of a remove action.
                 index = -1;
@@ -100,7 +100,7 @@ public class WireSpool extends Item {
                 index = clickedIWireNodeBlockEntity.getAvailableNode(context.getClickLocation());
                 if (index < 0) {
                     context.getPlayer().displayClientMessage(WireConnectResult.COUNT.getMessage(), true);
-                    return InteractionResult.FAIL; // Fail if trying to connect to a full node
+                    return InteractionResult.FAIL;
                 }
                 context.getPlayer().displayClientMessage(WireConnectResult.getConnect(clickedIWireNodeBlockEntity.isConnectorInput(index), clickedIWireNodeBlockEntity.isConnectorOutput(index)).getMessage(), true);
             }

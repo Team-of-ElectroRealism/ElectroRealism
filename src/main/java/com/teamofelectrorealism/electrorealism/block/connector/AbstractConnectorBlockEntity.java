@@ -24,6 +24,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -187,7 +188,6 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         if (tag.contains(NETWORK_KEY)) this.networkId = tag.getUUID(NETWORK_KEY);
-        disconnectAllConnectionPoints();
         ListTag connection_points = tag.getList(ConnectionPoint.CONNECTION_POINTS, ListTag.TAG_COMPOUND);
         connection_points.forEach(connectionPointTag -> {
             ConnectionPoint connectionPoint = new ConnectionPoint(this, (CompoundTag) connectionPointTag);
@@ -212,16 +212,6 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     //End serializing
 
     //Helpers
-    public void disconnectAllConnectionPoints() {
-        if (this.level == null || this.level.isClientSide()) return;
-
-        for (int i = 0; i < getConnectionPointCount(); i++) {
-            BlockPos other = getConnectorPos(i);
-            if (other != null) {
-                IWireNode.disconnect(this.level, this.getBlockPos(), other);
-            }
-        }
-    }
 
     @Override
     public boolean equals(Object obj) {
