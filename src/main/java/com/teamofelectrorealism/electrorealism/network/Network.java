@@ -117,7 +117,7 @@ class Network {
      *
      * @param member The member to remove.
      */
-    public void removeRuntimeMember(AbstractConnectorBlockEntity member) {
+    void removeRuntimeMember(INetworkMember member) {
         if (member != null) {
             this.networkMembers.remove(member);
         }
@@ -128,7 +128,7 @@ class Network {
      *
      * @param pos The position of the member to remove.
      */
-    public void removeMemberPosition(BlockPos pos) {
+    void removeMemberPosition(BlockPos pos) {
         if (pos != null) {
             this.memberPositions.remove(pos);
         }
@@ -283,19 +283,11 @@ class Network {
         }
     }
 
-    void removeMemberInternal(INetworkMember member) {
-        LOGGER.debug("Removing member {} from network {}", member.getPos(), networkId);
-
-        for (INetworkMember m : networkMembers) {
-            LOGGER.debug("  Before remove: contains member at {}", m.getPos());
+    void removeNetworkMember(INetworkMember member) {
+        if (member != null) {
+            removeRuntimeMember(member);
+            removeMemberPosition(member.getPos());
+            member.setNetworkId(null);
         }
-
-        boolean removed = networkMembers.removeIf(m -> m.getPos().equals(member.getPos()));
-        memberPositions.remove(member.getPos());
-        member.setNetworkId(null);
-
-        LOGGER.debug("Removed? {}", removed);
-        LOGGER.debug("After removal: {} members, {} positions", networkMembers.size(), memberPositions.size());
     }
-
 }

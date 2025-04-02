@@ -106,8 +106,6 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     public void setConnectionPoint(int pointIndex, int connectingPointIndex, WireType wireType, BlockPos pos) {
         this.connectionPoints[pointIndex] = new ConnectionPoint(this, pointIndex, connectingPointIndex, wireType, pos);
         setChanged();
-
-        // Invalidate network? //todo
     }
 
     @Override
@@ -128,10 +126,9 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
     @Override
     public void setRemoved() {
-        NetworkManager networkManager = ElectroRealism.NETWORK_MANAGER;
-        for (int i = 0; connectionPoints.length > i; i++) {
-            removeConnectionPoint(i, true);
-            networkManager.removeConnectorFromNetwork(networkId, this, getPos());
+        if (this.level != null && !this.level.isClientSide) {
+            NetworkManager networkManager = ElectroRealism.NETWORK_MANAGER;
+            networkManager.removeNetworkMember(this);
         }
         super.setRemoved();
     }
@@ -139,6 +136,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     @Override
     public void removeConnectionPoint(int index, boolean dropWire) {
         this.connectionPoints[index] = null;
+        this.iWireNodeCache[index] = null;
         setChanged();
     }
 
@@ -147,10 +145,10 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         if (tag.contains(NETWORK_KEY)) this.networkId = tag.getUUID(NETWORK_KEY);
-        disconnectAllConnections();
+        disconnectAllConnectionPoints();
         ListTag connection_points = tag.getList(ConnectionPoint.CONNECTION_POINTS, ListTag.TAG_COMPOUND);
-        connection_points.forEach(localNodeTag -> {
-            ConnectionPoint connectionPoint = new ConnectionPoint(this, (CompoundTag) localNodeTag);
+        connection_points.forEach(connectionPointTag -> {
+            ConnectionPoint connectionPoint = new ConnectionPoint(this, (CompoundTag) connectionPointTag);
             this.connectionPoints[connectionPoint.getConnectionPointIndex()] = connectionPoint;
         });
     }
@@ -172,7 +170,7 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     //End serializing
 
     //Helpers
-    public void disconnectAllConnections() {
+    public void disconnectAllConnectionPoints() {
         if (this.level == null || this.level.isClientSide()) return;
 
         for (int i = 0; i < getConnectionPointCount(); i++) {
