@@ -2,20 +2,29 @@ package com.teamofelectrorealism.electrorealism.block.connector;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.network.INetworkMember;
+import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.WireType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -87,7 +96,6 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
                 if (neighborNetworkId != null) {
                     networkId = neighborNetworkId;
                 } else {
-                    // Neighbor has no ID, ensure it gets the correct ID during connect()
                     if (networkId != null) {
                         networkMember.setNetworkId(networkId);
                         ElectroRealism.NETWORK_MANAGER.registerINetworkMemberInNetwork(networkId, networkMember);
@@ -106,8 +114,6 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     public void setConnectionPoint(int pointIndex, int connectingPointIndex, WireType wireType, BlockPos pos) {
         this.connectionPoints[pointIndex] = new ConnectionPoint(this, pointIndex, connectingPointIndex, wireType, pos);
         setChanged();
-
-        // Invalidate network? //todo
     }
 
     @Override
@@ -126,15 +132,59 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
         }
     }
 
+    /**
+     * Removes the block entity from the network when it is removed from the world.
+     * Also calls the super method to perform default removal actions.
+     */
+    @Override
+    public void setRemoved() {
+        if (this.level != null && !this.level.isClientSide) {
+            NetworkManager networkManager = ElectroRealism.NETWORK_MANAGER;
+            networkManager.removeNetworkMember(this);
+        }
+        super.setRemoved();
+    }
+
+    /**
+     * Removes a connection point at the specified index.
+     *
+     * @param index    The index of the connection point to remove.
+     * @param dropWire Whether to drop the wire connected to this point.
+     */
     @Override
     public void removeConnectionPoint(int index, boolean dropWire) {
-        ConnectionPoint oldConnectionPoint = this.connectionPoints[index];
-        this.connectionPoints[index] = null;
+        if (this.connectionPoints[index] != null) {
+            this.connectionPoints[index] = null;
+            if (index < this.iWireNodeCache.length) {
+                this.iWireNodeCache[index] = null;
+            }
+            setChanged();
 
-        invalidateConnectionPoints();
-        setChanged();
+            if (this.level != null && !this.level.isClientSide()) {
+                this.level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), 3);
+            }
+        }
+    }
 
-        if (dropWire && oldConnectionPoint != null) this.connectionPointCache.add(oldConnectionPoint); //todo handle wiredropps
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
+        BlockState oldState = this.getBlockState();
+        loadAdditional(tag, registries);
+        if (this.level != null && this.level.isClientSide) {
+            Minecraft mc = Minecraft.getInstance();
+            mc.levelRenderer.setBlockDirty(getBlockPos(), oldState, getBlockState());
+        }
+    }
+
+    @Override
+    public @org.jetbrains.annotations.Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     //Serializing
@@ -142,10 +192,11 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         if (tag.contains(NETWORK_KEY)) this.networkId = tag.getUUID(NETWORK_KEY);
-        invalidateConnectionPoints();
+        Arrays.fill(this.connectionPoints, null);
+        Arrays.fill(this.iWireNodeCache, null);
         ListTag connection_points = tag.getList(ConnectionPoint.CONNECTION_POINTS, ListTag.TAG_COMPOUND);
-        connection_points.forEach(localNodeTag -> {
-            ConnectionPoint connectionPoint = new ConnectionPoint(this, (CompoundTag) localNodeTag);
+        connection_points.forEach(connectionPointTag -> {
+            ConnectionPoint connectionPoint = new ConnectionPoint(this, (CompoundTag) connectionPointTag);
             this.connectionPoints[connectionPoint.getConnectionPointIndex()] = connectionPoint;
         });
     }
@@ -167,15 +218,16 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     //End serializing
 
     //Helpers
-    public void invalidateConnectionPoints() {
-        for(int i = 0; i < getConnectionPointCount(); i++)
-            this.connectionPoints[i] = null;
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof INetworkMember other)) return false;
+        return this.getPos().equals(other.getPos());
     }
 
-    public void tick() {
-        if (level == null) return;
-        if (!level.isLoaded(getBlockPos())) return;
-        if (level.isClientSide()) return;
-        setChanged();
+    @Override
+    public int hashCode() {
+        return this.getPos().hashCode();
     }
 }

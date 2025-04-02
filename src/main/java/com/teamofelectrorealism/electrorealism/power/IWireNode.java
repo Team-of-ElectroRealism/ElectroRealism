@@ -5,56 +5,97 @@ import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
 import com.teamofelectrorealism.electrorealism.network.INetworkMember;
 import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import com.mojang.logging.LogUtils;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
 
 public interface IWireNode {
+    static final Logger LOGGER = LogUtils.getLogger();
+
+    /**
+     * Disconnects two {@link IWireNode}s at the given positions.
+     * Primarily clears connection points and drops the wire.
+     * Network membership/splitting is handled by NetworkManager.removeNetworkMember.
+     *
+     * @param level The level the nodes are in.
+     * @param pos1  The position of the first node.
+     * @param pos2  The position of the second node.
+     * @return The result of the disconnection. {@link WireConnectResult#REMOVED} if successful.
+     */
     static WireConnectResult disconnect(Level level, BlockPos pos1, BlockPos pos2) {
-        BlockEntity blockEntity1 = level.getBlockEntity(pos1);
-        BlockEntity blockEntity2 = level.getBlockEntity(pos2);
-        if (blockEntity1 == null || blockEntity2 == null || blockEntity1 == blockEntity2) {
-            return WireConnectResult.INVALID;
+        BlockEntity be1 = level.getBlockEntity(pos1);
+        BlockEntity be2 = level.getBlockEntity(pos2);
+
+        IWireNode node1 = (be1 instanceof IWireNode) ? (IWireNode) be1 : null;
+        IWireNode node2 = (be2 instanceof IWireNode) ? (IWireNode) be2 : null;
+
+        ConnectionPoint cp1 = (node1 != null) ? node1.getConnectionPointIn(pos2) : null;
+        ConnectionPoint cp2 = (node2 != null) ? node2.getConnectionPointIn(pos1) : null;
+
+        WireType wireType = (cp1 != null && node1 != null)
+                ? node1.getWireType(cp1.getConnectionPointIndex())
+                : (cp2 != null && node2 != null)
+                ? node2.getWireType(cp2.getConnectionPointIndex())
+                : null;
+
+        if (node1 != null && cp1 != null) {
+            node1.removeConnectionPoint(cp1.getConnectionPointIndex(), false);
         }
-        if (!(blockEntity1 instanceof IWireNode iWireNode1) || !(blockEntity2 instanceof IWireNode iWireNode2)) {
-            return WireConnectResult.INVALID;
-        }
-        if (!iWireNode1.hasConnectionTo(pos2)) {
-            return WireConnectResult.NO_CONNECTION;
+        if (node2 != null && cp2 != null) {
+            node2.removeConnectionPoint(cp2.getConnectionPointIndex(), false);
         }
 
-        ConnectionPoint connectionPoint1 = iWireNode1.getConnectionPointIn(pos2);
-        ConnectionPoint connectionPoint2 = iWireNode2.getConnectionPointIn(pos1);
-        if (connectionPoint1 == null || connectionPoint2 == null) {
-            return WireConnectResult.NO_CONNECTION;
+        if (!level.isClientSide && wireType != null) {
+            Vec3 dropPos = Vec3.atCenterOf(pos1).add(Vec3.atCenterOf(pos2)).scale(0.5);
+            ItemStack droppedWire = wireType.getSourceDrop();
+            level.addFreshEntity(new ItemEntity(level, dropPos.x, dropPos.y, dropPos.z, droppedWire));
         }
-        iWireNode1.removeConnectionPoint(connectionPoint1);
-        iWireNode2.removeConnectionPoint(connectionPoint2);
+
         return WireConnectResult.REMOVED;
     }
 
+    /**
+     * Connects two {@link IWireNode}s at the given positions.
+     * <p>
+     * This method performs several checks before establishing a connection:
+     * <ul>
+     *     <li>Ensures both positions have valid {@link BlockEntity}s that implement {@link IWireNode}.</li>
+     *     <li>Checks if the connection point indices are valid.</li>
+     *     <li>Verifies that the distance between the nodes is within the maximum allowed wire length.</li>
+     *     <li>Confirms that a connection between the nodes does not already exist.</li>
+     *     <li>Checks if the connection requires high current based on the {@link ConnectorType} and {@link WireType}.</li>
+     * </ul>
+     * If all checks pass, it sets the connection points on both nodes and updates the network.
+     *
+     * @param level                The level the nodes are in.
+     * @param pos1                 The position of the first node.
+     * @param connectionPointIndex1 The connection point index on the first node.
+     * @param pos2                 The position of the second node.
+     * @param connectionPointIndex2 The connection point index on the second node.
+     * @param wireType             The type of wire to use for the connection.
+     * @return The result of the connection attempt. {@link WireConnectResult#getLink(boolean, boolean)} if successful,
+     * otherwise an error code indicating the reason for failure.
+     */
     static WireConnectResult connect(Level level, BlockPos pos1, int connectionPointIndex1, BlockPos pos2, int connectionPointIndex2, WireType wireType) {
         BlockEntity blockEntity1 = level.getBlockEntity(pos1);
         BlockEntity blockEntity2 = level.getBlockEntity(pos2);
-        if (blockEntity1 == null || blockEntity2 == null || blockEntity1 == blockEntity2) {
-            return WireConnectResult.INVALID;
-        }
-        if (!(blockEntity1 instanceof IWireNode iWireNode1) || !(blockEntity2 instanceof IWireNode iWireNode2)) {
-            return WireConnectResult.INVALID;
-        }
-        if (connectionPointIndex1 < 0 || connectionPointIndex2 < 0) {
-            return WireConnectResult.COUNT;
-        }
-        
+        if (blockEntity1 == null || blockEntity2 == null || blockEntity1 == blockEntity2) { return WireConnectResult.INVALID; }
+        if (!(blockEntity1 instanceof IWireNode iWireNode1) || !(blockEntity2 instanceof IWireNode iWireNode2)) { return WireConnectResult.INVALID; }
+        if (connectionPointIndex1 < 0 || connectionPointIndex2 < 0) { return WireConnectResult.COUNT; }
         int maxLength = Math.min(iWireNode1.getMaxWireLength(), iWireNode2.getMaxWireLength());
-        if (pos1.distSqr(pos2) > maxLength * maxLength) return WireConnectResult.LONG;
-        if (iWireNode1.hasConnectionTo(pos2)) return WireConnectResult.EXISTS;
+        if (pos1.distSqr(pos2) > maxLength * maxLength) { return WireConnectResult.LONG; }
+        if (iWireNode1.hasConnectionTo(pos2)) { return WireConnectResult.EXISTS; }
         if (iWireNode1.getConnectorType() == ConnectorType.Large && iWireNode2.getConnectorType() == ConnectorType.Large) {
-            if (wireType == WireType.COPPER) return WireConnectResult.REQUIRES_HIGH_CURRENT;
+            if (wireType == WireType.COPPER) { return WireConnectResult.REQUIRES_HIGH_CURRENT; }
         }
 
         iWireNode1.setConnectionPoint(connectionPointIndex1, connectionPointIndex2, wireType, iWireNode2.getPos());
@@ -64,19 +105,27 @@ public interface IWireNode {
             NetworkManager networkManager = ElectroRealism.NETWORK_MANAGER;
             INetworkMember networkMember1 = getNetworkMemberFromBlockEntity(blockEntity1);
             INetworkMember networkMember2 = getNetworkMemberFromBlockEntity(blockEntity2);
-            if (networkMember1 == null || networkMember2 == null) return WireConnectResult.ERROR;
-            UUID networkId = networkManager.createOrMergeNetworks(networkMember1, networkMember2);
 
-            networkMember1.setNetworkId(networkId);
-            networkMember2.setNetworkId(networkId);
-
-            networkManager.registerINetworkMemberInNetwork(networkId, networkMember1);
-            networkManager.registerINetworkMemberInNetwork(networkId, networkMember2);
+            if (networkMember1 != null && networkMember2 != null) {
+                networkManager.createOrMergeNetworks(networkMember1, networkMember2);
+            } else {
+                LOGGER.error("Failed to get INetworkMember for one or both block entities during connect: {} , {}", pos1, pos2);
+                return WireConnectResult.ERROR;
+            }
         }
-
         return WireConnectResult.getLink(iWireNode2.isConnectorInput(connectionPointIndex2), iWireNode2.isConnectorOutput(connectionPointIndex2));
     }
 
+    /**
+     * Gets the {@link INetworkMember} from the given {@link BlockEntity}.
+     *
+     * @param blockEntity
+     *          The {@link BlockEntity} to get the {@link INetworkMember} from.
+     *
+     * @return  The {@link INetworkMember} from the given {@link BlockEntity},
+     *          or null if the {@link BlockEntity} is null or not an
+     *          {@link INetworkMember}.
+     */
     static INetworkMember getNetworkMemberFromBlockEntity(BlockEntity blockEntity) {
         if (blockEntity == null) return null;
         if (!(blockEntity instanceof INetworkMember)) return null;
@@ -107,6 +156,14 @@ public interface IWireNode {
         return getConnectionPoint(index) != null;
     }
 
+    /**
+     * Checks if this node has a connection to the given position.
+     *
+     * @param pos
+     *          The position to check for a connection to.
+     *
+     * @return  True if this node has a connection to the given position, false otherwise.
+     */
     default boolean hasConnectionTo(BlockPos pos) {
         if (pos == null) return false;
         for (int i = 0; i < getConnectionPointCount(); i++) {
@@ -149,6 +206,16 @@ public interface IWireNode {
         return nodeCache[index];
     }
 
+    /**
+     * Gets the {@link IWireNode} at the given position.
+     *
+     * @param level
+     *          The level the node is in.
+     * @param pos
+     *          The position of the node.
+     *
+     * @return  The {@link IWireNode} at the given position, or null if there is no node there.
+     */
     static IWireNode getWireNode(Level level, BlockPos pos) {
         if(pos == null)
             return null;
@@ -162,24 +229,39 @@ public interface IWireNode {
 
     void removeConnectionPoint(int index, boolean dropWire);
 
+    /**
+     * Default implementation to remove a connection point.
+     * Calls the instance-specific method to handle local state and wire dropping.
+     * @param index the connection point index to remove
+     */
     default void removeConnectionPoint(int index) {
-        removeConnectionPoint(index, false);
+        removeConnectionPoint(index, true);
     }
 
-    default void removeConnectionPoint(ConnectionPoint connectionPoint, boolean dropWire) {
-        removeConnectionPoint(connectionPoint.getConnectionPointIndex(), dropWire);
-    }
-
-    default void removeConnectionPoint(@NotNull ConnectionPoint connectionPoint) {
-        removeConnectionPoint(connectionPoint.getConnectionPointIndex());
-    }
-
+    /**
+     * Gets the index of the connection point on the connected node.
+     *
+     * @param index
+     *          The index of the connection point on this node.
+     *
+     * @return  The index of the connection point on the connected node, or
+     *          -1 if there is no connection.
+     */
     default int getConnectingConnectionPointIndex(int index) {
         ConnectionPoint connectionPoint = getConnectionPoint(index);
         int connectingNodeIndex = (connectionPoint == null) ? -1 : connectionPoint.getConnectingPointIndex();
         return connectingNodeIndex;
     }
 
+    /**
+     * Gets the position of the connector at the given index.
+     *
+     * @param index
+     *          The index of the connector.
+     *
+     * @return  The position of the connector, or null if there is no
+     *          connector at the given index.
+     */
     @Nullable
     default BlockPos getConnectorPos(int index) {
         ConnectionPoint connectionPoint = getConnectionPoint(index);
@@ -187,6 +269,15 @@ public interface IWireNode {
         return connectorPos;
     }
 
+    /**
+     * Gets the {@link WireType} of the wire connected to the given connection point.
+     *
+     * @param index
+     *          The index of the connection point.
+     *
+     * @return  The {@link WireType} of the wire connected to the given
+     *          connection point, or null if there is no connection.
+     */
     @Nullable
     default WireType getWireType(int index) {
         ConnectionPoint connectionPoint = getConnectionPoint(index);
@@ -194,16 +285,16 @@ public interface IWireNode {
         return wireType;
     }
 
-    @Nullable
-    static WireType getWireTypeOfConnection(Level world, BlockPos pos1, BlockPos pos2) {
-        BlockEntity blockEntity = world.getBlockEntity(pos1);
-        if (blockEntity == null) return null;
-        if (!(blockEntity instanceof IWireNode wireNode)) return null;
-        ConnectionPoint connectionPoint = wireNode.getConnectionPointIn(pos2);
-        if (connectionPoint == null) return null;
-        return connectionPoint.getWireType();
-    }
-
+    /**
+     * Gets the {@link ConnectionPoint} at the given position.
+     *
+     * @param pos
+     *          The position to check for a {@link ConnectionPoint}.
+     *
+     * @return  The {@link ConnectionPoint} at the given position, or null if
+     *          there is no {@link ConnectionPoint} at the given position or
+     *          the given position is null.
+     */
     @Nullable
     default ConnectionPoint getConnectionPointIn(BlockPos pos) {
         if (pos == null) return null;
@@ -215,10 +306,27 @@ public interface IWireNode {
         return null;
     }
 
+    /**
+     * Gets the first available connection point index.
+     *
+     * @param pos
+     *          The position of the node to connect to.
+     *
+     * @return  The first available connection point index, or -1 if there are no
+     *          available connection points.
+     */
     default int getAvailableNode(Vec3 pos) {
         return getAvailableNode();
     }
 
+    /**
+     * Gets the first available connection point index.
+     *
+     * @return  The first available connection point index, or -1 if there are no
+     *          available connection points.
+     *
+     * @see IWireNode#getAvailableNode(Vec3)
+     */
     default int getAvailableNode() {
         for (int i = 0; i < getConnectionPointCount(); i++) {
             if (hasConnection(i)) continue;
@@ -226,7 +334,14 @@ public interface IWireNode {
         }
         return -1;
     }
-
+    /**
+     * Checks if this node has any connections.
+     *
+     * @return  True if this node has any connections, false otherwise.
+     *
+     * @see IWireNode#hasConnection(int)
+     * @see IWireNode#getConnectionPointCount()
+     */
     default boolean hasAnyConnection() {
         for (int i = 0; i < getConnectionPointCount(); i++) {
             if(hasConnection(i)) return true;
