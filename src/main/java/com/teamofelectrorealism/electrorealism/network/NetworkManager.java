@@ -526,8 +526,7 @@ public class NetworkManager {
                 group.add(current);
 
                 for (INetworkMember potentialNeighbor : allMembers) {
-                    if (!visited.contains(potentialNeighbor.getPos()) &&
-                            areConnected(current, potentialNeighbor)) {
+                    if (!visited.contains(potentialNeighbor.getPos()) && hasConnection(current, potentialNeighbor)) {
                         queue.add(potentialNeighbor);
                     }
                 }
