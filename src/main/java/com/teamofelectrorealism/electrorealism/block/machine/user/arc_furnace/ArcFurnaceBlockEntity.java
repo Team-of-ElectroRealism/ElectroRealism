@@ -190,19 +190,8 @@ public class ArcFurnaceBlockEntity extends AbstractPowerUserBlockEntity implemen
     }
 
     @Override
-    public boolean isFacePositiveTerminal(BlockState state, Direction faceAccessed) {
-        Direction machineFacing = state.getValue(ArcFurnaceBlock.FACING);
-        Direction backFace = machineFacing.getOpposite();
-
-        return faceAccessed == backFace;
-    }
-
-    @Override
-    public boolean isFaceNegativeTerminal(BlockState state, Direction faceAccessed) {
-        Direction machineFacing = state.getValue(ArcFurnaceBlock.FACING);
-        Direction backFace = machineFacing.getOpposite();
-
-        return faceAccessed == backFace;
+    public boolean isFaceAllowed(BlockState state, Direction faceAccessed) {
+        return false;
     }
 
     private boolean hasBufferEnoughCharge() {

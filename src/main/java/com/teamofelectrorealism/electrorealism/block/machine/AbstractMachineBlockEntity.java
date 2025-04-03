@@ -25,21 +25,8 @@ public abstract class AbstractMachineBlockEntity extends BlockEntity implements 
 
     public abstract void tick(Level level, BlockPos pos, BlockState state);
 
-    /**
-     * Checks if the specified face of this machine block acts as the Positive (+) terminal.
-     * @param state The current block state of this machine.
-     * @param faceAccessed The world direction/face being checked (e.g., the face a connector is attached to).
-     * @return true if this face is the Positive terminal, false otherwise.
-     */
-    public abstract boolean isFacePositiveTerminal(BlockState state, Direction faceAccessed);
 
-    /**
-     * Checks if the specified face of this machine block acts as the Negative (-) terminal.
-     * @param state The current block state of this machine.
-     * @param faceAccessed The world direction/face being checked (e.g., the face a connector is attached to).
-     * @return true if this face is the Negative terminal, false otherwise.
-     */
-    public abstract boolean isFaceNegativeTerminal(BlockState state, Direction faceAccessed);
+    public abstract boolean isFaceAllowed(BlockState state, Direction faceAccessed);
 
     // INetworkMember methods
     @Override

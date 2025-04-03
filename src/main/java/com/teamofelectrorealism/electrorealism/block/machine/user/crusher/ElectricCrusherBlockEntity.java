@@ -170,12 +170,8 @@ public class ElectricCrusherBlockEntity extends AbstractPowerUserBlockEntity imp
     }
 
     @Override
-    public boolean isFacePositiveTerminal(BlockState state, Direction faceAccessed) {
-        return faceAccessed.getAxis().isHorizontal();
-    }
-
-    @Override
-    public boolean isFaceNegativeTerminal(BlockState state, Direction faceAccessed) {
+    public boolean isFaceAllowed(BlockState state, Direction faceAccessed) {
+        // Only allow horizontal faces.
         return faceAccessed.getAxis().isHorizontal();
     }
 
