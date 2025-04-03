@@ -4,12 +4,11 @@ import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
-import com.teamofelectrorealism.electrorealism.block.connector.TerminalType;
+import com.teamofelectrorealism.electrorealism.block.connector.ConnectorPolarity;
 // Remove unused imports: CompoundTag, HolderLookup, Tag, INetworkMember, AbstractMachineBlockEntity
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity; // Import missing
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable; // Keep this one
@@ -40,7 +39,7 @@ public class DuoConnectorBlockEntity extends AbstractConnectorBlockEntity {
      */
     @Nullable // Keep Nullable for consistency, though it should always return a value now
     @Override
-    public TerminalType getTerminalType(int index) {
+    public ConnectorPolarity getTerminalType(int index) {
         BlockState state = this.getBlockState();
         try {
             if (index == 0 && state.hasProperty(DuoConnectorBlock.TERMINAL_TYPE_0)) {
@@ -54,7 +53,7 @@ public class DuoConnectorBlockEntity extends AbstractConnectorBlockEntity {
             System.err.println("Error getting TerminalType property for DuoConnector at " + worldPosition + ": " + e.getMessage());
         }
         // Fallback
-        return TerminalType.None;
+        return ConnectorPolarity.NONE;
     }
 
     @Override

@@ -3,16 +3,14 @@ package com.teamofelectrorealism.electrorealism.block.connector;
 import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
-
-public enum TerminalType implements StringRepresentable {
-    Positive("positive"),
-    Negative("negative"),
-    None("none");
+public enum ConnectorPolarity implements StringRepresentable {
+    POSITIVE("positive"),
+    NEGATIVE("negative"),
+    NONE("none");
 
     private final String name;
 
-    TerminalType(String name) {
+    ConnectorPolarity(String name) {
         this.name = name;
     }
 
@@ -31,16 +29,16 @@ public enum TerminalType implements StringRepresentable {
      * @param name The serialized name ("positive", "negative", or "none").
      * @return The corresponding TerminalType, or NONE if no specific match is found.
      */
-    public static TerminalType fromName(String name) {
+    public static ConnectorPolarity fromName(String name) {
         if (name == null) {
-            return None; // Default to NONE if name is null
+            return NONE; // Default to NONE if name is null
         }
-        for (TerminalType type : values()) {
+        for (ConnectorPolarity type : values()) {
             if (type.getSerializedName().equalsIgnoreCase(name)) {
                 return type;
             }
         }
-        return None; // Default to NONE if name doesn't match known types
+        return NONE; // Default to NONE if name doesn't match known types
     }
 
     @Override
@@ -52,11 +50,11 @@ public enum TerminalType implements StringRepresentable {
      * Cycles to the next terminal type in the order: NONE -> POSITIVE -> NEGATIVE -> NONE.
      * @return The next TerminalType in the cycle.
      */
-    public TerminalType getNext() {
+    public ConnectorPolarity getNext() {
         return switch (this) {
-            case None -> Positive;
-            case Positive -> Negative;
-            case Negative -> None;
+            case NONE -> POSITIVE;
+            case POSITIVE -> NEGATIVE;
+            case NEGATIVE -> NONE;
         };
     }
 }
