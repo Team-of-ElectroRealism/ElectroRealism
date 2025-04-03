@@ -70,24 +70,15 @@ public class DuoConnectorBlock extends AbstractConnectorBlock {
         BlockEntity adjacentBE = level.getBlockEntity(adjacentPos);
         BlockState adjacentState = level.getBlockState(adjacentPos);
 
-        boolean isValidPlacement = false;
-
         if (adjacentBE instanceof AbstractMachineBlockEntity machineBE) {
-            // Check if the face supports both terminals
-            boolean faceIsPositive = machineBE.isFacePositiveTerminal(adjacentState, facePlacedOn);
-            boolean faceIsNegative = machineBE.isFaceNegativeTerminal(adjacentState, facePlacedOn);
-
-            if (faceIsPositive && faceIsNegative) {
-                isValidPlacement = true;
+            // Instead of checking for both positive and negative support, we simply check if the face is allowed.
+            if (machineBE.isFaceAllowed(adjacentState, facePlacedOn)) {
+                return this.defaultBlockState().setValue(FACING, facePlacedOn);
             }
         }
-
-        if (isValidPlacement) {
-            return this.defaultBlockState().setValue(FACING, facePlacedOn);
-        } else {
-            return null; // Prevent placement
-        }
+        return null; // Prevent placement if the face is not allowed.
     }
+
 
     @Override
     protected @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {

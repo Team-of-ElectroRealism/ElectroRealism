@@ -85,13 +85,7 @@ public class DuoConnectorBlockEntity extends AbstractConnectorBlockEntity {
 
             Direction directionFromMachine = connectorState.getValue(AbstractConnectorBlock.FACING);
 
-            boolean faceIsPositive = machineBE.isFacePositiveTerminal(machineState, directionFromMachine);
-            boolean faceIsNegative = machineBE.isFaceNegativeTerminal(machineState, directionFromMachine);
 
-            if (faceIsPositive && faceIsNegative) {
-                determinedType0 = TerminalType.Positive;
-                determinedType1 = TerminalType.Negative;
-            }
         }
 
         if (this.terminalTypeIndex0 != determinedType0 || this.terminalTypeIndex1 != determinedType1) {
