@@ -40,6 +40,23 @@ public class NetworkManager {
     // --- Loading and Saving ---
 
     /**
+     * Clears the runtime state of the NetworkManager, typically called on world unload.
+     * This resets the collection of active networks and references to saved data and server.
+     */
+    public void levelUnloaded() {
+        if (this.networks != null) {
+            this.networks.clear();
+            LOGGER.debug("Cleared runtime networks set.");
+        } else {
+            this.networks = new HashSet<>();
+            LOGGER.debug("Initialized networks set during clear as it was null.");
+        }
+        this.savedData = null;
+        this.server = null;
+        LOGGER.info("NetworkManager runtime state cleared.");
+    }
+
+    /**
      * Called when a level (specifically the Overworld for global data) loads.
      * Initializes or loads the network data from storage.
      * @param level The level that loaded (should be the Overworld).
@@ -77,7 +94,8 @@ public class NetworkManager {
         }
         try {
             this.savedData = NetworkSavedData.load(server);
-            this.networks = this.savedData.getNetworks();
+            Set<Network> loadedNetworks = this.savedData.getNetworks();
+            this.networks = (loadedNetworks != null) ? loadedNetworks : new HashSet<>();
             LOGGER.info("NetworkManager loaded {} networks from NetworkSavedData.", this.networks.size());
         } catch (Exception e) {
             LOGGER.error("Failed to load NetworkSavedData!", e);
@@ -92,8 +110,8 @@ public class NetworkManager {
      * @param level The ServerLevel instance.
      */
     private void loadNetworkData(ServerLevel level) {
-        if (this.networks.isEmpty()) {
-            LOGGER.info("No networks loaded, skipping member resolution.");
+        if (this.networks == null || this.networks.isEmpty()) {
+            LOGGER.info("No networks loaded or networks set is null, skipping member resolution for level {}.", level.dimension().location());
             return;
         }
         LOGGER.info("Attempting to resolve BlockPos to INetworkMember for loaded networks...");
