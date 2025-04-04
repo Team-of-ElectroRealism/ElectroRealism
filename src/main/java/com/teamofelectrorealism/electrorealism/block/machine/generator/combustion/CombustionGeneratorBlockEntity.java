@@ -109,7 +109,7 @@ public class CombustionGeneratorBlockEntity extends AbstractGeneratorBlockEntity
 
     @Override
     public boolean isFaceAllowed(BlockState state, Direction faceAccessed) {
-        return false;
+        return true;
     }
 
     private void removeFuel() {

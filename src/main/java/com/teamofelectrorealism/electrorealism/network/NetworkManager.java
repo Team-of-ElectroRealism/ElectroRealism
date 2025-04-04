@@ -18,6 +18,7 @@ import com.teamofelectrorealism.electrorealism.power.IWireNode;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages the creation, loading, saving, and merging of electrical networks.
@@ -25,7 +26,7 @@ import java.util.*;
 public class NetworkManager {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private Set<Network> networks;
+    private Set<Network> networks = ConcurrentHashMap.newKeySet();
     @Nullable
     private NetworkSavedData savedData = null;
     @Nullable
@@ -44,12 +45,9 @@ public class NetworkManager {
      * This resets the collection of active networks and references to saved data and server.
      */
     public void levelUnloaded() {
-        if (this.networks != null) {
+        if (!this.networks.isEmpty()) {
             this.networks.clear();
             LOGGER.debug("Cleared runtime networks set.");
-        } else {
-            this.networks = new HashSet<>();
-            LOGGER.debug("Initialized networks set during clear as it was null.");
         }
         this.savedData = null;
         this.server = null;
@@ -62,6 +60,14 @@ public class NetworkManager {
      * @param level The level that loaded (should be the Overworld).
      */
     public void levelLoaded(LevelAccessor level) {
+        // Add initial check from previous response to diagnose potential instance issues
+        LOGGER.info("NetworkManager levelLoaded START. Networks field valid: {}", this.networks != null);
+        if (this.networks == null) {
+            LOGGER.error("CRITICAL: NetworkManager instance or networks field is NULL at the start of levelLoaded! Aborting.");
+            return;
+        }
+        // --- End initial check ---
+
         if (!(level instanceof ServerLevel serverLevel) || serverLevel.getServer() == null) {
             LOGGER.warn("NetworkManager levelLoaded called with non-ServerLevel or null server.");
             return;
@@ -75,79 +81,137 @@ public class NetworkManager {
         LOGGER.info("NetworkManager initializing for server...");
 
         if (serverLevel == this.server.overworld()) {
-            loadNetworkData(this.server);
-            loadNetworkData(serverLevel);
+            LOGGER.info("Loading network data from Overworld...");
+            loadSavedNetworkData(this.server); // Load structure
+            resolveMembersInLevel(serverLevel); // Resolve members in Overworld
         } else {
-            LOGGER.debug("NetworkManager levelLoaded called for non-Overworld dimension, skipping load.");
+            LOGGER.info("NetworkManager levelLoaded for dimension {}, resolving members if networks loaded.", serverLevel.dimension().location());
+            if (!this.networks.isEmpty()){
+                resolveMembersInLevel(serverLevel); // Resolve members in this dimension
+            } else {
+                LOGGER.warn("Networks not loaded yet (Overworld not loaded?), cannot resolve members for dimension {}.", serverLevel.dimension().location());
+            }
         }
     }
 
     /**
-     * Loads network data from the NetworkSavedData instance.
-     * Populates the runtime 'networks' set.
-     * @param server The MinecraftServer instance.
+     * Loads the core network data (IDs and positions) from the SavedData.
+     * Populates the 'networks' set with Network objects containing only positions initially.
      */
-    private void loadNetworkData(MinecraftServer server) {
+    // Use the version of loadSavedNetworkData WITHOUT the extra `this.networks = new HashSet<>();` line inside try/catch
+    private void loadSavedNetworkData(MinecraftServer server) {
+        // Initial check for final field (should always pass after construction)
+        if (this.networks == null) {
+            LOGGER.error("CRITICAL: NetworkManager.networks is NULL at the start of loadSavedNetworkData! Aborting load.");
+            this.savedData = null;
+            return;
+        }
         if (this.savedData != null) {
-            LOGGER.warn("Attempting to load network data when savedData is already loaded.");
+            LOGGER.warn("Attempting to load network saved data when it's already loaded.");
             return;
         }
         try {
+            LOGGER.debug("Loading NetworkSavedData...");
             this.savedData = NetworkSavedData.load(server);
+
+            if (this.savedData == null) {
+                throw new IllegalStateException("NetworkSavedData.load returned null or failed without exception.");
+            }
+
             Set<Network> loadedNetworks = this.savedData.getNetworks();
-            this.networks = (loadedNetworks != null) ? loadedNetworks : new HashSet<>();
-            LOGGER.info("NetworkManager loaded {} networks from NetworkSavedData.", this.networks.size());
+
+            LOGGER.debug("Clearing current runtime networks before loading from save.");
+            // ** CRUCIAL: Use clear(), DO NOT REASSIGN `this.networks` **
+            this.networks.clear(); // Clear the existing set
+
+            if (loadedNetworks != null) {
+                this.networks.addAll(loadedNetworks); // Add loaded structures to the existing set
+                LOGGER.info("NetworkManager loaded {} networks structure from NetworkSavedData.", this.networks.size());
+            } else {
+                LOGGER.warn("NetworkSavedData.getNetworks() returned null. Runtime networks remain empty.");
+            }
+
         } catch (Exception e) {
             LOGGER.error("Failed to load NetworkSavedData!", e);
-            this.networks = new HashSet<>();
+            if (this.networks != null) { // Should be non-null
+                this.networks.clear();
+            } else {
+                LOGGER.error("CRITICAL: NetworkManager.networks became null during catch block processing!");
+            }
             this.savedData = null;
         }
     }
 
-    /**
-     * Loads network data from the NetworkSavedData instance.
-     * Populates the runtime 'networks' set.
-     * @param level The ServerLevel instance.
-     */
-    private void loadNetworkData(ServerLevel level) {
-        if (this.networks == null || this.networks.isEmpty()) {
-            LOGGER.info("No networks loaded or networks set is null, skipping member resolution for level {}.", level.dimension().location());
+
+    private void resolveMembersInLevel(ServerLevel level) {
+        if (this.networks.isEmpty()) {
+            LOGGER.debug("No networks loaded, skipping member resolution for level {}.", level.dimension().location());
             return;
         }
-        LOGGER.info("Attempting to resolve BlockPos to INetworkMember for loaded networks...");
+        LOGGER.info("Attempting to resolve members in level {} for {} loaded networks...", level.dimension().location(), this.networks.size());
+
         int resolvedCount = 0;
-        int totalPositions = 0;
+        int potentialPositionsInLevel = 0; // Count positions relevant to *this* level if needed
+        Set<UUID> networksToRemove = new HashSet<>();
 
         for (Network network : this.networks) {
-            Set<BlockPos> positions = network.getMemberPositions();
-            totalPositions += positions.size();
+            if (!network.isValid()) continue;
+
+            Set<BlockPos> positions = network.getMemberPositions(); // Get saved positions
+            boolean networkHadPositions = !positions.isEmpty();
+
             for (BlockPos pos : positions) {
-                if (level.isLoaded(pos)) {
+                // Check if the position is within the bounds of the provided level
+                // This simple check might not be enough for cross-dimension networks if supported
+                // but essential if networks are dimension-specific or primarily in one dimension
+                if (!level.isInWorldBounds(pos)){
+                    continue; // Skip positions not in this level
+                }
+                potentialPositionsInLevel++;
+
+                if (level.isLoaded(pos)) { // Check if chunk is loaded
                     BlockEntity blockEntity = level.getBlockEntity(pos);
                     if (blockEntity instanceof INetworkMember member) {
-                        UUID memberNetworkId = member.getNetworkId();
-                        if (memberNetworkId == null || memberNetworkId.equals(network.getNetworkId())) {
-                            if (memberNetworkId == null) {
-                                member.setNetworkId(network.getNetworkId());
-                            }
-                            network.addRuntimeMember(member);
-                            resolvedCount++;
-                        } else {
-                            LOGGER.warn("INetworkMember at {} reports network {} but loaded data expects network {}. This might indicate stale data or merge issues.",
-                                    pos, memberNetworkId, network.getNetworkId());
-                            // Decide how to handle: remove from this network's positions? Force update BE? Log only?
-                        }
+                        // Call the simplified setNetworkId. It handles self-registration.
+                        member.setNetworkId(network.getNetworkId());
+                        // Also add to runtime list here to ensure network object is populated during load phase
+                        network.addNetworkMember(member); // Ensure Network object knows about loaded member
+                        resolvedCount++;
                     } else {
-                        LOGGER.debug("No valid INetworkMember found at loaded position {}. Block might have been removed.", pos);
-                        // Consider removing 'pos' from network.getMemberPositions() here
+                        // Log potentially stale position data
+                        //LOGGER.debug("No INetworkMember found at saved position {} for network {}. Block removed?", pos.toShortString(), network.getNetworkId());
+                        // Consider removing the position from the network if this persists? network.removeMemberPosition(pos); markDataDirty();
                     }
                 } else {
-                    LOGGER.trace("Chunk not loaded at {}, skipping member resolution for now.", pos);
-                    // Need chunk loading integration for full robustness
+                    // Chunk not loaded. Member will register via its onLoad when chunk loads.
                 }
             }
+            // Check if network ended up empty after trying to resolve members *in this specific level*
+            if (network.getNetworkMembers().isEmpty() && networkHadPositions && potentialPositionsInLevel > 0) {
+                // This network had saved positions relevant to this level, but none resolved.
+                // Don't remove it yet, members might be in unloaded chunks or other dimensions.
+                LOGGER.debug("Network {} has saved positions in level {} but no members resolved in loaded chunks.", network.getNetworkId(), level.dimension().location());
+            } else if (network.getMemberPositions().isEmpty()) { // If it has NO saved positions at all
+                LOGGER.info("Network {} has no saved positions. Marking for removal.", network.getNetworkId());
+                networksToRemove.add(network.getNetworkId());
+            }
         }
-        LOGGER.info("Finished member resolution attempt. Resolved {} out of {} total positions.", resolvedCount, totalPositions);
+
+        // Remove networks that definitively have no saved positions
+        networksToRemove.forEach(id -> {
+            Network netToRemove = findNetwork(id);
+            if (netToRemove != null) {
+                LOGGER.info("Removing network {} because it has no member positions.", id);
+                netToRemove.setInvalid();
+                this.networks.remove(netToRemove);
+            }
+        });
+
+
+        LOGGER.info("Finished member resolution attempt for level {}. Resolved {} members for {} potential positions in loaded chunks.", level.dimension().location(), resolvedCount, potentialPositionsInLevel);
+        if (!networksToRemove.isEmpty()) {
+            markDataDirty();
+        }
     }
 
     /**
@@ -155,8 +219,9 @@ public class NetworkManager {
      */
     public void markDataDirty() {
         if (this.savedData != null) {
-            this.savedData.updateNetworkData(this.networks);
-            LOGGER.debug("Notified NetworkSavedData to check for updates.");
+            // Pass a snapshot of the current networks set for thread safety
+            this.savedData.updateNetworkData(new HashSet<>(this.networks));
+            LOGGER.trace("Notified NetworkSavedData to check for updates.");
         } else {
             LOGGER.warn("Attempted to mark data dirty, but NetworkSavedData instance is null.");
         }
@@ -180,268 +245,217 @@ public class NetworkManager {
     }
 
     /**
-     * Creates a new Network instance. The Network constructor handles adding itself
-     * to the manager via `addNetwork`.
-     * @return The UUID of the newly created network.
-     * @see Network#Network()
+     * Creates a new network and adds it to the manager's runtime set.
+     * @return The newly created network.
      */
-    public UUID createNetwork() {
+    private Network createNetwork() {
         Network network = new Network();
-        LOGGER.info("Total networks: {}", networks.size());
-        LOGGER.info("Initiated creation of new network with UUID: {}", network.getNetworkId());
-        return network.getNetworkId();
+        addNetwork(network);
+        return network;
     }
 
     /**
-     * Registers a runtime INetworkMember instance with its corresponding Network.
-     * Should be called when a member BlockEntity is loaded or placed.
+     * Registers a runtime INetworkMember instance with its corresponding Network object's runtime list.
+     * This should primarily be called by the member itself via its setNetworkId method.
      * @param networkId The ID of the network the member belongs to.
      * @param networkMember The member instance.
-     * @see INetworkMember
      */
     public void registerINetworkMemberInNetwork(UUID networkId, INetworkMember networkMember) {
+        if (networkId == null || networkMember == null) {
+            LOGGER.warn("Attempted registration with null networkId or member.");
+            return;
+        }
         Network network = findNetwork(networkId);
-        if (network != null && networkMember != null) {
-            network.addRuntimeMember(networkMember);
-            LOGGER.debug("Registered runtime member at {} to network {}", networkMember.getPos(), networkId);
-        } else if (networkMember != null) {
-            LOGGER.warn("Attempted to register member at {} to non-existent network {}", networkMember.getPos(), networkId);
+        if (network != null) {
+            network.addNetworkMember(networkMember); // Add to the Network's internal list
+            // Don't call member.setNetworkId here - assume it's already correct or being handled by the caller.
+            LOGGER.trace("Confirmed runtime registration of member at {} to network {}", networkMember.getPos().toShortString(), networkId);
+        } else {
+            // This can happen legitimately during world load if the Network object hasn't been processed yet,
+            // but the BlockEntity loaded first. The loading logic should reconcile this.
+            LOGGER.debug("Network {} not found during registration attempt for member at {}. Network might not be loaded yet.", networkId, networkMember.getPos().toShortString());
         }
     }
 
-    /**
-     * Finds a Network instance by its INetworkMember in the runtime set.
-     * @param networkMember The INetworkMember to search for.
-     * @return The found Network, or null if not found.
-     */
     @Nullable
-    public Network findNetwork(INetworkMember networkMember) {
-        return findNetwork(networkMember.getNetworkId());
-    }
-
-    /**
-     * Finds a Network instance by its UUID in the runtime set.
-     * @param networkId The UUID to search for.
-     * @return The found Network, or null if not found.
-     * @see Network
-     */
-    @Nullable
-    public Network findNetwork(UUID networkId) {
+    Network findNetwork(UUID networkId) {
         if (networkId == null) return null;
-        return networks.stream()
-                .filter(n -> n.getNetworkId().equals(networkId))
-                .findFirst()
-                .orElse(null);
+        for (Network network : networks) {
+            if (network.getNetworkId().equals(networkId)) {
+                return network;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    Network findNetwork(INetworkMember networkMember) {
+        return networkMember != null ? findNetwork(networkMember.getNetworkId()) : null;
     }
 
     /**
-     * Determines the correct network when connecting two members, creating or merging networks as needed.
-     * Sets the network ID on both members and registers them in the resulting network.
-     * @param networkMember1 First member being connected.
-     * @param networkMember2 Second member being connected.
-     * @return The UUID of the resulting network.
-     * @see INetworkMember
+     * Central logic for connecting two members. Determines the resulting network,
+     * updates IDs on ALL affected members (including machines attached to connectors),
+     * and ensures registration.
+     * @param networkMember1 First member involved in the connection (e.g., a connector).
+     * @param networkMember2 Second member involved in the connection (e.g., another connector).
+     * @return The UUID of the resulting network, or null on failure.
      */
     public UUID createOrMergeNetworks(INetworkMember networkMember1, INetworkMember networkMember2) {
-        UUID networkId1 = networkMember1.getNetworkId();
-        UUID networkId2 = networkMember2.getNetworkId();
-        UUID resultingNetworkId;
+        if (networkMember1 == null || networkMember2 == null) {
+            LOGGER.error("createOrMergeNetworks called with null member!");
+            return null;
+        }
+
+        UUID id1 = networkMember1.getNetworkId();
+        UUID id2 = networkMember2.getNetworkId();
+        Network network1 = findNetwork(id1);
+        Network network2 = findNetwork(id2);
+
         Network resultingNetwork;
+        UUID resultingNetworkId;
+        Set<INetworkMember> membersToUpdateId = new HashSet<>();
+        membersToUpdateId.add(networkMember1);
+        membersToUpdateId.add(networkMember2);
 
-        if (networkId1 == null && networkId2 == null) {
-            // Case 1: Neither member has a network - Create a new one
-            Network newNetwork = new Network();
-            resultingNetworkId = newNetwork.getNetworkId();
-            resultingNetwork = newNetwork;
-            LOGGER.info("Connecting two members ({}, {}) with no existing networks. Created new network: {}",
-                    networkMember1.getPos().toShortString(), networkMember2.getPos().toShortString(), resultingNetworkId);
-
-        } else if (networkId1 != null && networkId2 == null) {
-            resultingNetworkId = networkId1;
-            resultingNetwork = findNetwork(networkId1);
-            LOGGER.info("Connecting member {} without network to existing network: {}", networkMember2.getPos().toShortString(), resultingNetworkId);
-
-        } else if (networkId1 == null && networkId2 != null) {
-            resultingNetworkId = networkId2;
-            resultingNetwork = findNetwork(networkId2);
-            LOGGER.info("Connecting member {} without network to existing network: {}", networkMember1.getPos().toShortString(), resultingNetworkId);
-
-        } else {
-            if (networkId1.equals(networkId2)) {
-                resultingNetworkId = networkId1;
-                resultingNetwork = findNetwork(networkId1);
-                LOGGER.debug("Connecting two members ({}, {}) already in the same network: {}", networkMember1.getPos().toShortString(), networkMember2.getPos().toShortString(), resultingNetworkId);
-            } else {
-                LOGGER.info("Connecting members ({}, {}) from different networks ({} and {}). Merging...", networkMember1.getPos().toShortString(), networkMember2.getPos().toShortString(), networkId1, networkId2);
-                Network network1 = findNetwork(networkId1);
-                Network network2 = findNetwork(networkId2);
-
-                if (network1 == null && network2 == null) {
-                    LOGGER.error("Attempted to merge two non-existent networks: {} and {}. Creating new.", networkId1, networkId2);
-                    resultingNetwork = new Network();
-                    resultingNetworkId = resultingNetwork.getNetworkId();
-                } else if (network1 == null) {
-                    LOGGER.warn("Network {} to merge into not found. Using Network {} as primary.", networkId1, networkId2);
-                    resultingNetworkId = networkId2;
-                    resultingNetwork = network2;
-                } else if (network2 == null) {
-                    LOGGER.warn("Network {} to be merged not found. Keeping Network {} as is.", networkId2, networkId1);
-                    resultingNetworkId = networkId1;
-                    resultingNetwork = network1;
-                } else {
-                    network1.mergeMembersFrom(network2);
-                    network2.setInvalid();
-                    networks.remove(network2);
-                    updateNetworkIdsOnBlockEntities(networkId1, network2.getMemberPositions());
-                    resultingNetworkId = networkId1;
-                    resultingNetwork = network1;
-                    LOGGER.info("Merge complete. Resulting network: {}", resultingNetworkId);
+        // --- Check for Machines attached to the connecting members ---
+        INetworkMember machine1 = null;
+        INetworkMember machine2 = null;
+        if (networkMember1 instanceof AbstractConnectorBlockEntity connector1) {
+            machine1 = connector1.findNetworkMember();
+            if (machine1 != null) {
+                LOGGER.trace("Connection involves member1 (connector at {}), found attached machine at {}", networkMember1.getPos().toShortString(), machine1.getPos().toShortString());
+                membersToUpdateId.add(machine1);
+                if(machine1.getNetworkId() != null && !Objects.equals(id1, machine1.getNetworkId())){
+                    LOGGER.warn("Connector {} (ID: {}) attached machine {} (ID: {}) has different ID during connection!", networkMember1.getPos().toShortString(), id1, machine1.getPos().toShortString(), machine1.getNetworkId());
+                    id1 = machine1.getNetworkId();
+                    network1 = findNetwork(id1);
+                } else if (id1 == null && machine1.getNetworkId() != null){
+                    id1 = machine1.getNetworkId();
+                    network1 = findNetwork(id1);
+                    LOGGER.trace("Connector {} adopting network ID {} from attached machine {}", networkMember1.getPos().toShortString(), id1, machine1.getPos().toShortString());
                 }
             }
         }
+        if (networkMember2 instanceof AbstractConnectorBlockEntity connector2) {
+            machine2 = connector2.findNetworkMember();
+            if (machine2 != null) {
+                LOGGER.trace("Connection involves member2 (connector at {}), found attached machine at {}", networkMember2.getPos().toShortString(), machine2.getPos().toShortString());
+                membersToUpdateId.add(machine2);
+                if(machine2.getNetworkId() != null && !Objects.equals(id2, machine2.getNetworkId())){
+                    LOGGER.warn("Connector {} (ID: {}) attached machine {} (ID: {}) has different ID during connection!", networkMember2.getPos().toShortString(), id2, machine2.getPos().toShortString(), machine2.getNetworkId());
+                    id2 = machine2.getNetworkId();
+                    network2 = findNetwork(id2);
+                } else if (id2 == null && machine2.getNetworkId() != null){
+                    id2 = machine2.getNetworkId();
+                    network2 = findNetwork(id2);
+                    LOGGER.trace("Connector {} adopting network ID {} from attached machine {}", networkMember2.getPos().toShortString(), id2, machine2.getPos().toShortString());
+                }
+            }
+        }
+        network1 = findNetwork(id1); // Re-fetch in case ID changed
+        network2 = findNetwork(id2);
+        // --- End Machine Check ---
 
-        if (resultingNetwork != null && resultingNetworkId != null) {
-            networkMember1.setNetworkId(resultingNetworkId);
-            networkMember2.setNetworkId(resultingNetworkId);
-
-            resultingNetwork.addRuntimeMember(networkMember1);
-            resultingNetwork.addRuntimeMember(networkMember2);
-
-            markDataDirty();
-        } else {
-            LOGGER.error("Resulting network or ID was null after createOrMerge! Member1: {}, Member2: {}. Assigning new network as fallback.", networkMember1.getPos().toShortString(), networkMember2.getPos().toShortString());
-            Network fallbackNetwork = new Network();
-            resultingNetworkId = fallbackNetwork.getNetworkId();
-            networkMember1.setNetworkId(resultingNetworkId);
-            networkMember2.setNetworkId(resultingNetworkId);
-            fallbackNetwork.addRuntimeMember(networkMember1);
-            fallbackNetwork.addRuntimeMember(networkMember2);
-            markDataDirty();
+        // --- Determine Resulting Network ---
+        if (network1 == null && network2 == null) {
+            LOGGER.debug("Connecting involved members: Creating new network.");
+            resultingNetwork = createNetwork(); // Use private create method
+            resultingNetworkId = resultingNetwork.getNetworkId();
+        } else if (network1 != null && network2 == null) {
+            LOGGER.debug("Connecting involved members: Using existing network {}", id1);
+            resultingNetwork = network1;
+            resultingNetworkId = id1;
+        } else if (network1 == null && network2 != null) {
+            LOGGER.debug("Connecting involved members: Using existing network {}", id2);
+            resultingNetwork = network2;
+            resultingNetworkId = id2;
+        } else { // Both potentially have networks
+            if(network1 == null || network2 == null){
+                LOGGER.error("Network object missing for ID {} or {}! Aborting merge.", id1, id2);
+                return null;
+            }
+            else if (id1.equals(id2)) {
+                LOGGER.debug("Connecting involved members: Already in same network {}.", id1);
+                resultingNetwork = network1;
+                resultingNetworkId = id1;
+                membersToUpdateId.clear(); // No ID changes needed
+                membersToUpdateId.add(networkMember1); // Still ensure registration of connecting members
+                membersToUpdateId.add(networkMember2);
+                if(machine1 != null) membersToUpdateId.add(machine1);
+                if(machine2 != null) membersToUpdateId.add(machine2);
+            } else {
+                LOGGER.info("Merging network {} into {} for connection.", id2, id1);
+                resultingNetwork = network1;
+                resultingNetworkId = id1;
+                membersToUpdateId.addAll(network2.getNetworkMembers()); // Add members from old network
+                resultingNetwork.addAllNetworkMembers(network2.getNetworkMembers()); // Add positions and runtime refs
+                network2.setInvalid();
+                this.networks.remove(network2);
+                LOGGER.debug("  Removed network {}", id2);
+            }
         }
 
+        // --- Finalization ---
+        if (resultingNetwork != null && resultingNetworkId != null) {
+            LOGGER.debug("Setting final network ID {} for {} involved members...", resultingNetworkId, membersToUpdateId.size());
+            for (INetworkMember member : membersToUpdateId) {
+                member.setNetworkId(resultingNetworkId); // Triggers self-registration
+                resultingNetwork.addNetworkMember(member); // Ensure tracked in resulting network object
+            }
+            markDataDirty();
+        } else {
+            LOGGER.error("Resulting network or ID was null after createOrMerge! Cannot finalize connection.");
+            return null;
+        }
         return resultingNetworkId;
     }
 
     /**
-     * Helper to update the networkId field on BlockEntities at given positions.
-     * Requires access to the level.
-     * @param networkId The new network ID to set.
-     * @param memberPositions Positions of members whose ID needs updating.
-     * @see INetworkMember
-     */
-    private void updateNetworkIdsOnBlockEntities(UUID networkId, Set<BlockPos> memberPositions) {
-        if (server == null) {
-            LOGGER.error("Cannot update BE network IDs: Server instance is null.");
-            return;
-        }
-        ServerLevel level = server.overworld();
-        if (level == null) {
-            LOGGER.error("Cannot update BE network IDs: Overworld instance is null.");
-            return;
-        }
-
-        for (BlockPos pos : memberPositions) {
-            if (level.isLoaded(pos)) {
-                BlockEntity be = level.getBlockEntity(pos);
-                if (be instanceof INetworkMember member) {
-                    if (!networkId.equals(member.getNetworkId())) {
-                        member.setNetworkId(networkId);
-                        LOGGER.debug("Updated Network ID for member at {} to {}", pos, networkId);
-                    }
-                }
-            } else {
-                LOGGER.trace("Cannot update BE Network ID at {}: Chunk not loaded.", pos);
-            }
-        }
-    }
-
-    /**
-     * Removes a connector from a network.
-     * Removes the connector from the runtime members and the member positions.
-     * @param networkId The ID of the network to remove the connector from.
-     * @param connectorBlockEntity The connector to remove.
-     * @param pos The position of the connector.
-     */
-    public void removeConnectorFromNetwork(UUID networkId, AbstractConnectorBlockEntity connectorBlockEntity, BlockPos pos) {
-        Network network = findNetwork(networkId);
-        if (network == null) {
-            LOGGER.error("Tried removing connector, but network was null with UUID: {}", networkId);
-            return;
-        }
-        network.removeRuntimeMember(connectorBlockEntity);
-        network.removeMemberPosition(pos);
-        markDataDirty();
-    }
-
-    /**
-     * Removes a member from its network, cleaning up connections and potentially splitting the network.
+     * Removes a member from its network. Ensures the member's ID is cleared.
+     * Triggers network splitting checks.
      * @param networkMember The member to remove.
-     * @see INetworkMember
      */
     public void removeNetworkMember(INetworkMember networkMember) {
-        Network network = findNetwork(networkMember);
+        if (networkMember == null) return;
+
+        UUID networkId = networkMember.getNetworkId();
+        Network network = findNetwork(networkId); // Find network using member's current ID
+
         if (network == null) {
-            LOGGER.warn("Tried to remove member at {}, but no matching network found (or member had no network ID).", networkMember.getPos());
+            // This can happen if the network was already removed or if the member's ID was out of sync
+            LOGGER.warn("Tried to remove member at {}, but its network ({}) was not found in the manager.", networkMember.getPos().toShortString(), networkId);
+            // Still clear the member's ID just in case
+            networkMember.setNetworkId(null);
             return;
-        } else {
-            LOGGER.warn("Found member {} in network {} by position lookup.", networkMember.getPos(), network.getNetworkId());
         }
 
-        if (networkMember instanceof IWireNode wireNodeMember && this.server != null) {
-            ServerLevel level = this.server.overworld();
-            if (level != null) {
-                LOGGER.debug("Cleaning connections for removed member {} in network {}", networkMember.getPos(), network.getNetworkId());
-                for (int i = 0; i < wireNodeMember.getConnectionPointCount(); i++) {
-                    if (wireNodeMember.hasConnection(i)) {
-                        ConnectionPoint connectionPoint = wireNodeMember.getConnectionPoint(i);
-                        if(connectionPoint == null) continue;
+        LOGGER.debug("Removing member {} from Network {}", networkMember.getPos().toShortString(), network.getNetworkId());
 
-                        BlockPos otherPos = connectionPoint.getPos();
-                        WireType wireType = connectionPoint.getWireType();
+        // Clean up wire connections if the member is a wire node
+        // (Keep existing logic from your original removeNetworkMember method for this part)
+        cleanupWireConnections(networkMember); // Encapsulate the wire removal logic
 
-                        BlockEntity otherBE = level.getBlockEntity(otherPos);
-                        if (otherBE instanceof IWireNode otherNode) {
-                            ConnectionPoint otherConnectionPoint = otherNode.getConnectionPointIn(networkMember.getPos());
-                            if (otherConnectionPoint != null) {
-                                int otherNodeIndex = otherConnectionPoint.getConnectionPointIndex();
-                                otherNode.removeConnectionPoint(otherNodeIndex, false);
-                                LOGGER.trace("  - Notified node at {} to remove connection point index {}", otherPos, otherNodeIndex);
-                            } else {
-                                LOGGER.warn("  - Could not find return connection point on node at {} pointing to {}", otherPos, networkMember.getPos());
-                            }
-                        } else {
-                            LOGGER.warn("  - Could not find IWireNode at connected position {}", otherPos);
-                        }
 
-                        if (wireType != null && !level.isClientSide()) {
-                            Vec3 dropPos = Vec3.atCenterOf(networkMember.getPos()).add(Vec3.atCenterOf(otherPos)).scale(0.5);
-                            ItemStack droppedWire = wireType.getSourceDrop();
-                            level.addFreshEntity(new ItemEntity(level, dropPos.x, dropPos.y, dropPos.z, droppedWire));
-                            LOGGER.trace("  - Dropped wire item of type {} at midpoint", wireType.name());
-                        }
+        // Remove from the Network object's tracking
+        network.removeRuntimeMember(networkMember); // Remove from runtime Set
+        network.removeMemberPosition(networkMember.getPos()); // Remove from saved BlockPos Set
 
-                        wireNodeMember.removeConnectionPoint(i, false);
-                        LOGGER.trace("  - Cleared local connection point index {}", i);
-                    }
-                }
-            } else {
-                LOGGER.error("Cannot clean connections for member {}: ServerLevel is null.", networkMember.getPos());
-            }
-        }
+        // Clear the ID on the BlockEntity itself
+        networkMember.setNetworkId(null);
 
-        network.removeNetworkMember(networkMember);
-        LOGGER.debug("Removed member {} from Network {} internal lists.", networkMember.getPos(), network.getNetworkId());
-
-        if (network.getNetworkMembers().isEmpty()) {
+        // Check if the network is now empty or needs splitting
+        if (network.getNetworkMembers().isEmpty() && network.getMemberPositions().isEmpty()) {
             LOGGER.info("Network {} is empty after removal. Removing network.", network.getNetworkId());
             network.setInvalid();
-            networks.remove(network);
-            markDataDirty();
+            this.networks.remove(network);
+            // No need to split an empty network
         } else {
             LOGGER.debug("Checking if network {} needs splitting after member removal.", network.getNetworkId());
-            splitNetworkIfDisconnected(network);
-            markDataDirty();
+            splitNetworkIfDisconnected(network); // Check remaining members for connectivity
         }
+
+        markDataDirty();
     }
 
     /**
@@ -524,25 +538,80 @@ public class NetworkManager {
             }
         }
 
-        if (connectedGroups.size() <= 1) return;
-
-        networks.remove(originalNetwork);
-        originalNetwork.setInvalid();
-
-        for (Set<INetworkMember> group : connectedGroups) {
-            Network newNetwork = new Network();
-            newNetwork.registerAllNetworkMembers(group);
-            updateNetworkIds(newNetwork.getNetworkId(), group);
-            networks.add(newNetwork);
-            LOGGER.info("Created new network {} with {} members after split", newNetwork.getNetworkId(), group.size());
+        if (connectedGroups.size() <= 1) {
+            LOGGER.trace("Network {} does not need splitting.", originalNetwork.getNetworkId());
+            return; // No split needed
         }
 
-        if (savedData != null) savedData.setDirty();
+        LOGGER.info("Splitting network {} into {} separate groups.", originalNetwork.getNetworkId(), connectedGroups.size());
+
+        // Remove original network BEFORE creating new ones
+        this.networks.remove(originalNetwork);
+        originalNetwork.setInvalid(); // Mark as invalid
+
+        for (Set<INetworkMember> group : connectedGroups) {
+            Network newNetwork = createNetwork();
+            // Update IDs for all members in this new group.
+            // setNetworkId will handle registering them with the manager under the new network ID.
+            for(INetworkMember networkMember : group) {
+                newNetwork.addNetworkMember(networkMember);
+                networkMember.setNetworkId(newNetwork.getNetworkId()); // Assign new ID & trigger registration
+            }
+            LOGGER.info("  Created new network {} with {} members after split.", newNetwork.getNetworkId(), group.size());
+        }
+
+        markDataDirty();
     }
 
-    private void updateNetworkIds(UUID networkId, Set<INetworkMember> members) {
-        for (INetworkMember member : members) {
-            member.setNetworkId(networkId);
+    private void cleanupWireConnections(INetworkMember networkMember) {
+        if (!(networkMember instanceof IWireNode wireNodeMember) || this.server == null) {
+            return;
+        }
+
+        ServerLevel level = this.server.overworld(); // Or get level relevant to the member
+        if (level == null) {
+            LOGGER.error("Cannot clean wire connections for {}: ServerLevel is null.", networkMember.getPos());
+            return;
+        }
+
+        LOGGER.trace("Cleaning connections for removed wire node at {}", networkMember.getPos());
+        boolean connectionsRemoved = false;
+        for (int i = 0; i < wireNodeMember.getConnectionPointCount(); i++) {
+            ConnectionPoint connectionPoint = wireNodeMember.getConnectionPoint(i); // Use getter
+            if (connectionPoint != null) { // Check if connection exists at this index
+                connectionsRemoved = true; // Mark that we found at least one connection
+                BlockPos otherPos = connectionPoint.getPos();
+                WireType wireType = connectionPoint.getWireType();
+
+                // Notify the other connected node (if it exists)
+                BlockEntity otherBE = level.isLoaded(otherPos) ? level.getBlockEntity(otherPos) : null;
+                if (otherBE instanceof IWireNode otherNode) {
+                    ConnectionPoint otherConnectionPoint = otherNode.getConnectionPointIn(networkMember.getPos());
+                    if (otherConnectionPoint != null) {
+                        otherNode.removeConnectionPoint(otherConnectionPoint.getConnectionPointIndex(), false); // Don't drop wire twice
+                        LOGGER.trace("  Notified node at {} to remove its connection point index {}", otherPos.toShortString(), otherConnectionPoint.getConnectionPointIndex());
+                    } else {
+                        LOGGER.warn("  Could not find return connection point on node at {} pointing back to {}", otherPos.toShortString(), networkMember.getPos().toShortString());
+                    }
+                } else {
+                    LOGGER.warn("  Could not find IWireNode at connected position {} to notify.", otherPos.toShortString());
+                }
+
+                // Drop the wire item
+                if (wireType != null && !level.isClientSide()) {
+                    Vec3 dropPos = Vec3.atCenterOf(networkMember.getPos()).add(Vec3.atCenterOf(otherPos)).scale(0.5);
+                    ItemStack droppedWire = wireType.getSourceDrop();
+                    level.addFreshEntity(new ItemEntity(level, dropPos.x, dropPos.y, dropPos.z, droppedWire));
+                    LOGGER.trace("  Dropped wire item of type {}", wireType.name());
+                }
+
+                // Remove the connection from the member being removed *after* processing
+                // wireNodeMember.removeConnectionPoint(i, false); // Let the caller handle the final state / removal of the BE itself
+            }
+        }
+        if(connectionsRemoved){
+            // Force update on the removed block *before* it's fully gone if needed
+            level.sendBlockUpdated(networkMember.getPos(), level.getBlockState(networkMember.getPos()), level.getBlockState(networkMember.getPos()), 3);
         }
     }
 

@@ -1,5 +1,6 @@
 package com.teamofelectrorealism.electrorealism.network;
 
+import com.ibm.icu.util.CodePointTrie;
 import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
@@ -8,6 +9,7 @@ import com.teamofelectrorealism.electrorealism.block.connector.duo.DuoConnectorB
 import com.teamofelectrorealism.electrorealism.block.connector.duo.DuoConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.large.LargeConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.large.LargeConnectorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.AbstractGeneratorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.user.AbstractPowerUserBlockEntity;
@@ -329,11 +331,11 @@ public class NetworkValidator {
                 return state.getValue(DuoConnectorBlock.TERMINAL_TYPE_1);
             }
         } else if (connector instanceof SmallConnectorBlockEntity || connector instanceof LargeConnectorBlockEntity) {
-            // Small/Large use any wire index (0+) or machine face index (-1)
-            // They all refer to the single TERMINAL_TYPE property.
-            // Use the LargeConnectorBlock property as it exists on both.
             if(state.hasProperty(LargeConnectorBlock.TERMINAL_TYPE)){
                 return state.getValue(LargeConnectorBlock.TERMINAL_TYPE);
+            }
+            if (state.hasProperty(SmallConnectorBlock.TERMINAL_TYPE)){
+                return state.getValue(SmallConnectorBlock.TERMINAL_TYPE);
             }
         }
 

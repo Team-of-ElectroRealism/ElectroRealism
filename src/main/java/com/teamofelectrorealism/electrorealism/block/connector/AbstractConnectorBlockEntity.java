@@ -1,5 +1,6 @@
 package com.teamofelectrorealism.electrorealism.block.connector;
 
+import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.network.INetworkMember;
 import com.teamofelectrorealism.electrorealism.network.NetworkManager;
@@ -21,14 +22,13 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class AbstractConnectorBlockEntity extends BlockEntity implements IWireNode, INetworkMember {
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     private UUID networkId;
     private final ConnectionPoint[] connectionPoints;
@@ -87,25 +87,18 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     }
 
     @Override
-    public void setNetworkId(UUID networkId) {
-        if (this.networkId == null) {
-            INetworkMember networkMember = findNetworkMember();
-            if (networkMember != null) {
-                UUID neighborNetworkId = networkMember.getNetworkId();
-                if (neighborNetworkId != null) {
-                    networkId = neighborNetworkId;
-                } else {
-                    if (networkId != null) {
-                        networkMember.setNetworkId(networkId);
-                        ElectroRealism.NETWORK_MANAGER.registerINetworkMemberInNetwork(networkId, networkMember);
-                    }
-                }
-            }
-        }
+    public void setNetworkId(UUID newNetworkId) {
+        if (!Objects.equals(this.networkId, newNetworkId)) {
+            LOGGER.trace("Connector at {} changing network ID from {} to {}", getPos(), this.networkId, newNetworkId);
+            this.networkId = newNetworkId;
 
-        if (networkId != null) {
-            this.networkId = networkId;
+            if (this.networkId != null && this.level != null && !this.level.isClientSide()) {
+                ElectroRealism.NETWORK_MANAGER.registerINetworkMemberInNetwork(this.networkId, this);
+            }
+
             setChanged();
+        } else {
+            LOGGER.trace("Connector at {} setNetworkId called with same ID {}", getPos(), newNetworkId);
         }
     }
 
@@ -118,32 +111,11 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     @Override
     public void onLoad() {
         super.onLoad();
-        if (this.level == null || this.level.isClientSide) {
-            return;
-        }
-        NetworkManager networkManager = ElectroRealism.NETWORK_MANAGER;
-        if (this.networkId != null) {
-            LOGGER.debug("Connector BE at {} loaded with Network ID {}. Registering with NetworkManager.", getBlockPos(), this.networkId);
-            networkManager.registerINetworkMemberInNetwork(this.networkId, this);
-        }
-        else {
-            LOGGER.debug("Connector BE at {} loaded without a Network ID. Checking adjacent block...", getBlockPos());
-            INetworkMember adjacentMember = findNetworkMember();
-
-            if (adjacentMember != null) {
-                UUID adjacentMemberNetworkId = adjacentMember.getNetworkId();
-                if (adjacentMemberNetworkId != null) {
-                    // Adopt the neighbor's network ID
-                    this.networkId = adjacentMemberNetworkId;
-                    LOGGER.info("Connector BE at {} adopting Network ID {} from adjacent member at {}. Registering.", getBlockPos(), this.networkId, adjacentMember.getPos());
-                    networkManager.registerINetworkMemberInNetwork(this.networkId, this);
-                    setChanged();
-                } else {
-                    LOGGER.debug("Adjacent member at {} found for connector at {}, but it has no network ID yet.", adjacentMember.getPos(), getBlockPos());
-                }
-            } else {
-                LOGGER.debug("No adjacent INetworkMember found for connector at {}.", getBlockPos());
-            }
+        if (this.networkId != null && this.level != null && !this.level.isClientSide()) {
+            LOGGER.trace("Connector at {} loaded with ID {}. Registering.", getPos(), this.networkId);
+            ElectroRealism.NETWORK_MANAGER.registerINetworkMemberInNetwork(this.networkId, this);
+        } else if (this.level != null && !this.level.isClientSide()){
+            LOGGER.trace("Connector at {} loaded without network ID.", getPos());
         }
     }
 
@@ -206,7 +178,11 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        if (tag.contains(NETWORK_KEY)) this.networkId = tag.getUUID(NETWORK_KEY);
+        if (tag.contains(NETWORK_KEY, CompoundTag.TAG_INT_ARRAY)) { // Check type for UUID
+            this.networkId = tag.getUUID(NETWORK_KEY);
+        } else {
+            this.networkId = null;
+        }
         Arrays.fill(this.connectionPoints, null);
         Arrays.fill(this.iWireNodeCache, null);
         ListTag connection_points = tag.getList(ConnectionPoint.CONNECTION_POINTS, ListTag.TAG_COMPOUND);
@@ -218,57 +194,18 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        BlockPos currentPos = getBlockPos(); // Get position for logging context
-        LOGGER.info("Start: saveAdditional for Connector BE at {}", currentPos);
-
-        // Save networkId
+        super.saveAdditional(tag, registries);
         if (this.networkId != null) {
-            LOGGER.debug("Saving networkId: {}", this.networkId);
             tag.putUUID(NETWORK_KEY, this.networkId);
-        } else {
-            LOGGER.debug("No networkId to save.");
         }
-
-        // Save connection points
-        ListTag connectionPointsList = new ListTag();
-        int savedCount = 0;
-        int connectionPointArrayLength = getConnectionPointCount(); // Use the method
-        LOGGER.debug("Preparing to save connection points. Array size: {}", connectionPointArrayLength);
-
-        try { // Add try-catch block for safety during iteration/saving
-            for(int i = 0; i < connectionPointArrayLength; i++) {
-                ConnectionPoint connectionPoint = this.connectionPoints[i]; // Access the field directly
-                if(connectionPoint == null) {
-                    // Optional: Log skipped null points if needed for debugging connection state
-                    // LOGGER.trace("Skipping null connection point at index {}", i);
-                    continue;
-                }
-
-                // Log before writing this specific point
-                LOGGER.trace("Saving connection point at index {} (to BlockPos: {}, WireType: {})",
-                        i, connectionPoint.getPos(), connectionPoint.getWireType());
-
-                CompoundTag connectionPointTag = new CompoundTag();
-                // Assuming ConnectionPoint.write doesn't throw checked exceptions
-                connectionPoint.write(connectionPointTag);
-                connectionPointsList.add(connectionPointTag);
-                savedCount++;
-
-                // Log after successfully writing this specific point
-                LOGGER.trace("Successfully saved connection point index {}", i);
-            }
-        } catch (Exception e) {
-            // Log any unexpected error during connection point saving
-            LOGGER.error("!!! Exception occurred while saving connection points for BE at {}: {}", currentPos, e.getMessage(), e);
-            // Depending on severity, you might want to re-throw or handle differently
+        ListTag connection_points = new ListTag();
+        for(int i = 0; i < getConnectionPointCount(); i++) {
+            ConnectionPoint connectionPoint = this.connectionPoints[i];
+            if (connectionPoint == null) continue;
+            CompoundTag localNodeTag = new CompoundTag();
+            connectionPoint.write(localNodeTag);
+            connection_points.add(localNodeTag);
         }
-
-        LOGGER.debug("Finished iterating connection points. Saved {} points.", savedCount);
-        tag.put(ConnectionPoint.CONNECTION_POINTS, connectionPointsList); // Use constant from ConnectionPoint
-
-        LOGGER.debug("Calling super.saveAdditional for Connector BE at {}", currentPos);
-        super.saveAdditional(tag, registries); // Call super last is generally safer
-        LOGGER.info("End: saveAdditional for Connector BE at {}", currentPos);
     }
     //End serializing
 

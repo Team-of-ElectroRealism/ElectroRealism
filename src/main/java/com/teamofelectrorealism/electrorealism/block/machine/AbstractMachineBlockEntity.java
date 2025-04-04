@@ -1,5 +1,6 @@
 package com.teamofelectrorealism.electrorealism.block.machine;
 
+import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.network.INetworkMember;
 import com.teamofelectrorealism.electrorealism.network.NetworkManager;
@@ -11,10 +12,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.slf4j.Logger;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public abstract class AbstractMachineBlockEntity extends BlockEntity implements INetworkMember {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private UUID networkId;
 
     private static final String NETWORK_KEY = "networkid";
@@ -35,8 +39,19 @@ public abstract class AbstractMachineBlockEntity extends BlockEntity implements 
     }
 
     @Override
-    public void setNetworkId(UUID networkId) {
-        this.networkId = networkId;
+    public void setNetworkId(UUID newNetworkId) {
+        if (!Objects.equals(this.networkId, newNetworkId)) {
+            LOGGER.trace("Machine at {} changing network ID from {} to {}", getPos(), this.networkId, newNetworkId);
+            this.networkId = newNetworkId;
+
+            if (this.networkId != null && this.level != null && !this.level.isClientSide()) {
+                ElectroRealism.NETWORK_MANAGER.registerINetworkMemberInNetwork(this.networkId, this);
+            }
+
+            setChanged();
+        } else {
+            LOGGER.trace("Machine at {} setNetworkId called with same ID {}", getPos(), newNetworkId);
+        }
     }
 
     @Override
@@ -58,14 +73,31 @@ public abstract class AbstractMachineBlockEntity extends BlockEntity implements 
     }
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        if (this.networkId != null && this.level != null && !this.level.isClientSide()) {
+            LOGGER.trace("Machine at {} loaded with ID {}. Registering.", getPos(), this.networkId);
+            ElectroRealism.NETWORK_MANAGER.registerINetworkMemberInNetwork(this.networkId, this);
+        } else if (this.level != null && !this.level.isClientSide()) {
+            LOGGER.trace("Machine at {} loaded without network ID.", getPos());
+        }
+    }
+
+    @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        if (this.networkId != null) tag.putUUID(NETWORK_KEY, this.networkId);
         super.saveAdditional(tag, registries);
+        if (this.networkId != null) {
+            tag.putUUID(NETWORK_KEY, this.networkId);
+        }
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        if (tag.contains(NETWORK_KEY)) this.networkId = tag.getUUID(NETWORK_KEY);
+        if (tag.contains(NETWORK_KEY, CompoundTag.TAG_INT_ARRAY)) {
+            this.networkId = tag.getUUID(NETWORK_KEY);
+        } else {
+            this.networkId = null;
+        }
     }
 }

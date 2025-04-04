@@ -28,7 +28,6 @@ class Network {
     Network() {
         this(UUID.randomUUID(), true, new HashSet<>());
         LOGGER.debug("Created new Network with ID: {}", this.networkId);
-        ElectroRealism.NETWORK_MANAGER.addNetwork(this);
     }
 
     /**
@@ -90,25 +89,47 @@ class Network {
     }
 
     /**
-     * Adds a single BlockPos to the set of tracked member positions.
-     * Also ensures the corresponding runtime member is added if it exists.
-     * @param pos The BlockPos of the member to add.
+     * Adds a member position to the network.
+     *
+     * @param pos The position to add.
      */
-    void addMemberPosition(BlockPos pos) {
+    private void addMemberPosition(BlockPos pos) {
         if (pos != null) {
             this.memberPositions.add(pos);
         }
     }
 
     /**
-     * Used by NetworkManager when a member BE is loaded/validated or explicitly added.
-     * Ensures the member's position is tracked.
-     * @param member The runtime member instance to add.
+     * Adds a runtime member to the network.
+     *
+     * @param member The member to add.
      */
-    void addRuntimeMember(INetworkMember member) {
+    private void addRuntimeMember(INetworkMember member) {
         if (member != null) {
             this.networkMembers.add(member);
-            addMemberPosition(member.getPos());
+        }
+    }
+
+    /**
+     * Adds a network member to the network.
+     *
+     * @param networkMember The member to add.
+     */
+    void addNetworkMember(INetworkMember networkMember) {
+        if (networkMember != null) {
+            addRuntimeMember(networkMember);
+            addMemberPosition(networkMember.getPos());
+        }
+    }
+
+    /**
+     * Adds all network members to the network.
+     *
+     * @param networkMembers The members to add.
+     */
+    void addAllNetworkMembers(Set<INetworkMember> networkMembers) {
+        for (INetworkMember networkMember : networkMembers) {
+            addNetworkMember(networkMember);
         }
     }
 
@@ -275,19 +296,5 @@ class Network {
     @Override
     public int hashCode() {
         return Objects.hash(networkId);
-    }
-
-    public void registerAllNetworkMembers(Set<INetworkMember> members) {
-        for (INetworkMember member : members) {
-            addRuntimeMember(member);
-        }
-    }
-
-    void removeNetworkMember(INetworkMember member) {
-        if (member != null) {
-            removeRuntimeMember(member);
-            removeMemberPosition(member.getPos());
-            member.setNetworkId(null);
-        }
     }
 }
