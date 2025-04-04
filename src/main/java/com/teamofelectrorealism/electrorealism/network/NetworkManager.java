@@ -226,7 +226,7 @@ public class NetworkManager {
      * @see Network
      */
     @Nullable
-    private Network findNetwork(UUID networkId) {
+    public Network findNetwork(UUID networkId) {
         if (networkId == null) return null;
         return networks.stream()
                 .filter(n -> n.getNetworkId().equals(networkId))

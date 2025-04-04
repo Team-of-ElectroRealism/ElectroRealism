@@ -7,6 +7,7 @@ import com.teamofelectrorealism.electrorealism.datacomponents.ModDataComponents;
 import com.teamofelectrorealism.electrorealism.item.ModCreativeModeTabs;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
 import com.teamofelectrorealism.electrorealism.network.NetworkManager;
+import com.teamofelectrorealism.electrorealism.network.ValidateNetworkCommand;
 import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.screen.ModMenuTypes;
 import com.teamofelectrorealism.electrorealism.screen.arc_furnace.ArcFurnaceScreen;

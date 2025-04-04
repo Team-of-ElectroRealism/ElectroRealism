@@ -2,11 +2,14 @@ package com.teamofelectrorealism.electrorealism.event;
 
 import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.network.ValidateNetworkCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelAccessor;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.server.command.ConfigCommand;
 import org.slf4j.Logger;
 
 @EventBusSubscriber
@@ -30,5 +33,12 @@ public class ModEvents {
                 ElectroRealism.NETWORK_MANAGER.levelUnloaded();
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void onCommandRegister(RegisterCommandsEvent event) {
+        ValidateNetworkCommand.register(event.getDispatcher());
+
+        ConfigCommand.register(event.getDispatcher());
     }
 }
