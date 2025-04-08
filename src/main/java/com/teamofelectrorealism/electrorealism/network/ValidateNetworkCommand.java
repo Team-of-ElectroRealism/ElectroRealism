@@ -75,18 +75,16 @@ public class ValidateNetworkCommand {
         boolean isConnected = connectivityChecker.checkConnectivity(members, adjList);
         source.sendSuccess(() -> Component.literal("Connectivity Check: " + isConnected), false);
 
+        // --- Step 3: Check for closed circuit ---
+        boolean isClosedCircuit = connectivityChecker.isClosedCircuit(members, adjList);
+        source.sendSuccess(() -> Component.literal("Closed Circuit Check: " + isClosedCircuit), false);
+
         if (!isConnected) {
             source.sendFailure(Component.literal("Validation Failed: Network is not fully connected."));
             return 0; // Stop if not connected
         }
 
-        // --- Step 3: Check Polarity (only if connected) ---
-        // Need the list of generators for the polarity validator
-        List<AbstractGeneratorBlockEntity> generators = members.stream()
-                .filter(m -> m instanceof AbstractGeneratorBlockEntity)
-                .map(m -> (AbstractGeneratorBlockEntity) m)
-                .collect(Collectors.toList());
-
+        // --- Step 4: Check Polarity (only if connected) ---
         boolean polarityOk = polarityValidator.validatePolarity(adjList, members, level); // Pass adjList, members, level
         source.sendSuccess(() -> Component.literal("Polarity Check: " + polarityOk), false);
 

@@ -1,214 +1,178 @@
 package com.teamofelectrorealism.electrorealism.network;
 
-import com.mojang.logging.LogUtils;
-import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlock;
-import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorPolarity;
-import com.teamofelectrorealism.electrorealism.block.connector.duo.DuoConnectorBlock;
-import com.teamofelectrorealism.electrorealism.block.connector.large.LargeConnectorBlock;
-import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.AbstractGeneratorBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.machine.user.AbstractPowerUserBlockEntity;
-import net.minecraft.core.BlockPos;
+import com.teamofelectrorealism.electrorealism.rendering.HighlightCircuits;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 import org.slf4j.Logger;
+import com.mojang.logging.LogUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-/**
- * Validates the polarity rules within a structurally connected network graph.
- */
 public class NetworkPolarityValidator {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    // Constants for machine face indices
-    private static final int MACHINE_FACE_INDEX_SINGLE = -1;
-    private static final int MACHINE_FACE_INDEX_DUO_0 = -2;
-    private static final int MACHINE_FACE_INDEX_DUO_1 = -3;
-
     /**
-     * Validates the polarity flow in the network described by the adjacency list.
+     * Validates the polarity of a network by:
+     *  1. Finding the generator and its positive/negative neighbors.
+     *  2. Identifying closed circuits (loops) from the generator (excluding the generator itself).
+     *  3. Propagating expected polarity assignments along connections (ignoring ones with NONE)
+     *     and checking for any conflicts.
      *
-     * @param adjacencyList The pre-built adjacency list representing the network connections.
-     * @param members The full set of members in the network (used to find generators).
-     * @param level   The world level, needed to check connector block states for polarity.
-     * @return true if polarity rules are satisfied for all generators, false otherwise.
+     * @param adjList The network’s adjacency list mapping members to their outgoing ConnectionInfo.
+     * @param members The set of network members.
+     * @param level   The Level (world) context.
+     * @return true if the polarity is consistent across all nodes; false if a conflict is detected.
      */
-    public boolean validatePolarity(Map<INetworkMember, List<ConnectionInfo>> adjacencyList, Set<INetworkMember> members, Level level) {
-        if (adjacencyList == null || members == null || level == null) {
-            LOGGER.error("validatePolarity called with null arguments.");
+    public boolean validatePolarity(Map<INetworkMember, List<ConnectionInfo>> adjList, Set<INetworkMember> members, Level level) {
+        // --- Step 1: Identify the generator ---
+        Optional<INetworkMember> generatorOpt = members.stream()
+                .filter(m -> m instanceof AbstractGeneratorBlockEntity)
+                .findFirst();
+        if (generatorOpt.isEmpty()) {
+            LOGGER.warn("Polarity validation failed: No generator found in network.");
             return false;
         }
-        if (members.isEmpty()) {
-            LOGGER.trace("Polarity validation: Empty network is valid.");
-            return true;
-        }
+        INetworkMember generator = generatorOpt.get();
 
-        List<AbstractGeneratorBlockEntity> generators = findGenerators(members);
-        if (generators.isEmpty()) {
-            LOGGER.warn("Polarity validation: No generators found in the member set.");
-            // Decide if this is valid. Usually requires a generator.
+        // Retrieve the generator’s connections and identify its positive and negative neighbors.
+        List<ConnectionInfo> generatorConnections = adjList.getOrDefault(generator, Collections.emptyList());
+        INetworkMember positiveNeighbor = null;
+        INetworkMember negativeNeighbor = null;
+        for (ConnectionInfo info : generatorConnections) {
+            if (info.polarityAtNeighborEntry() == ConnectorPolarity.POSITIVE) {
+                positiveNeighbor = info.neighbor();
+            } else if (info.polarityAtNeighborEntry() == ConnectorPolarity.NEGATIVE) {
+                negativeNeighbor = info.neighbor();
+            }
+        }
+        if (positiveNeighbor == null || negativeNeighbor == null) {
+            LOGGER.warn("Polarity validation failed: Generator at {} does not have both positive and negative connections.",
+                    generator.getPos().toShortString());
             return false;
         }
 
-        LOGGER.debug("Validating polarity for network with {} members, {} generators.", members.size(), generators.size());
+        // --- Step 2: Identify closed circuits from the generator ---
+        // Here we find all simple paths (loops) from the positive neighbor to the negative neighbor,
+        // excluding the generator.
+        List<List<INetworkMember>> closedCircuits = findClosedCircuits(positiveNeighbor, negativeNeighbor, adjList, generator);
+        HighlightCircuits.highlightCircuits(closedCircuits);
+        LOGGER.debug("Found {} closed circuit(s) from generator at {}.", closedCircuits.size(), generator.getPos().toShortString());
+        for (List<INetworkMember> circuit : closedCircuits) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Closed circuit: ");
+            for (INetworkMember member : circuit) {
+                sb.append(member.getPos().toShortString()).append(" -> ");
+            }
+            sb.append("(back to start)");
+            LOGGER.debug(sb.toString());
+        }
 
-        for (AbstractGeneratorBlockEntity generator : generators) {
-            boolean foundValidPathForGenerator = false;
-            List<ConnectionInfo> generatorConnections = adjacencyList.getOrDefault(generator, Collections.emptyList());
+        // --- Step 3: Propagate expected polarity assignments via BFS ---
+        // We use a map to record the expected polarity for each node. Starting with the generator’s
+        // positive and negative neighbors, we propagate the polarity along every defined connection.
+        Map<INetworkMember, ConnectorPolarity> polarityAssignments = new HashMap<>();
+        Queue<INetworkMember> queue = new LinkedList<>();
 
-            LOGGER.trace("Checking paths for generator at {}. Found {} connections.", generator.getPos().toShortString(), generatorConnections.size());
+        // Initialize the polarity assignments from the generator.
+        polarityAssignments.put(positiveNeighbor, ConnectorPolarity.POSITIVE);
+        polarityAssignments.put(negativeNeighbor, ConnectorPolarity.NEGATIVE);
+        queue.add(positiveNeighbor);
+        queue.add(negativeNeighbor);
 
-            for (ConnectionInfo startConnection : generatorConnections) {
-                // Start trace from connectors attached to the generator that have POSITIVE polarity where they attach
-                if (startConnection.neighbor() instanceof AbstractConnectorBlockEntity startConnector &&
-                        startConnection.polarityAtNeighborEntry() == ConnectorPolarity.POSITIVE)
-                {
-                    LOGGER.trace("  Starting polarity trace from POSITIVE connection via connector at {}", startConnector.getPos().toShortString());
-                    Set<INetworkMember> visitedNodesInPath = new HashSet<>();
-                    // Start trace AT the connector, entering from the machine face (neighborNodeIndex should be -1, -2, or -3)
-                    if (tracePolarityPath(startConnector, startConnection.neighborNodeIndex(), adjacencyList, visitedNodesInPath, ConnectorPolarity.POSITIVE, level)) {
-                        LOGGER.debug("  Valid polarity path found for generator {} starting from connector {}.", generator.getPos().toShortString(), startConnector.getPos().toShortString());
-                        foundValidPathForGenerator = true;
-                        break; // Found a valid path for this generator
-                    } else {
-                        LOGGER.trace("  Polarity trace started from connector {} (POSITIVE) did not find a valid path.", startConnector.getPos().toShortString());
+        while (!queue.isEmpty()) {
+            INetworkMember current = queue.poll();
+            ConnectorPolarity currentAssignment = polarityAssignments.get(current);
+            List<ConnectionInfo> connections = adjList.getOrDefault(current, Collections.emptyList());
+            for (ConnectionInfo info : connections) {
+                INetworkMember neighbor = info.neighbor();
+                // Skip the generator to avoid looping back.
+                if (neighbor.equals(generator)) continue;
+
+                ConnectorPolarity definedPolarity = info.polarityAtNeighborEntry();
+                // If no polarity is defined on this connection and the block is not a machine block, skip it.
+                if (definedPolarity == ConnectorPolarity.NONE && !(neighbor instanceof AbstractGeneratorBlockEntity)) {
+                    continue;
+                }
+                // The expected polarity for the neighbor is taken from the connection.
+                ConnectorPolarity expected = definedPolarity;
+                LOGGER.info("Expected polarity from {} to {} is {}.",
+                        current.getPos().toShortString(),
+                        neighbor.getPos().toShortString(),
+                        expected);
+                if (polarityAssignments.containsKey(neighbor)) {
+                    if (polarityAssignments.get(neighbor) != expected) {
+                        LOGGER.warn("Polarity conflict at node {}: expected {} but found {} (from connection via node {}).",
+                                neighbor.getPos().toShortString(),
+                                expected,
+                                polarityAssignments.get(neighbor),
+                                current.getPos().toShortString());
+                        return false;
                     }
+                } else {
+                    polarityAssignments.put(neighbor, expected);
+                    queue.add(neighbor);
                 }
             }
-
-            if (!foundValidPathForGenerator) {
-                LOGGER.warn("Polarity Validation Fail: Generator at {} has no valid positive-to-negative path.", generator.getPos().toShortString());
-                return false; // This generator is not part of a valid circuit
-            }
         }
 
-        LOGGER.info("Polarity Validation Success: All generators have a valid path.");
-        return true; // All generators checked out
+        LOGGER.debug("Polarity assignments: {}", polarityAssignments);
+        return true;
     }
-
 
     /**
-     * Recursively traces a path, checking polarity rules.
+     * Finds all simple paths (closed circuits) from the start node to the target node,
+     * excluding the generator node.
+     *
+     * @param start     The starting node (typically the positive neighbor of the generator).
+     * @param target    The target node (typically the negative neighbor of the generator).
+     * @param adjList   The network’s adjacency list.
+     * @param generator The generator node to be excluded.
+     * @return A list of paths (each path is a list of INetworkMember) representing closed circuits.
      */
-    private boolean tracePolarityPath(INetworkMember currentNode, int entryIndex,
-                                      Map<INetworkMember, List<ConnectionInfo>> adjacencyList,
-                                      Set<INetworkMember> visitedNodesInPath,
-                                      ConnectorPolarity expectedPolarity,
-                                      Level level)
-    {
-        // --- Cycle Detection ---
-        if (!visitedNodesInPath.add(currentNode)) {
-            // LOGGER.trace("Polarity cycle detected at {} during trace.", currentNode.getPos().toShortString());
-            return false; // Loops are only valid if they terminate correctly at Gen(-)
-        }
-        // LOGGER.trace("PolarityTrace: Entering node {} ({}), expecting {}", currentNode.getPos().toShortString(), currentNode.getClass().getSimpleName(), expectedPolarity);
-
-        // --- Polarity Check & Determine Exit Polarity ---
-        ConnectorPolarity actualEntryPolarity = expectedPolarity; // Assume matches if not a connector
-        ConnectorPolarity exitPolarity = expectedPolarity;
-        boolean isPassThrough = false;
-
-        if (currentNode instanceof AbstractConnectorBlockEntity connector) {
-            actualEntryPolarity = getConnectorPolarityAtIndex(connector, entryIndex, level); // Use the helper
-            isPassThrough = (actualEntryPolarity == ConnectorPolarity.NONE);
-
-            // Check if entry polarity matches expectation (unless it's pass-through)
-            if (!isPassThrough && actualEntryPolarity != expectedPolarity) {
-                LOGGER.trace("  Polarity Fail: Mismatch entering connector {}. Expected {}, Got {}.", connector.getPos().toShortString(), expectedPolarity, actualEntryPolarity);
-                visitedNodesInPath.remove(currentNode); return false;
-            }
-            // Determine exit polarity
-            exitPolarity = isPassThrough ? expectedPolarity : actualEntryPolarity;
-
-        } else if (currentNode instanceof AbstractPowerUserBlockEntity) {
-            // Entered a User Machine. Assume entry polarity check passed implicitly. Determine exit polarity.
-            isPassThrough = false; // Users transform polarity
-            if (expectedPolarity == ConnectorPolarity.POSITIVE) { exitPolarity = ConnectorPolarity.NEGATIVE; }
-            else if (expectedPolarity == ConnectorPolarity.NEGATIVE) { exitPolarity = ConnectorPolarity.NEGATIVE; }
-            else { // expectedPolarity == NONE
-                LOGGER.trace("  Polarity Fail: Path reached User {} with unexpected NONE polarity.", currentNode.getPos().toShortString());
-                visitedNodesInPath.remove(currentNode); return false;
-            }
-            LOGGER.trace("  Entering User {} expecting {}, exit polarity determined as {}.", currentNode.getPos().toShortString(), expectedPolarity, exitPolarity);
-
-        } else if (currentNode instanceof AbstractGeneratorBlockEntity) {
-            // --- Base Case: Reached a Generator ---
-            if (expectedPolarity == ConnectorPolarity.NEGATIVE) {
-                LOGGER.trace("  Polarity Success: Path terminated correctly at Generator {}.", currentNode.getPos().toShortString());
-                return true; // Valid termination at *any* generator's negative side
-            } else {
-                LOGGER.trace("  Polarity Fail: Path terminated at Generator {} but expected polarity was {}.", currentNode.getPos().toShortString(), expectedPolarity);
-                visitedNodesInPath.remove(currentNode); return false;
-            }
-        }
-        //LOGGER.trace("  Node {} processed. Exit polarity determined as {}.", currentNode.getPos().toShortString(), exitPolarity);
-
-
-        // --- Explore Neighbors ---
-        List<ConnectionInfo> neighborsInfo = adjacencyList.getOrDefault(currentNode, Collections.emptyList());
-        for (ConnectionInfo info : neighborsInfo) {
-            INetworkMember neighbor = info.neighbor();
-            int neighborEntryIndex = info.neighborNodeIndex();
-            // Polarity the neighbor expects based on *our* exit polarity
-            ConnectorPolarity nextExpectedPolarity = exitPolarity; // Usually the same
-
-            //LOGGER.trace("    Exploring neighbor {} at index {}, next expects {}", neighbor.getPos().toShortString(), neighborEntryIndex, nextExpectedPolarity);
-
-            // Recursive call with a COPY of visited set to allow exploring parallel paths independently
-            if (tracePolarityPath(neighbor, neighborEntryIndex, adjacencyList, new HashSet<>(visitedNodesInPath), nextExpectedPolarity, level)) {
-                return true; // Valid path found down this branch
-            }
-        }
-
-        // --- Backtrack ---
-        // No valid path found from this node down any branch
-        visitedNodesInPath.remove(currentNode); // Not needed as we pass copies, but good practice if changing strategy
-        //LOGGER.trace("  Backtracking from node {}: No valid continuing polarity paths found.", currentNode.getPos().toShortString());
-        return false;
+    private List<List<INetworkMember>> findClosedCircuits(INetworkMember start, INetworkMember target,
+                                                          Map<INetworkMember, List<ConnectionInfo>> adjList, INetworkMember generator) {
+        List<List<INetworkMember>> circuits = new ArrayList<>();
+        LinkedList<INetworkMember> path = new LinkedList<>();
+        Set<INetworkMember> visited = new HashSet<>();
+        dfsFindCircuits(start, target, adjList, generator, visited, path, circuits);
+        return circuits;
     }
 
-    // --- Helpers ---
+    /**
+     * Depth-first search helper to find circuits (simple paths) from the current node to the target.
+     *
+     * @param current   The current node in the DFS.
+     * @param target    The target node.
+     * @param adjList   The network’s adjacency list.
+     * @param generator The generator node (excluded from paths).
+     * @param visited   A set of visited nodes.
+     * @param path      The current path being built.
+     * @param circuits  The list of found circuits.
+     */
+    private void dfsFindCircuits(INetworkMember current, INetworkMember target,
+                                 Map<INetworkMember, List<ConnectionInfo>> adjList, INetworkMember generator,
+                                 Set<INetworkMember> visited, LinkedList<INetworkMember> path,
+                                 List<List<INetworkMember>> circuits) {
+        // Do not include the generator.
+        if (current.equals(generator)) return;
+        if (visited.contains(current)) return;
 
-    // Copy the refined getConnectorPolarityAtIndex helper method here
-    private ConnectorPolarity getConnectorPolarityAtIndex(AbstractConnectorBlockEntity connector, int index, Level level) {
-        // --- Use the robust implementation from the previous response ---
-        BlockPos pos = connector.getPos();
-        if (level == null || connector == null) { LOGGER.error("getConnectorPolarityAtIndex: null level or connector for pos {}", pos); return ConnectorPolarity.NONE; }
-        BlockState state = level.getBlockState(pos);
-        Block block = state.getBlock();
+        visited.add(current);
+        path.add(current);
 
-        if (!(block instanceof AbstractConnectorBlock)) { LOGGER.error("State at {} is not an AbstractConnectorBlock! Found: {}.", pos.toShortString(), block); return ConnectorPolarity.NONE; }
-
-        try {
-            if (block instanceof DuoConnectorBlock) {
-                if (index == 0 || index == MACHINE_FACE_INDEX_DUO_0) { return state.hasProperty(DuoConnectorBlock.TERMINAL_TYPE_0) ? state.getValue(DuoConnectorBlock.TERMINAL_TYPE_0) : ConnectorPolarity.NONE; }
-                else if (index == 1 || index == MACHINE_FACE_INDEX_DUO_1) { return state.hasProperty(DuoConnectorBlock.TERMINAL_TYPE_1) ? state.getValue(DuoConnectorBlock.TERMINAL_TYPE_1) : ConnectorPolarity.NONE; }
-                else if (index == MACHINE_FACE_INDEX_SINGLE) { LOGGER.error("Ambiguous index -1 for DuoConnector at {}", pos.toShortString()); return ConnectorPolarity.NONE; }
-            } else if (block instanceof SmallConnectorBlock) {
-                if (state.hasProperty(SmallConnectorBlock.TERMINAL_TYPE)) { return state.getValue(SmallConnectorBlock.TERMINAL_TYPE); }
-                else { LOGGER.warn("SmallConnector state at {} missing TERMINAL_TYPE property!", pos.toShortString()); return ConnectorPolarity.NONE;}
-            } else if (block instanceof LargeConnectorBlock) {
-                if (state.hasProperty(LargeConnectorBlock.TERMINAL_TYPE)) { return state.getValue(LargeConnectorBlock.TERMINAL_TYPE); }
-                else { LOGGER.warn("LargeConnector state at {} missing TERMINAL_TYPE property!", pos.toShortString()); return ConnectorPolarity.NONE;}
+        if (current.equals(target)) {
+            // Found a simple path from start to target.
+            circuits.add(new ArrayList<>(path));
+        } else {
+            for (ConnectionInfo info : adjList.getOrDefault(current, Collections.emptyList())) {
+                INetworkMember neighbor = info.neighbor();
+                if (neighbor.equals(generator)) continue;
+                dfsFindCircuits(neighbor, target, adjList, generator, visited, path, circuits);
             }
-            LOGGER.warn("Could not determine polarity for connector {} ({}) at index {}: Unhandled type or property missing.", pos.toShortString(), block.getClass().getSimpleName(), index);
-            return ConnectorPolarity.NONE;
-        } catch (Exception e) {
-            LOGGER.error("Error getting polarity for connector {} at index {}: {}", pos.toShortString(), index, e.getMessage(), e);
-            return ConnectorPolarity.NONE;
         }
-    }
 
-
-    private List<AbstractGeneratorBlockEntity> findGenerators(Set<INetworkMember> members) {
-        if (members == null) return Collections.emptyList();
-        return members.stream()
-                .filter(m -> m instanceof AbstractGeneratorBlockEntity)
-                .map(m -> (AbstractGeneratorBlockEntity) m)
-                .collect(Collectors.toList());
+        path.removeLast();
+        visited.remove(current);
     }
 }
