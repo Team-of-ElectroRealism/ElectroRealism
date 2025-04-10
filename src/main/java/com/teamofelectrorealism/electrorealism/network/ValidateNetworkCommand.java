@@ -2,7 +2,6 @@ package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.AbstractGeneratorBlockEntity;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
@@ -15,14 +14,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class ValidateNetworkCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("validateNetwork")
-                        .then(Commands.argument("pos", BlockPosArgument.blockPos())
-                                .executes(context -> runValidationAt(context.getSource(), BlockPosArgument.getBlockPos(context, "pos")))
-                        )
+                .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                        .executes(context -> runValidationAt(context.getSource(), BlockPosArgument.getBlockPos(context, "pos")))
+                )
         );
     }
 
@@ -61,38 +59,33 @@ public class ValidateNetworkCommand {
             return 1;
         }
 
-
         // --- Create instances of the new classes ---
         NetworkGraphBuilder graphBuilder = new NetworkGraphBuilder();
-        NetworkConnectivityChecker connectivityChecker = new NetworkConnectivityChecker();
-        NetworkPolarityValidator polarityValidator = new NetworkPolarityValidator();
+        NetworkCircuitChecker circuitChecker = new NetworkCircuitChecker();
 
         // --- Step 1: Build Graph ---
         Map<INetworkMember, List<ConnectionInfo>> adjList = graphBuilder.buildAdjacencyList(members, level);
-        source.sendSuccess(() -> Component.literal("Built adjacency list for network " + networkId.toString().substring(0, 8) + "."), false); // Use false to not broadcast
+        source.sendSuccess(() -> Component.literal("Built adjacency list for network " + networkId.toString().substring(0, 8) + "."), false);
 
-        // --- Step 2: Check Connectivity ---
-        boolean isConnected = connectivityChecker.checkConnectivity(members, adjList);
-        source.sendSuccess(() -> Component.literal("Connectivity Check: " + isConnected), false);
-
-        // --- Step 3: Check for closed circuit ---
-        boolean isClosedCircuit = connectivityChecker.isClosedCircuit(members, adjList);
+        // --- Step 2: Check for closed circuit ---
+        boolean isClosedCircuit = circuitChecker.isClosedCircuit(members, adjList);
         source.sendSuccess(() -> Component.literal("Closed Circuit Check: " + isClosedCircuit), false);
 
-        if (!isConnected) {
-            source.sendFailure(Component.literal("Validation Failed: Network is not fully connected."));
-            return 0; // Stop if not connected
+        // --- Step 3: Report the number of closed circuits found using the new function ---
+        int circuitCount = circuitChecker.getClosedCircuitCount(members, adjList);
+        if (circuitCount == 0) {
+            source.sendSuccess(() -> Component.literal("No closed circuits found."), false);
+        } else {
+            source.sendSuccess(() -> Component.literal("Found " + circuitCount + " closed circuits."), false);
         }
 
-        // --- Step 4: Check Polarity (only if connected) ---
-        boolean polarityOk = polarityValidator.validatePolarity(adjList, members, level); // Pass adjList, members, level
-        source.sendSuccess(() -> Component.literal("Polarity Check: " + polarityOk), false);
-
         // --- Final Result ---
-        if (isConnected && polarityOk) {
-            source.sendSuccess(() -> Component.literal("Network " + networkId.toString().substring(0, 8) + " validation PASSED (Connected & Polarity OK)."), true); // Use true to broadcast final result
+        if (isClosedCircuit) {
+            source.sendSuccess(() -> Component.literal("Network " + networkId.toString().substring(0, 8)
+                    + " validation PASSED (Closed Circuit: " + isClosedCircuit + ")."), true);
         } else {
-            source.sendFailure(Component.literal("Network " + networkId.toString().substring(0, 8) + " validation FAILED (Connected: " + isConnected + ", Polarity: " + polarityOk + "). Check logs for details."));
+            source.sendFailure(Component.literal("Network " + networkId.toString().substring(0, 8)
+                    + " validation FAILED (Closed Circuit: " + isClosedCircuit + ")."));
         }
 
         return 1; // Command executed

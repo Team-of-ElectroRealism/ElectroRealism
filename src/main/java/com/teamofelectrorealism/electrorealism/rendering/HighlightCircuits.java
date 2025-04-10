@@ -56,11 +56,23 @@ public class HighlightCircuits {
             UUID circuitId = entry.getKey();
             List<BlockPos> blockList = entry.getValue();
             int color = getColorForCircuit(circuitId);
+
+            double xOffset = (double) 2 /16;
+            double yOffset = (double) 2 /16;
+            double zOffset = (double) 2 /16;
+
+            double xSize = 1.0 + xOffset;
+            double ySize = 1.0 + yOffset;
+            double zSize = 1.0 + zOffset;
+
             for (BlockPos pos : blockList) {
-                double x = pos.getX() - camPos.x;
-                double y = pos.getY() - camPos.y;
-                double z = pos.getZ() - camPos.z;
-                RenderOutlineUtil.drawBox(poseStack, buffer, x, y, z, color);
+                // Calculate the position relative to the camera.
+                double x = pos.getX() - camPos.x - (xOffset / 2);
+                double y = pos.getY() - camPos.y - (yOffset / 2);
+                double z = pos.getZ() - camPos.z - (zOffset / 2);
+
+                // Render the block position with the unique color.
+                RenderOutlineUtil.drawCustomBox(poseStack, buffer, x, y, z, xSize, ySize, zSize, color);
             }
         }
     }
