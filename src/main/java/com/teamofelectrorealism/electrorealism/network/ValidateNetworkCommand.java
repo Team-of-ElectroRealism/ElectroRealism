@@ -62,10 +62,26 @@ public class ValidateNetworkCommand {
         // --- Create instances of the new classes ---
         NetworkGraphBuilder graphBuilder = new NetworkGraphBuilder();
         NetworkCircuitChecker circuitChecker = new NetworkCircuitChecker();
+        NetlistBuilder netlistBuilder = new NetlistBuilder();
 
         // --- Step 1: Build Graph ---
         Map<INetworkMember, List<ConnectionInfo>> adjList = graphBuilder.buildAdjacencyList(members, level);
         source.sendSuccess(() -> Component.literal("Built adjacency list for network " + networkId.toString().substring(0, 8) + "."), false);
+
+        // *** ADD Netlist Generation HERE ***
+        try {
+            String netlistString = netlistBuilder.buildNetlist(adjList, level); // Call the build method
+            // Output the netlist to the player who ran the command
+            source.sendSuccess(() -> Component.literal("--- Generated SPICE Netlist ---"), false);
+            // Split the string into lines to send as separate messages if it's long
+            for (String line : netlistString.split("\n")) {
+                source.sendSuccess(() -> Component.literal(line), false);
+            }
+            source.sendSuccess(() -> Component.literal("--- End Netlist ---"), false);
+        } catch (Exception e) {
+            source.sendFailure(Component.literal("Error generating netlist: " + e.getMessage()));
+        }
+        // *** END Netlist Generation ***
 
         // --- Step 2: Check for closed circuit ---
         boolean isClosedCircuit = circuitChecker.isClosedCircuit(members, adjList);
