@@ -104,6 +104,13 @@ public class ModBlocks {
                     .sound(SoundType.METAL)
             ));
 
+    public static final DeferredBlock<ResistorBlock> RESISTOR = registerBlock("resistor",
+            () -> new ResistorBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .strength(0.2F)
+                    .sound(SoundType.METAL)
+            ));
+
     public static final DeferredBlock<Block> STRIPPED_DARK_OAK_FENCE = registerBlock("stripped_dark_oak_fence",
             () -> new FenceBlock(BlockBehaviour.Properties.of()
                     .strength(4f)

@@ -103,6 +103,7 @@ public class ElectroRealism
             event.accept(ModBlocks.ELECTRIC_CRUSHER);
             event.accept(ModBlocks.ARC_FURNACE);
             event.accept(ModBlocks.MOUNTING_PLATE);
+            event.accept(ModBlocks.RESISTOR);
         }
     }
 
