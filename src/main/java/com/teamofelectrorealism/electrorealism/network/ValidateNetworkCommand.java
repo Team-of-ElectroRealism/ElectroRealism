@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -9,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public class ValidateNetworkCommand {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("validateNetwork")
                 .then(Commands.argument("pos", BlockPosArgument.blockPos())
@@ -62,26 +66,36 @@ public class ValidateNetworkCommand {
         // --- Create instances of the new classes ---
         NetworkGraphBuilder graphBuilder = new NetworkGraphBuilder();
         NetworkCircuitChecker circuitChecker = new NetworkCircuitChecker();
-        NetlistBuilder netlistBuilder = new NetlistBuilder();
 
         // --- Step 1: Build Graph ---
         Map<INetworkMember, List<ConnectionInfo>> adjList = graphBuilder.buildAdjacencyList(members, level);
         source.sendSuccess(() -> Component.literal("Built adjacency list for network " + networkId.toString().substring(0, 8) + "."), false);
 
-        // *** ADD Netlist Generation HERE ***
+        // --- *** ADDED NETLIST GENERATION AND TEST *** ---
+        NetlistBuilder netlistBuilder = new NetlistBuilder();
         try {
-            String netlistString = netlistBuilder.buildNetlist(adjList, level); // Call the build method
+            // Generate the netlist string
+            String netlistString = netlistBuilder.buildNetlist(adjList); // Pass the adjList
+
             // Output the netlist to the player who ran the command
             source.sendSuccess(() -> Component.literal("--- Generated SPICE Netlist ---"), false);
             // Split the string into lines to send as separate messages if it's long
             for (String line : netlistString.split("\n")) {
-                source.sendSuccess(() -> Component.literal(line), false);
+                // Prevent sending empty lines if the split results in them
+                if (!line.trim().isEmpty()) {
+                    source.sendSuccess(() -> Component.literal(line), false);
+                }
             }
             source.sendSuccess(() -> Component.literal("--- End Netlist ---"), false);
+
+            // Also log it server-side for easier debugging
+            LOGGER.info("Generated Netlist for network {}:\n{}", networkId, netlistString);
+
         } catch (Exception e) {
             source.sendFailure(Component.literal("Error generating netlist: " + e.getMessage()));
+            LOGGER.error("Netlist generation failed for network {}:", networkId, e); // Log the exception server-side
         }
-        // *** END Netlist Generation ***
+        // --- *** END NETLIST GENERATION AND TEST *** ---
 
         // --- Step 2: Check for closed circuit ---
         boolean isClosedCircuit = circuitChecker.isClosedCircuit(members, adjList);
