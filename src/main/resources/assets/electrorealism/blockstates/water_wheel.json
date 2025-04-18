@@ -1,7 +1,19 @@
 {
   "variants": {
-    "": {
+    "facing=east": {
+      "model": "electrorealism:block/water_wheel",
+      "y": 90
+    },
+    "facing=north": {
       "model": "electrorealism:block/water_wheel"
+    },
+    "facing=south": {
+      "model": "electrorealism:block/water_wheel",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "electrorealism:block/water_wheel",
+      "y": 270
     }
   }
 }
