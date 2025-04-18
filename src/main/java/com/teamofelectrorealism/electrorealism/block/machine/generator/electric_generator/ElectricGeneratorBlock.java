@@ -42,7 +42,7 @@ public class ElectricGeneratorBlock extends AbstractGeneratorBlock {
 
     @Override
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return createTickerHelper(blockEntityType, ModBlockEntityTypes.WATER_WHEEL_BE.get(), this::tick);
+        return createTickerHelper(blockEntityType, ModBlockEntityTypes.ELECTRIC_GENERATOR_BE.get(), this::tick);
     }
 
     @Override
