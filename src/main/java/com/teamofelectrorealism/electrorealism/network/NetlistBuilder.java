@@ -29,10 +29,6 @@ public class NetlistBuilder {
     private Set<EdgeKey> processedEdges = new HashSet<>(); // To avoid generating duplicate RW components for the same edge
     private Set<INetworkMember> processedMachines = new HashSet<>(); // To avoid generating duplicate R components for the same machine
 
-    // Path tracking
-    private List<List<NodeKey>> foundPaths = new ArrayList<>();
-
-
     // Logging
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -76,11 +72,12 @@ public class NetlistBuilder {
         // Create voltage sources connecting generators to ground
         List<String> voltageComponents = createVoltageSourceComponents(generators, nodeNumbering);
 
-        // Identify paths through the network, populating foundPaths
-        identifyNetworkPaths(adjacencyList, generators, nodeNumbering);
+        // Get the list of machines we classified earlier
+        List<INetworkMember> machines = classifiedMembers.get(MACHINES);
 
-        // Generate resistor components for machine connections using the found paths
-        List<String> machineResistors = createMachineResistorComponents(nodeNumbering); // Removed machines list param
+        // Generate resistor components for machine connections
+        List<String> machineResistors = createMachineResistorComponents(machines, adjacencyList, nodeNumbering);
+
 
         // Generate wire resistor components for connector connections
         List<String> wireResistors = createWireResistorComponents(adjacencyList, nodeNumbering);
@@ -115,11 +112,58 @@ public class NetlistBuilder {
         // Clear data structures
         processedEdges.clear();
         processedMachines.clear(); // Clear processed machines set
-        foundPaths.clear(); // Clear paths from previous runs
 
         // Log initialization
         LOGGER.debug("NetlistBuilder initialized for a new build");
     }
+
+    /**
+     * For each machine in the network, walk its adjacency entries
+     * and emit one R‑component per machine→connector link.
+     */
+    private List<String> createMachineResistorComponents(
+            List<INetworkMember> machines,
+            Map<INetworkMember, List<ConnectionInfo>> adjacencyList,
+            Map<NodeKey, Integer> nodeNumbering
+    ) {
+        List<String> machineResistors = new ArrayList<>();
+        if (machines == null || adjacencyList == null) return machineResistors;
+
+        for (INetworkMember member : machines) {
+            if (!(member instanceof IPowerReceiver machine)) continue;
+
+            // Map machine’s input terminal
+            NodeKey machineKey = new NodeKey(member, INPUT_TERMINAL_INDEX);
+            Integer node1 = nodeNumbering.get(machineKey);
+            if (node1 == null) {
+                LOGGER.warn("No node number for machine input {}", machineKey);
+                continue;
+            }
+
+            // Walk every cable connected to this machine
+            for (ConnectionInfo info : adjacencyList.getOrDefault(member, Collections.emptyList())) {
+                // neighbor should be a connector
+                NodeKey neighborKey = getNodeKeyForConnectionEnd(info.neighbor(), info.neighborNodeIndex());
+                Integer node2 = nodeNumbering.get(neighborKey);
+                if (node2 == null) {
+                    LOGGER.warn("No node number for machine neighbor {}", neighborKey);
+                    continue;
+                }
+
+                // Skip zero‑length resistor
+                if (node1.equals(node2)) continue;
+
+                // Format R‑component
+                String name = "R" + machineResistorCount++;
+                int resistance = machine.getResistance();
+                String line = String.format(Locale.US, "%s %d %d %d", name, node1, node2, resistance);
+                machineResistors.add(line);
+                LOGGER.debug("Generated machine resistor: {}", line);
+            }
+        }
+        return machineResistors;
+    }
+
 
     /**
      * Group network members by their type using implemented interfaces:
@@ -312,11 +356,9 @@ public class NetlistBuilder {
     /**
      * Helper to determine the correct NodeKey for a connection endpoint based on member type and index.
      * Handles mapping of special indices (like MACHINE_CONNECTION_INDEX) to standard terminal indices.
-     * Revised to better handle implicit indices.
      */
     private NodeKey getNodeKeyForConnectionEnd(INetworkMember member, int index) {
         if (index >= 0) { // Explicit connector point or standard terminal index
-            // Ensure the index is valid for the member type
             if (member instanceof IWireNode && index < ((IWireNode) member).getConnectionPointCount()) {
                 return new NodeKey(member, index);
             } else if (member instanceof IPowerProvider && (index == POSITIVE_TERMINAL_INDEX || index == NEGATIVE_TERMINAL_INDEX)) {
@@ -324,21 +366,20 @@ public class NetlistBuilder {
             } else if (member instanceof IPowerReceiver && (index == INPUT_TERMINAL_INDEX || (index == OUTPUT_TERMINAL_INDEX && hasSeparateOutputTerminal(member)))) {
                 return new NodeKey(member, index);
             }
-            // If index >= 0 but not valid for the type, it's an error
             LOGGER.error("Invalid explicit index {} for member type {} at {}", index, member.getClass().getSimpleName(), member.getPos().toShortString());
             return null;
         } else { // Implicit connection index (e.g., -1)
             if (member instanceof IPowerReceiver) {
-                // Implicit connection to a machine maps to its input terminal
                 LOGGER.trace("Mapping implicit index {} for Machine {} to INPUT_TERMINAL_INDEX", index, member.getPos().toShortString());
                 return new NodeKey(member, INPUT_TERMINAL_INDEX);
             } else if (member instanceof IPowerProvider) {
-                // Implicit connection to a generator maps to its positive terminal
-                // (Negative is handled separately by grounding logic or explicit NEGATIVE_TERMINAL_INDEX)
                 LOGGER.trace("Mapping implicit index {} for Generator {} to POSITIVE_TERMINAL_INDEX", index, member.getPos().toShortString());
                 return new NodeKey(member, POSITIVE_TERMINAL_INDEX);
+            } else if (member instanceof IWireNode) {
+                // Map implicit connector indices to first connection point
+                LOGGER.trace("Mapping implicit index {} for Connector {} to first available terminal (0)", index, member.getPos().toShortString());
+                return new NodeKey(member, 0);
             } else {
-                // Implicit index for a connector? This shouldn't happen based on NetworkGraphBuilder logic.
                 LOGGER.error("Unexpected implicit index {} for member type {} at {}", index, member.getClass().getSimpleName(), member.getPos().toShortString());
                 return null;
             }
@@ -475,171 +516,6 @@ public class NetlistBuilder {
         return voltageSources;
     }
 
-
-    /**
-     * Identifies paths through the network using Depth First Search (DFS).
-     * Starts from each generator's positive terminal and explores paths until
-     * the corresponding negative terminal (or ground) is reached.
-     * Stores found paths in the `foundPaths` list.
-     *
-     * @param adjacencyList The network topology.
-     * @param generators    List of generators to start DFS from.
-     * @param nodeNumbering Map to look up node numbers.
-     */
-    private void identifyNetworkPaths(
-            Map<INetworkMember, List<ConnectionInfo>> adjacencyList,
-            List<INetworkMember> generators,
-            Map<NodeKey, Integer> nodeNumbering) {
-
-        LOGGER.debug("Starting path identification...");
-        foundPaths.clear(); // Clear previous paths
-
-        if (generators == null || adjacencyList == null || nodeNumbering == null) {
-            LOGGER.error("Cannot identify paths: Missing generators, adjacency list, or node numbering.");
-            return;
-        }
-
-        for (INetworkMember genMember : generators) {
-            NodeKey startNodeKey = new NodeKey(genMember, POSITIVE_TERMINAL_INDEX);
-            NodeKey targetNodeKey; // The node representing the generator's negative terminal
-
-            // Determine the target node (ground or specific negative terminal)
-            if (isNegativeTerminalGrounded(genMember)) {
-                targetNodeKey = new NodeKey(genMember, NEGATIVE_TERMINAL_INDEX); // Conceptual target representing ground connection
-                Integer startNodeNum = nodeNumbering.get(startNodeKey); // Check if start node exists
-                if (startNodeNum == null) {
-                    LOGGER.error("Cannot start DFS for generator {}: Start node {} not found in numbering.",
-                            genMember.getPos().toShortString(), startNodeKey);
-                    continue;
-                }
-                LOGGER.debug("Starting DFS from generator {} (Node {}) targeting Ground (represented by {})",
-                        genMember.getPos().toShortString(), startNodeNum, targetNodeKey);
-            } else {
-                targetNodeKey = new NodeKey(genMember, NEGATIVE_TERMINAL_INDEX);
-                Integer startNodeNum = nodeNumbering.get(startNodeKey); // Check start node
-                Integer targetNodeNum = nodeNumbering.get(targetNodeKey); // Check target node
-                if (startNodeNum == null || targetNodeNum == null) {
-                    LOGGER.error("Cannot start DFS for generator {}: Start node {} or Target node {} not found in numbering.",
-                            genMember.getPos().toShortString(), startNodeKey, targetNodeKey);
-                    continue;
-                }
-                LOGGER.debug("Starting DFS from generator {} (Node {}) targeting Node {} ({})",
-                        genMember.getPos().toShortString(), startNodeNum, targetNodeNum, targetNodeKey);
-            }
-
-            // Start DFS from the positive terminal
-            LinkedList<NodeKey> currentPath = new LinkedList<>();
-            Set<NodeKey> visitedInPath = new HashSet<>(); // Track visited nodes *for this specific DFS run* to prevent cycles in path
-            dfsFindPathsRecursive(startNodeKey, targetNodeKey, adjacencyList, nodeNumbering, currentPath, visitedInPath);
-        }
-
-        LOGGER.debug("Finished path identification. Found {} potential paths.", foundPaths.size());
-    }
-
-    /**
-     * Recursive helper function for Depth First Search path finding.
-     *
-     * @param currentNodeKey The current node being visited.
-     * @param targetNodeKey  The conceptual target node (generator's negative terminal, represents ground if grounded).
-     * @param adjacencyList  The network graph.
-     * @param nodeNumbering  Map for node lookups.
-     * @param currentPath    The path taken so far.
-     * @param visitedInPath  Nodes visited in the current DFS traversal to prevent cycles.
-     */
-    private void dfsFindPathsRecursive(NodeKey currentNodeKey, NodeKey targetNodeKey,
-                                       Map<INetworkMember, List<ConnectionInfo>> adjacencyList,
-                                       Map<NodeKey, Integer> nodeNumbering,
-                                       LinkedList<NodeKey> currentPath, Set<NodeKey> visitedInPath) {
-
-        // Add current node to path and mark as visited for this path
-        currentPath.addLast(currentNodeKey);
-        visitedInPath.add(currentNodeKey);
-
-        LOGGER.trace("DFS: Visiting {}, Path: {}", currentNodeKey, currentPath);
-
-        // Check if we reached the target
-        boolean targetReached = false;
-        if (isNegativeTerminalGrounded(targetNodeKey.member())) {
-            // For grounded generators, the target is reached if the current node connects back to the generator's negative side (which is ground 0)
-            if (isNodeConnectedToGround(currentNodeKey, adjacencyList, nodeNumbering)) {
-                targetReached = true;
-                LOGGER.trace("DFS: Reached ground connection at {}", currentNodeKey);
-            }
-        } else {
-            // For non-grounded generators, check if we reached the specific negative terminal node
-            if (currentNodeKey.equals(targetNodeKey)) {
-                targetReached = true;
-                LOGGER.trace("DFS: Reached target node {}", targetNodeKey);
-            }
-        }
-
-
-        if (targetReached) {
-            // Found a complete path from start to target/ground
-            foundPaths.add(new ArrayList<>(currentPath)); // Store a copy of the path
-            LOGGER.debug("DFS: Found a complete path: {}", currentPath);
-            // Don't explore further from the target/ground node in this path
-        } else {
-            // Explore neighbors using the adjacency list
-            INetworkMember currentMember = currentNodeKey.member();
-            List<ConnectionInfo> connections = adjacencyList.getOrDefault(currentMember, Collections.emptyList());
-
-            // Also consider connections *to* the current member from others
-            List<ConnectionInfo> incomingConnections = new ArrayList<>();
-            for(Map.Entry<INetworkMember, List<ConnectionInfo>> entry : adjacencyList.entrySet()){
-                // Avoid checking connections from the current member to itself via the incoming check
-                if(entry.getKey().equals(currentMember)) continue;
-
-                for(ConnectionInfo info : entry.getValue()){
-                    // Check if the connection's neighbor is our current node
-                    if(info.neighbor().equals(currentMember) && info.neighborNodeIndex() == currentNodeKey.nodeIndex()){
-                        incomingConnections.add(info);
-                    }
-                }
-            }
-
-
-            // Combine outgoing and incoming connections for exploration
-            Set<NodeKey> neighborsToExplore = new HashSet<>();
-
-            // Process outgoing connections
-            for (ConnectionInfo info : connections) {
-                // Ensure connection originates from the specific node index we're currently at
-                if (info.sourceNodeIndex() == currentNodeKey.nodeIndex()) {
-                    NodeKey neighborKey = getNodeKeyForConnectionEnd(info.neighbor(), info.neighborNodeIndex());
-                    if (neighborKey != null) {
-                        neighborsToExplore.add(neighborKey);
-                    }
-                }
-            }
-
-            // Process incoming connections (to find the node at the other end)
-            for (ConnectionInfo info : incomingConnections) {
-                NodeKey neighborKey = getNodeKeyForConnectionEnd(info.neighbor(), info.sourceNodeIndex()); // The source of the incoming connection is the neighbor
-                if (neighborKey != null) {
-                    neighborsToExplore.add(neighborKey);
-                }
-            }
-
-
-            // Explore valid neighbors
-            for (NodeKey neighborNodeKey : neighborsToExplore) {
-                // Check if the neighbor is already in the current path (cycle detection)
-                if (!visitedInPath.contains(neighborNodeKey)) {
-                    // Recursively explore the neighbor
-                    dfsFindPathsRecursive(neighborNodeKey, targetNodeKey, adjacencyList, nodeNumbering, currentPath, visitedInPath);
-                } else {
-                    LOGGER.trace("DFS: Skipping neighbor {} (already in current path)", neighborNodeKey);
-                }
-            }
-        }
-
-        // Backtrack: Remove current node from path and visited set for this path
-        visitedInPath.remove(currentNodeKey);
-        currentPath.removeLast();
-        LOGGER.trace("DFS: Backtracking from {}", currentNodeKey);
-    }
-
     /**
      * Determines the correct NodeKey for the neighbor described in ConnectionInfo,
      * considering the direction of traversal.
@@ -702,95 +578,6 @@ public class NetlistBuilder {
             }
         }
         return false;
-    }
-
-
-    /**
-     * Creates resistor components (R prefix) for machines (IPowerReceiver).
-     * Uses the `foundPaths` to determine connectivity between machine input and output nodes.
-     *
-     * @param nodeNumbering Map assigning SPICE node numbers to NodeKeys.
-     * @return List of SPICE resistor definitions for machines.
-     */
-    private List<String> createMachineResistorComponents(Map<NodeKey, Integer> nodeNumbering) {
-        List<String> machineResistors = new ArrayList<>();
-        // Use instance variable processedMachines to avoid duplicates
-        // processedMachines.clear(); // Cleared in initialize
-
-        if (foundPaths.isEmpty()) {
-            LOGGER.warn("Cannot create machine resistors: No paths found by DFS.");
-            return machineResistors;
-        }
-        if (nodeNumbering == null) {
-            LOGGER.error("Cannot create machine resistors: nodeNumbering map is null.");
-            return machineResistors;
-        }
-
-        // Iterate through all found paths to identify machine connections
-        for (List<NodeKey> path : foundPaths) {
-            for (int i = 0; i < path.size(); i++) {
-                NodeKey currentNodeKey = path.get(i);
-                INetworkMember currentMember = currentNodeKey.member();
-
-                // Check if this node represents the input of a machine
-                if (currentMember instanceof IPowerReceiver machine && currentNodeKey.nodeIndex() == INPUT_TERMINAL_INDEX) {
-
-                    // Check if we've already processed this machine
-                    if (processedMachines.add(currentMember)) {
-                        int resistance = machine.getResistance(); // Get dynamic resistance
-
-                        // Node 1 is the machine's input node
-                        Integer node1 = nodeNumbering.get(currentNodeKey);
-                        if (node1 == null) {
-                            LOGGER.error("Node number missing for machine input {}!", currentNodeKey);
-                            continue; // Skip this machine
-                        }
-
-                        // Node 2 is the *next* node in this specific path
-                        Integer node2 = null;
-                        if (i + 1 < path.size()) {
-                            NodeKey nextNodeKey = path.get(i + 1);
-                            node2 = nodeNumbering.get(nextNodeKey);
-                            if (node2 == null) {
-                                // Check if the next node is conceptually ground
-                                if (isNodeConnectedToGround(nextNodeKey, null, nodeNumbering)) { // Pass null for adjList as we only need numbering check here
-                                    node2 = 0;
-                                    LOGGER.trace("Node {} following machine {} is ground (0).", nextNodeKey, currentNodeKey);
-                                } else {
-                                    LOGGER.error("Node number missing for node {} following machine {}! And it's not ground.", nextNodeKey, currentNodeKey);
-                                    continue; // Skip if we can't determine node 2
-                                }
-                            }
-                        } else {
-                            // Machine input is the last node in the path? This implies it connects back to ground/target directly.
-                            // Check if the conceptual target IS ground
-                            if (isNodeConnectedToGround(currentNodeKey, null, nodeNumbering)) { // Check if the current (last) node connects to ground
-                                node2 = 0;
-                                LOGGER.warn("Machine input {} is the last node in a path. Connecting to ground (0).", currentNodeKey);
-                            } else {
-                                LOGGER.error("Machine input {} is the last node in a path, but doesn't connect to ground. Cannot determine node 2.", currentNodeKey);
-                                continue; // Skip if we can't determine node 2
-                            }
-                        }
-
-                        // Avoid creating a resistor connected between the same node
-                        if (node1.equals(node2)) {
-                            LOGGER.warn("Skipping resistor for machine {} as node1 ({}) and node2 ({}) are the same.", currentMember.getPos().toShortString(), node1, node2);
-                            continue;
-                        }
-
-                        // Format SPICE line: R<n> <node1> <node2> <resistance>
-                        String componentName = "R" + machineResistorCount++;
-                        String spiceLine = String.format(Locale.US, "%s %d %d %d",
-                                componentName, node1, node2, resistance);
-
-                        machineResistors.add(spiceLine);
-                        LOGGER.debug("Generated machine resistor: {}", spiceLine);
-                    }
-                }
-            }
-        }
-        return machineResistors;
     }
 
 
