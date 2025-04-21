@@ -1,4 +1,4 @@
-package com.teamofelectrorealism.electrorealism.block.machine.generator.waterwheel;
+package com.teamofelectrorealism.electrorealism.block.machine.generator.electric_generator;
 
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
@@ -21,28 +21,28 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import org.jetbrains.annotations.Nullable;
 
-public class WaterWheelBlock extends AbstractGeneratorBlock {
+public class ElectricGeneratorBlock extends AbstractGeneratorBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
-    public static final MapCodec<WaterWheelBlock> CODEC = simpleCodec(WaterWheelBlock::new);
+    public static final MapCodec<ElectricGeneratorBlock> CODEC = simpleCodec(ElectricGeneratorBlock::new);
 
-    public WaterWheelBlock(Properties properties) {
+    public ElectricGeneratorBlock(Properties properties) {
         super(properties);
     }
 
     @Override
     protected void tick(Level level1, BlockPos pos, BlockState state1, AbstractMachineBlockEntity blockEntity) {
-        blockEntity.tick(level1, pos, state1);
+
     }
 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return new WaterWheelBlockEntity(blockPos, blockState);
+        return new ElectricGeneratorBlockEntity(blockPos, blockState);
     }
 
     @Override
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return createTickerHelper(blockEntityType, ModBlockEntityTypes.WATER_WHEEL_BE.get(), this::tick);
+        return createTickerHelper(blockEntityType, ModBlockEntityTypes.ELECTRIC_GENERATOR_BE.get(), this::tick);
     }
 
     @Override
