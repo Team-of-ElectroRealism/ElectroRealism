@@ -5,6 +5,7 @@ import com.teamofelectrorealism.electrorealism.block.connector.duo.DuoConnectorB
 import com.teamofelectrorealism.electrorealism.block.connector.large.LargeConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.combustion.CombustionGeneratorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.generator.electric_generator.ElectricGeneratorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.solarpanel.SolarPanelBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.test.VoltageSourceBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.waterwheel.WaterWheelBlockEntity;
@@ -47,6 +48,10 @@ public class ModBlockEntityTypes {
     public static final Supplier<BlockEntityType<WaterWheelBlockEntity>> WATER_WHEEL_BE =
             BLOCK_ENTITY_TYPES.register("water_wheel_be",
                     () -> BlockEntityType.Builder.of(WaterWheelBlockEntity::new, ModBlocks.WATER_WHEEL.get()).build(null));
+
+    public static final Supplier<BlockEntityType<ElectricGeneratorBlockEntity>> ELECTRIC_GENERATOR_BE =
+            BLOCK_ENTITY_TYPES.register("electric_generator_be",
+                    () -> BlockEntityType.Builder.of(ElectricGeneratorBlockEntity::new, ModBlocks.ELECTRIC_GENERATOR.get()).build(null));
 
     public static final Supplier<BlockEntityType<CombustionGeneratorBlockEntity>> COMBUSTION_GENERATOR_BE =
             BLOCK_ENTITY_TYPES.register("combustion_generator_be",
