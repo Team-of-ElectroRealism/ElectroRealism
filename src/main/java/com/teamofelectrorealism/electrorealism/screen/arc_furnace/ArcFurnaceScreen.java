@@ -16,7 +16,7 @@ public class ArcFurnaceScreen extends AbstractContainerScreen<ArcFurnaceMenu> {
     private static final ResourceLocation ARROW_TEXTURE =
             ResourceLocation.parse("textures/gui/sprites/container/furnace/burn_progress.png");
     private static final ResourceLocation POWER_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/crusher/electric_crusher_power.png");
+            ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/icons/icon_power.png");
 
     private static final ResourceLocation[] HEAT_TEXTURES = new ResourceLocation[8];
 
@@ -77,7 +77,7 @@ public class ArcFurnaceScreen extends AbstractContainerScreen<ArcFurnaceMenu> {
 
         pGuiGraphics.blit(
                 HEAT_TEXTURES[heatFrame],
-                x + 57, y + 18, // Adjust coordinates as needed
+                x + 57, y + 18,
                 0, 0,
                 13, 13,
                 13, 13

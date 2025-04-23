@@ -12,211 +12,239 @@ import org.slf4j.Logger;
 import java.util.*;
 
 /**
- * Converts an adjacency list of INetworkMember→ConnectionInfo
- * into a SPICE‐compatible netlist.
+ * Constructs a SPICE-compatible netlist from a network adjacency list.
+ * <p>
+ * The builder performs the following steps:
+ * <ol>
+ *   <li>Classify members into generators, machines, and connectors.</li>
+ *   <li>Assign SPICE node numbers using a disjoint-set (union-find) algorithm.</li>
+ *   <li>Generate voltage source, machine resistor, and wire resistor component definitions.</li>
+ *   <li>Combine, deduplicate, and format the final netlist text.</li>
+ * </ol>
+ * <p>
+ * Example usage:
+ * <pre>
+ *   NetlistBuilder builder = new NetlistBuilder();
+ *   String netlist = builder.buildNetlist(adjacencyMap);
+ * </pre>
  */
 public class NetlistBuilder {
-    private int voltageSourceCount   = 1;
-    private int machineResistorCount = 1;
-    private int wireResistorCount    = 1;
-    private final Logger LOGGER = LogUtils.getLogger();
+    private int voltageSourceIndex   = 1;
+    private int machineResistorIndex = 1;
+    private int wireResistorIndex    = 1;
+    private final Logger logger = LogUtils.getLogger();
     private final Set<EdgeKey> processedEdges = new HashSet<>();
 
-    private static final String GENERATORS = "generators";
-    private static final String MACHINES   = "machines";
-    private static final String CONNECTORS = "connectors";
+    private static final String GENERATORS_KEY = "generators";
+    private static final String MACHINES_KEY   = "machines";
+    private static final String CONNECTORS_KEY = "connectors";
 
-    private static final int POSITIVE_TERMINAL_INDEX = 0;
-    private static final int NEGATIVE_TERMINAL_INDEX = 1;
-    private static final int INPUT_TERMINAL_INDEX    = 0;
-    private static final int OUTPUT_TERMINAL_INDEX   = 1;
+    private static final int POSITIVE_TERMINAL = 0;
+    private static final int NEGATIVE_TERMINAL = 1;
+    private static final int INPUT_TERMINAL    = 0;
+    private static final int OUTPUT_TERMINAL   = 1;
 
     /**
-     * Top‐level: build a SPICE netlist from your adjacency map.
+     * Build a SPICE netlist from the provided network adjacency list.
+     *
+     * @param adjacencyMap map of network member to list of its connection information
+     * @return formatted SPICE netlist as a String
      */
-    public String buildNetlist(Map<INetworkMember,List<ConnectionInfo>> adjacencyList) {
-        // 1) classify members
-        Map<String,List<INetworkMember>> classified = classifyNetworkMembers(adjacencyList);
-        // 2) assign SPICE node numbers
-        Map<NodeKey,Integer> nodeNumbers = assignNodeNumbers(adjacencyList);
-        // 3) emit sources, machine‐R, and wire‐R
-        List<String> voltageSourceComponents = createVoltageSourceComponents(classified.get(GENERATORS), nodeNumbers);
-        List<String> machineResistorComponents  = createMachineResistorComponents(classified.get(MACHINES), nodeNumbers);
-        List<String> wireResistorComponents  = createWireResistorComponents(adjacencyList, nodeNumbers);
-        // 4) combine & dedupe
-        List<String> all = new ArrayList<>();
-        all.addAll(voltageSourceComponents);
-        all.addAll(machineResistorComponents);
-        all.addAll(wireResistorComponents);
-        List<String> unique = new ArrayList<>(new LinkedHashSet<>(all));
-        // 5) format final text
-        return formatSpiceNetlist(unique);
+    public String buildNetlist(Map<INetworkMember, List<ConnectionInfo>> adjacencyMap) {
+        Map<String, List<INetworkMember>> classifiedMembers = classifyNetworkMembers(adjacencyMap);
+        Map<NodeKey, Integer> nodeIdMap = assignNodeNumbers(adjacencyMap);
+
+        List<String> voltageSources = createVoltageSourceComponents(
+                classifiedMembers.get(GENERATORS_KEY), nodeIdMap);
+        List<String> machineResistors = createMachineResistorComponents(
+                classifiedMembers.get(MACHINES_KEY), nodeIdMap);
+        List<String> wireResistors = createWireResistorComponents(adjacencyMap, nodeIdMap);
+
+        List<String> allComponents = new ArrayList<>();
+        allComponents.addAll(voltageSources);
+        allComponents.addAll(machineResistors);
+        allComponents.addAll(wireResistors);
+
+        // Remove duplicates while preserving order
+        List<String> uniqueComponents = new ArrayList<>(new LinkedHashSet<>(allComponents));
+        return formatSpiceNetlist(uniqueComponents);
     }
 
-    /** 1) Only pure IPowerProvider→gens; pure IPowerReceiver→machines; all IWireNode→connectors. */
-    private Map<String,List<INetworkMember>> classifyNetworkMembers(Map<INetworkMember,List<ConnectionInfo>> adj) {
-        Map<String,List<INetworkMember>> cls = new HashMap<>();
-        cls.put(GENERATORS, new ArrayList<>());
-        cls.put(MACHINES,   new ArrayList<>());
-        cls.put(CONNECTORS, new ArrayList<>());
+    /**
+     * Classify network members into generators, machines, and connectors.
+     * IPowerProvider instances (not wire nodes) are generators.
+     * IPowerReceiver instances (not wire nodes) are machines.
+     * IWireNode instances are connectors.
+     *
+     * @param adjacencyMap network adjacency list
+     * @return map with keys "generators", "machines", "connectors" mapping to lists of members
+     */
+    private Map<String, List<INetworkMember>> classifyNetworkMembers(
+            Map<INetworkMember, List<ConnectionInfo>> adjacencyMap
+    ) {
+        Map<String, List<INetworkMember>> classified = new HashMap<>();
+        classified.put(GENERATORS_KEY, new ArrayList<>());
+        classified.put(MACHINES_KEY, new ArrayList<>());
+        classified.put(CONNECTORS_KEY, new ArrayList<>());
 
-        for (INetworkMember m : adj.keySet()) {
-            if (m instanceof IPowerProvider && !(m instanceof IWireNode)) {
-                cls.get(GENERATORS).add(m);
-            } else if (m instanceof IPowerReceiver && !(m instanceof IWireNode)) {
-                cls.get(MACHINES).add(m);
-            } else if (m instanceof IWireNode) {
-                cls.get(CONNECTORS).add(m);
+        for (INetworkMember member : adjacencyMap.keySet()) {
+            if (member instanceof IPowerProvider && !(member instanceof IWireNode)) {
+                classified.get(GENERATORS_KEY).add(member);
+            } else if (member instanceof IPowerReceiver && !(member instanceof IWireNode)) {
+                classified.get(MACHINES_KEY).add(member);
+            } else if (member instanceof IWireNode) {
+                classified.get(CONNECTORS_KEY).add(member);
             } else {
-                LOGGER.warn("Unclassified member at {}", m.getPos().toShortString());
+                logger.warn("Unclassified member at {}", member.getPos().toShortString());
             }
         }
-        LOGGER.debug("Classified: {} gens, {} machines, {} connectors",
-                cls.get(GENERATORS).size(),
-                cls.get(MACHINES).size(),
-                cls.get(CONNECTORS).size());
-        return cls;
+
+        logger.debug("Classified: {} generators, {} machines, {} connectors",
+                classified.get(GENERATORS_KEY).size(),
+                classified.get(MACHINES_KEY).size(),
+                classified.get(CONNECTORS_KEY).size());
+
+        return classified;
     }
 
     /**
-     * 2) Use union–find to:
-     *    a) collapse each connector’s own terminals into one DSU set,
-     *    b) union each machine’s input/output onto its two copper neighbors,
-     *    c) union each generator “+” onto its copper neighbor,
-     *    d) ground the first generator “–” → node 0,
-     *    e) assign 1,2,3… to each remaining DSU root.
+     * Assign SPICE node numbers using union-find to collapse connected terminals.
+     *<p>
+     * The algorithm:
+     * <ol>
+     *   <li>Collapse internal terminals of each connector block.</li>
+     *   <li>Union each machine's input/output terminals with adjacent wire nodes.</li>
+     *   <li>Union generator terminals with wire neighbors based on polarity.</li>
+     *   <li>Ground the negative terminal of the first generator to node 0.</li>
+     *   <li>Assign incremental node numbers to remaining nets.</li>
+     * </ol>
+     *
+     * @param adjacencyMap network adjacency list
+     * @return map from NodeKey to SPICE node number
      */
-    private Map<NodeKey,Integer> assignNodeNumbers(Map<INetworkMember,List<ConnectionInfo>> adj) {
-        DSU dsu = new DSU();
+    private Map<NodeKey, Integer> assignNodeNumbers(
+            Map<INetworkMember, List<ConnectionInfo>> adjacencyMap
+    ) {
+        DSU unionFind = new DSU();
 
-        // a) collapse internal terminals of each connector block
-        for (INetworkMember m : adj.keySet()) {
-            if (m instanceof IWireNode w) {
-                NodeKey base = new NodeKey(m, 0);
-                for (int i = 1; i < w.getConnectionPointCount(); i++) {
-                    dsu.union(base, new NodeKey(m, i));
+        // Collapse internal connector terminals
+        for (INetworkMember member : adjacencyMap.keySet()) {
+            if (member instanceof IWireNode wireNode) {
+                NodeKey baseKey = new NodeKey(member, 0);
+                for (int i = 1; i < wireNode.getConnectionPointCount(); i++) {
+                    unionFind.union(baseKey, new NodeKey(member, i));
                 }
             }
         }
 
-        // b) find which two connectors each machine sits between (even if GraphBuilder gave -1)
-        Map<INetworkMember,List<NodeKey>> machineEnds = new HashMap<>();
-        for (var entry : adj.entrySet()) {
-            INetworkMember src = entry.getKey();
-            if (!(src instanceof IWireNode)) continue;
+        // Map each machine to its neighboring wire terminals
+        Map<INetworkMember, List<NodeKey>> machineTerminalMap = new HashMap<>();
+        for (var entry : adjacencyMap.entrySet()) {
+            INetworkMember source = entry.getKey();
+            if (!(source instanceof IWireNode)) continue;
 
-            for (ConnectionInfo info : entry.getValue()) {
-                INetworkMember nb = info.neighbor();
-                if (!(nb instanceof IPowerReceiver)) continue;
+            for (ConnectionInfo connectionInfo : entry.getValue()) {
+                INetworkMember neighbor = connectionInfo.neighbor();
+                if (!(neighbor instanceof IPowerReceiver)) continue;
 
-                // GraphBuilder sometimes gives -1 for non‑wire neighborIdx; use 0 as fallback
-                int cpIndex = info.sourceNodeIndex() >= 0
-                        ? info.sourceNodeIndex()
-                        : 0;
-
-                machineEnds
-                        .computeIfAbsent(nb, k -> new ArrayList<>())
-                        .add(new NodeKey(src, cpIndex));
+                int index = connectionInfo.sourceNodeIndex() >= 0
+                        ? connectionInfo.sourceNodeIndex() : 0;
+                machineTerminalMap
+                        .computeIfAbsent(neighbor, k -> new ArrayList<>())
+                        .add(new NodeKey(source, index));
             }
         }
 
-        // now union each machine’s two ends onto its input/output terminals
-        for (var me : machineEnds.entrySet()) {
-            INetworkMember mach = me.getKey();
-            List<NodeKey> ends = me.getValue();
-            if (ends.size() != 2) {
-                LOGGER.warn("Machine {} has {} wire neighbors; skipping",
-                        mach.getPos().toShortString(), ends.size());
+        // Union machine terminals with wire neighbors
+        for (var entry : machineTerminalMap.entrySet()) {
+            INetworkMember machine = entry.getKey();
+            List<NodeKey> terminals = entry.getValue();
+            if (terminals.size() != 2) {
+                logger.warn("Machine {} has {} wire neighbors; skipping",
+                        machine.getPos().toShortString(), terminals.size());
                 continue;
             }
-            // input (idx=0) ↔ first connector
-            dsu.union(new NodeKey(mach, INPUT_TERMINAL_INDEX), ends.get(0));
-            // output (idx=1) ↔ second connector
-            dsu.union(new NodeKey(mach, OUTPUT_TERMINAL_INDEX), ends.get(1));
+            unionFind.union(new NodeKey(machine, INPUT_TERMINAL), terminals.get(0));
+            unionFind.union(new NodeKey(machine, OUTPUT_TERMINAL), terminals.get(1));
         }
 
-        // c) stitch generator “+” onto its copper neighbor, with a fallback index of 0
-        for (var entry : adj.entrySet()) {
-            INetworkMember gen = entry.getKey();
-            if (!(gen instanceof IPowerProvider)) continue;
-            for (ConnectionInfo info : entry.getValue()) {
-                if (info.polarityAtNeighborEntry() != ConnectorPolarity.POSITIVE) continue;
-                INetworkMember nb = info.neighbor();
-                if (!(nb instanceof IWireNode)) continue;
+        // Union generator terminals with wire neighbors by polarity
+        for (var entry : adjacencyMap.entrySet()) {
+            INetworkMember provider = entry.getKey();
+            if (!(provider instanceof IPowerProvider)) continue;
 
-                // GraphBuilder sometimes gives -1 for generator→connector index; use 0
-                int cpIdx = info.neighborNodeIndex() >= 0
-                        ? info.neighborNodeIndex()
-                        : 0;
-
-                dsu.union(
-                        new NodeKey(gen, POSITIVE_TERMINAL_INDEX),
-                        new NodeKey(nb, cpIdx)
-                );
-            }
-        }
-
-        // c2) stitch generator “–” onto its copper neighbor (so that connector→ground)
-        for (var entry : adj.entrySet()) {
-            INetworkMember gen = entry.getKey();
-            if (!(gen instanceof IPowerProvider)) continue;
-            for (ConnectionInfo info : entry.getValue()) {
-                if (info.polarityAtNeighborEntry() != ConnectorPolarity.NEGATIVE) continue;
-                INetworkMember nb = info.neighbor();
-                if (!(nb instanceof IWireNode)) continue;
-
-                // GraphBuilder uses –1 for “non‑wire” indices; default to 0
-                int cpIdx = info.neighborNodeIndex() >= 0
-                        ? info.neighborNodeIndex()
-                        : 0;
-
-                dsu.union(
-                        new NodeKey(gen, NEGATIVE_TERMINAL_INDEX),
-                        new NodeKey(nb, cpIdx)
-                );
-            }
-        }
-
-        // d+e) collect all NodeKeys, ground first generator “–” → 0, then number 1…N
-        List<NodeKey> allKeys = new ArrayList<>();
-        for (INetworkMember m : adj.keySet()) {
-            if (m instanceof IPowerProvider) {
-                allKeys.add(new NodeKey(m, POSITIVE_TERMINAL_INDEX));
-                allKeys.add(new NodeKey(m, NEGATIVE_TERMINAL_INDEX));
-            }
-            if (m instanceof IPowerReceiver) {
-                allKeys.add(new NodeKey(m, INPUT_TERMINAL_INDEX));
-                allKeys.add(new NodeKey(m, OUTPUT_TERMINAL_INDEX));
-            }
-            if (m instanceof IWireNode w) {
-                for (int i = 0; i < w.getConnectionPointCount(); i++) {
-                    allKeys.add(new NodeKey(m, i));
+            for (ConnectionInfo connectionInfo : entry.getValue()) {
+                if (connectionInfo.polarityAtNeighborEntry() == ConnectorPolarity.POSITIVE
+                        && connectionInfo.neighbor() instanceof IWireNode) {
+                    int idx = connectionInfo.neighborNodeIndex() >= 0
+                            ? connectionInfo.neighborNodeIndex() : 0;
+                    unionFind.union(
+                            new NodeKey(provider, POSITIVE_TERMINAL),
+                            new NodeKey(connectionInfo.neighbor(), idx)
+                    );
                 }
             }
         }
 
-        // 4) Group every terminal by its DSU root
-        Map<NodeKey,List<NodeKey>> netGroups = new HashMap<>();
-        for (NodeKey k : allKeys) {
-            NodeKey r = dsu.find(k);
-            netGroups.computeIfAbsent(r, __ -> new ArrayList<>()).add(k);
+        // Ground negative generator terminal
+        for (var entry : adjacencyMap.entrySet()) {
+            INetworkMember provider = entry.getKey();
+            if (!(provider instanceof IPowerProvider)) continue;
+
+            for (ConnectionInfo connectionInfo : entry.getValue()) {
+                if (connectionInfo.polarityAtNeighborEntry() == ConnectorPolarity.NEGATIVE
+                        && connectionInfo.neighbor() instanceof IWireNode) {
+                    int idx = connectionInfo.neighborNodeIndex() >= 0
+                            ? connectionInfo.neighborNodeIndex() : 0;
+                    unionFind.union(
+                            new NodeKey(provider, NEGATIVE_TERMINAL),
+                            new NodeKey(connectionInfo.neighbor(), idx)
+                    );
+                }
+            }
         }
 
-        // 5) For each net, pick the lexicographically smallest terminal as its anchor
+        // Collect all NodeKeys
+        List<NodeKey> allTerminals = new ArrayList<>();
+        for (INetworkMember member : adjacencyMap.keySet()) {
+            if (member instanceof IPowerProvider) {
+                allTerminals.add(new NodeKey(member, POSITIVE_TERMINAL));
+                allTerminals.add(new NodeKey(member, NEGATIVE_TERMINAL));
+            }
+            if (member instanceof IPowerReceiver) {
+                allTerminals.add(new NodeKey(member, INPUT_TERMINAL));
+                allTerminals.add(new NodeKey(member, OUTPUT_TERMINAL));
+            }
+            if (member instanceof IWireNode wireNode) {
+                for (int i = 0; i < wireNode.getConnectionPointCount(); i++) {
+                    allTerminals.add(new NodeKey(member, i));
+                }
+            }
+        }
+
+        // Group by DSU root
+        Map<NodeKey, List<NodeKey>> netGroups = new HashMap<>();
+        for (NodeKey key : allTerminals) {
+            NodeKey root = unionFind.find(key);
+            netGroups.computeIfAbsent(root, __ -> new ArrayList<>()).add(key);
+        }
+
+        // Determine anchor for each net group
         record Anchor(NodeKey root, int x, int y, int z, int idx) {}
         List<Anchor> anchors = new ArrayList<>();
-        for (var e : netGroups.entrySet()) {
-            NodeKey root = e.getKey();
-            NodeKey anchorKey = Collections.min(e.getValue(), Comparator
+        for (var net : netGroups.entrySet()) {
+            NodeKey root = net.getKey();
+            NodeKey anchorTerminal = Collections.min(net.getValue(), Comparator
                     .comparing((NodeKey nk) -> nk.member.getPos().getX())
                     .thenComparing(nk -> nk.member.getPos().getY())
                     .thenComparing(nk -> nk.member.getPos().getZ())
-                    .thenComparing(nk -> nk.idx));
-            var p = anchorKey.member.getPos();
-            anchors.add(new Anchor(root, p.getX(), p.getY(), p.getZ(), anchorKey.idx));
+                    .thenComparing(nk -> nk.idx)
+            );
+            var pos = anchorTerminal.member.getPos();
+            anchors.add(new Anchor(root, pos.getX(), pos.getY(), pos.getZ(), anchorTerminal.idx));
         }
 
-        // 6) Sort nets by their anchor’s (x,y,z,idx)
+        // Sort anchors lexicographically by position and terminal index
         anchors.sort(Comparator
                 .comparing((Anchor a) -> a.x)
                 .thenComparing(a -> a.y)
@@ -224,185 +252,280 @@ public class NetlistBuilder {
                 .thenComparing(a -> a.idx)
         );
 
-        // 7) Assign node numbers: ground the DSU‐root of the generator “–” at 0
-        Map<NodeKey,Integer> numbering = new HashMap<>();
-        // find the first generator
-        INetworkMember gen = adj.keySet().stream()
+        Map<NodeKey, Integer> numbering = new HashMap<>();
+        // Ground the first generator's negative terminal to node 0
+        adjacencyMap.keySet().stream()
                 .filter(m -> m instanceof IPowerProvider)
                 .findFirst()
-                .orElse(null);
-        if (gen != null) {
-            // find the DSU root of its negative terminal and map *that* to node 0
-            NodeKey negKey = new NodeKey(gen, NEGATIVE_TERMINAL_INDEX);
-            NodeKey negRoot = dsu.find(negKey);
-            numbering.put(negRoot, 0);
-        }
+                .ifPresent(gen -> {
+                    NodeKey negKey = new NodeKey(gen, NEGATIVE_TERMINAL);
+                    NodeKey negRoot = unionFind.find(negKey);
+                    numbering.put(negRoot, 0);
+                });
 
-        // now assign 1,2,3… to every other net in anchor order
-        int next = 1;
-        for (Anchor a : anchors) {
-            if (!numbering.containsKey(a.root)) {
-                numbering.put(a.root, next++);
+        // Assign sequential node numbers to remaining nets
+        int nextNodeId = 1;
+        for (Anchor anchor : anchors) {
+            if (!numbering.containsKey(anchor.root)) {
+                numbering.put(anchor.root, nextNodeId++);
             }
         }
 
-        // 8) Propagate every terminal to its root's number
-        for (NodeKey k : allKeys) {
-            NodeKey root = dsu.find(k);
-            Integer n = numbering.get(root);
-            if (n != null) {
-                numbering.put(k, n);
-            }
+        // Propagate node numbers to all terminals
+        for (NodeKey key : allTerminals) {
+            NodeKey root = unionFind.find(key);
+            numbering.put(key, numbering.get(root));
         }
 
         return numbering;
     }
 
-    /** 3) One voltage source per generator, between + node and 0. */
+    /**
+     * Generate SPICE voltage source definitions for each generator.
+     *
+     * @param generators list of IPowerProvider instances
+     * @param nodeIdMap map from NodeKey to assigned node number
+     * @return list of SPICE lines defining voltage sources
+     */
     private List<String> createVoltageSourceComponents(
             List<INetworkMember> generators,
-            Map<NodeKey,Integer> nums
+            Map<NodeKey, Integer> nodeIdMap
     ) {
-        List<String> lines = new ArrayList<>();
-        if (generators == null) return lines;
-        for (INetworkMember m : generators) {
-            IPowerProvider p = (IPowerProvider)m;
-            int pos = nums.get(new NodeKey(m, POSITIVE_TERMINAL_INDEX));
-            int neg = nums.get(new NodeKey(m, NEGATIVE_TERMINAL_INDEX)); // should be 0
-            String name = "V" + voltageSourceCount++;
-            lines.add(String.format(Locale.US, "%s %d %d DC %d", name, pos, neg, p.getVoltage()));
+        List<String> components = new ArrayList<>();
+        if (generators == null) return components;
+
+        for (INetworkMember member : generators) {
+            IPowerProvider provider = (IPowerProvider) member;
+            int positiveNode = nodeIdMap.get(new NodeKey(member, POSITIVE_TERMINAL));
+            int negativeNode = nodeIdMap.get(new NodeKey(member, NEGATIVE_TERMINAL));
+            String sourceName = "V" + voltageSourceIndex++;
+            components.add(
+                    String.format(Locale.US,
+                            "%s %d %d DC %d",
+                            sourceName, positiveNode, negativeNode, provider.getVoltage())
+            );
         }
-        return lines;
+        return components;
     }
 
-    /** 4) One resistor per machine between its input/output nodes. */
+    /**
+     * Generate SPICE resistor definitions for each machine.
+     *
+     * @param machines list of IPowerReceiver instances
+     * @param nodeIdMap map from NodeKey to assigned node number
+     * @return list of SPICE lines defining machine resistors
+     */
     private List<String> createMachineResistorComponents(
             List<INetworkMember> machines,
-            Map<NodeKey,Integer> nums
+            Map<NodeKey, Integer> nodeIdMap
     ) {
-        List<String> lines = new ArrayList<>();
-        if (machines == null) return lines;
-        for (INetworkMember m : machines) {
-            IPowerReceiver r = (IPowerReceiver)m;
-            NodeKey inKey  = new NodeKey(m, INPUT_TERMINAL_INDEX);
-            NodeKey outKey = new NodeKey(m, OUTPUT_TERMINAL_INDEX);
-            int ni = nums.get(inKey), no = nums.get(outKey);
-            if (ni == no) {
-                LOGGER.warn("Machine {} collapsed to one node {}; skipping", m.getPos().toShortString(), ni);
+        List<String> components = new ArrayList<>();
+        if (machines == null) return components;
+
+        for (INetworkMember member : machines) {
+            IPowerReceiver receiver = (IPowerReceiver) member;
+            NodeKey inputKey = new NodeKey(member, INPUT_TERMINAL);
+            NodeKey outputKey = new NodeKey(member, OUTPUT_TERMINAL);
+            int inputNode = nodeIdMap.get(inputKey);
+            int outputNode = nodeIdMap.get(outputKey);
+
+            if (inputNode == outputNode) {
+                logger.warn("Machine {} collapsed to one node {}; skipping",
+                        member.getPos().toShortString(), inputNode);
                 continue;
             }
-            String name = "R" + machineResistorCount++;
-            lines.add(String.format(Locale.US, "%s %d %d %d", name, ni, no, r.getResistance()));
+
+            String resistorName = "R" + machineResistorIndex++;
+            components.add(
+                    String.format(Locale.US,
+                            "%s %d %d %d",
+                            resistorName, inputNode, outputNode, receiver.getResistance())
+            );
         }
-        return lines;
+        return components;
     }
 
-    /** 5) One wire resistor per connector‐to‐connector edge, using real ρ·L/A. */
+    /**
+     * Generate SPICE resistor definitions for each wire segment.
+     *
+     * @param adjacencyMap network adjacency list
+     * @param nodeIdMap map from NodeKey to assigned node number
+     * @return list of SPICE lines defining wire resistors
+     */
     private List<String> createWireResistorComponents(
-            Map<INetworkMember,List<ConnectionInfo>> adj,
-            Map<NodeKey,Integer> nums
+            Map<INetworkMember, List<ConnectionInfo>> adjacencyMap,
+            Map<NodeKey, Integer> nodeIdMap
     ) {
-        List<String> lines = new ArrayList<>();
-        for (var entry : adj.entrySet()) {
-            INetworkMember m1 = entry.getKey();
-            if (!(m1 instanceof IWireNode w1)) continue;
-            for (ConnectionInfo info : entry.getValue()) {
-                INetworkMember m2 = info.neighbor();
-                if (!(m2 instanceof IWireNode w2)) continue;
-                int i1 = info.sourceNodeIndex(), i2 = info.neighborNodeIndex();
-                if (i1 < 0 || i2 < 0) continue;
+        List<String> components = new ArrayList<>();
+        for (var entry : adjacencyMap.entrySet()) {
+            INetworkMember candidate = entry.getKey();
+            if (!(candidate instanceof IWireNode wireA)) continue;
 
-                NodeKey k1 = new NodeKey(m1, i1);
-                NodeKey k2 = new NodeKey(m2, i2);
-                EdgeKey edge = new EdgeKey(k1, k2);
+            for (ConnectionInfo connectionInfo : entry.getValue()) {
+                INetworkMember neighbor = connectionInfo.neighbor();
+                if (!(neighbor instanceof IWireNode wireB)) continue;
+
+                int indexA = connectionInfo.sourceNodeIndex();
+                int indexB = connectionInfo.neighborNodeIndex();
+                if (indexA < 0 || indexB < 0) continue;
+
+                NodeKey keyA = new NodeKey(candidate, indexA);
+                NodeKey keyB = new NodeKey(neighbor, indexB);
+                EdgeKey edge = new EdgeKey(keyA, keyB);
                 if (!processedEdges.add(edge)) continue;
 
-                int n1 = nums.get(k1), n2 = nums.get(k2);
-                if (n1 == n2) {
-                    LOGGER.warn("Zero‐length resistor between {}↔{} (node {})", k1, k2, n1);
+                int nodeA = nodeIdMap.get(keyA);
+                int nodeB = nodeIdMap.get(keyB);
+                if (nodeA == nodeB) {
+                    logger.warn("Zero-length resistor between {}↔{} (node {})",
+                            keyA, keyB, nodeA);
                     continue;
                 }
 
-                WireType wt = w1.getWireType(i1);
-                double R = calculateWireResistance(w1, i1, w2, i2, wt);
-                String name = "RW" + wireResistorCount++;
-                lines.add(String.format(Locale.US, "%s %d %d %.7f", name, n1, n2, R));
+                WireType type = wireA.getWireType(indexA);
+                double resistance = calculateWireResistance(wireA, indexA, wireB, indexB, type);
+                String name = "RW" + wireResistorIndex++;
+                components.add(
+                        String.format(Locale.US, "%s %d %d %.7f", name, nodeA, nodeB, resistance)
+                );
             }
         }
-        return lines;
+        return components;
     }
 
-    /** Helper to compute R = ρ·L/A for a wire segment. */
+    /**
+     * Compute resistance of a wire segment: R = ρ · (length / area).
+     *
+     * @param nodeA first wire node endpoint
+     * @param idxA connection point index on the first node
+     * @param nodeB second wire node endpoint
+     * @param idxB connection point index on the second node
+     * @param wireType type of the wire (provides resistivity)
+     * @return resistance in ohms
+     */
     private double calculateWireResistance(
-            IWireNode n1, int idx1,
-            IWireNode n2, int idx2,
+            IWireNode nodeA, int idxA,
+            IWireNode nodeB, int idxB,
             WireType wireType
     ) {
-        Vec3 p1 = Vec3.atCenterOf(n1.getPos()).add(n1.getConnectionPointOffset(idx1));
-        Vec3 p2 = Vec3.atCenterOf(n2.getPos()).add(n2.getConnectionPointOffset(idx2));
-        double length = p1.distanceTo(p2);        // in blocks → meters
-        if (length < 1e-6) return 0.0;
-        double rho  = wireType.getResistivity();  // Ω·m
-        double area = 1e-6;                       // e.g. 1 mm²
-        return rho * (length / area);
+        Vec3 pointA = Vec3.atCenterOf(nodeA.getPos()).add(nodeA.getConnectionPointOffset(idxA));
+        Vec3 pointB = Vec3.atCenterOf(nodeB.getPos()).add(nodeB.getConnectionPointOffset(idxB));
+        double distance = pointA.distanceTo(pointB);
+        if (distance < 1e-6) {
+            return 0.0;
+        }
+        double resistivity = wireType.getResistivity();
+        double crossSectionalArea = 1e-6; // 1 mm²
+        return resistivity * (distance / crossSectionalArea);
     }
 
-    /** Pretty‐print into SPICE netlist text. */
-    private String formatSpiceNetlist(List<String> comps) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("* Generated ElectroRealism Netlist (").append(new Date()).append(")\n");
-        var V = comps.stream().filter(s->s.startsWith("V")).toList();
-        var R = comps.stream().filter(s->s.startsWith("R") && !s.startsWith("RW")).toList();
-        var W = comps.stream().filter(s->s.startsWith("RW")).toList();
-        if (!V.isEmpty()) { sb.append("\n* Voltage Sources\n");  V.forEach(l->sb.append(l).append("\n")); }
-        if (!R.isEmpty()) { sb.append("\n* Machine Resistances\n"); R.forEach(l->sb.append(l).append("\n")); }
-        if (!W.isEmpty()) { sb.append("\n* Wire Resistances\n");    W.forEach(l->sb.append(l).append("\n")); }
-        sb.append("\n.END\n");
-        return sb.toString();
+    /**
+     * Format the list of SPICE component definitions into complete netlist text.
+     *
+     * @param components list of SPICE lines (voltage sources, resistors)
+     * @return full netlist text including directives
+     */
+    private String formatSpiceNetlist(List<String> components) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("* Generated ElectroRealism Netlist (").append(new Date()).append(")\n");
+
+        var sources = components.stream().filter(s -> s.startsWith("V")).toList();
+        var machineRes = components.stream().filter(s -> s.startsWith("R") && !s.startsWith("RW")).toList();
+        var wireRes    = components.stream().filter(s -> s.startsWith("RW")).toList();
+
+        if (!sources.isEmpty()) {
+            builder.append("\n* Voltage Sources\n");
+            sources.forEach(line -> builder.append(line).append("\n"));
+        }
+        if (!machineRes.isEmpty()) {
+            builder.append("\n* Machine Resistances\n");
+            machineRes.forEach(line -> builder.append(line).append("\n"));
+        }
+        if (!wireRes.isEmpty()) {
+            builder.append("\n* Wire Resistances\n");
+            wireRes.forEach(line -> builder.append(line).append("\n"));
+        }
+
+        builder.append("\n* Simulation Control\n");
+        builder.append(".control\n");
+        builder.append("    run\n");
+        builder.append("    set wr_singlescale\n");
+        builder.append("    set wr_vecnames\n");
+        builder.append("    option numdgt=9\n");
+        builder.append("    wrdata results.csv time all\n");
+        builder.append("    quit\n");
+        builder.append(".endc\n");
+        builder.append("\n* Transient Analysis\n");
+        builder.append(".tran 0.1ms 1ms\n");
+        builder.append("\n.END\n");
+
+        return builder.toString();
     }
 
-    // —— Union–Find for collapsing nets ——
+    /**
+     * Disjoint-set (union-find) structure for merging node terminals into nets.
+     */
     private static class DSU {
-        private final Map<NodeKey,NodeKey> p = new HashMap<>();
+        private final Map<NodeKey, NodeKey> parent = new HashMap<>();
+
+        /** Find the representative of the set containing x. */
         NodeKey find(NodeKey x) {
-            p.putIfAbsent(x, x);
-            NodeKey y = p.get(x);
-            if (!y.equals(x)) {
-                y = find(y);
-                p.put(x, y);
+            parent.putIfAbsent(x, x);
+            NodeKey p = parent.get(x);
+            if (!p.equals(x)) {
+                p = find(p);
+                parent.put(x, p);
             }
-            return y;
+            return p;
         }
+
+        /** Union the sets containing a and b. */
         void union(NodeKey a, NodeKey b) {
-            NodeKey ra = find(a), rb = find(b);
-            if (!ra.equals(rb)) p.put(ra, rb);
+            NodeKey rootA = find(a);
+            NodeKey rootB = find(b);
+            if (!rootA.equals(rootB)) {
+                parent.put(rootA, rootB);
+            }
         }
     }
 
-    /** Unique identifier for a single terminal on a member. */
+    /**
+     * Identifier for a single terminal on a network member.
+     * @param member network component instance
+     * @param idx terminal index on the component
+     */
     private record NodeKey(INetworkMember member, int idx) {
-        @Override public boolean equals(Object o) {
-            if (!(o instanceof NodeKey k)) return false;
-            return idx == k.idx && member.getPos().equals(k.member.getPos());
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof NodeKey other)) return false;
+            return idx == other.idx && member.getPos().equals(other.member.getPos());
         }
-        @Override public int hashCode() {
+
+        @Override
+        public int hashCode() {
             return Objects.hash(member.getPos(), idx);
         }
-        @Override public String toString() {
-            return member.getClass().getSimpleName()
-                    + "@" + member.getPos().toShortString()
-                    + "[" + idx + "]";
+
+        @Override
+        public String toString() {
+            return member.getClass().getSimpleName() + "@"
+                    + member.getPos().toShortString() + "[" + idx + "]";
         }
     }
 
-    /** Undirected edge for de‑duping wire resistors. */
+    /**
+     * Undirected edge key for deduplicating wire resistor components.
+     * Ensures consistent ordering of endpoints.
+     */
     private record EdgeKey(NodeKey a, NodeKey b) {
         public EdgeKey {
             if (a.hashCode() > b.hashCode()) {
-                var tmp = a; a = b; b = tmp;
+                var temp = a; a = b; b = temp;
             }
         }
-        @Override public String toString() {
+
+        @Override
+        public String toString() {
             return "Edge[" + a + "↔" + b + "]";
         }
     }
