@@ -1,6 +1,6 @@
 package com.teamofelectrorealism.electrorealism.block.machine.provider.combustion;
 
-import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
+import com.teamofelectrorealism.electrorealism.block.IVoltageConsumer;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractPowerProviderBlockEntity;
 import com.teamofelectrorealism.electrorealism.screen.generator.CombustionGeneratorMenu;
@@ -137,8 +137,8 @@ public class CombustionGeneratorBlockEntity extends AbstractPowerProviderBlockEn
         for (Direction facing: Direction.values()) {
             BlockPos neighborPos = pos.offset(facing.getNormal());
             BlockEntity blockEntity = level.getBlockEntity(neighborPos);
-            if (blockEntity instanceof IPowerReceiver) {
-                IPowerReceiver receiver = (IPowerReceiver) blockEntity;
+            if (blockEntity instanceof IVoltageConsumer) {
+                IVoltageConsumer receiver = (IVoltageConsumer) blockEntity;
 
                 receiver.receiveVoltage(voltage);
             }

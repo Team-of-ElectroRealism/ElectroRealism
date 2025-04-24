@@ -1,6 +1,6 @@
 package com.teamofelectrorealism.electrorealism.block.machine.provider.electric_generator;
 
-import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
+import com.teamofelectrorealism.electrorealism.block.IVoltageConsumer;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractPowerProviderBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -36,8 +36,8 @@ public class ElectricGeneratorBlockEntity extends AbstractPowerProviderBlockEnti
         for (Direction facing: Direction.values()) {
             BlockPos neighborPos = pos.offset(facing.getNormal());
             BlockEntity blockEntity = level.getBlockEntity(neighborPos);
-            if (blockEntity instanceof IPowerReceiver) {
-                IPowerReceiver receiver = (IPowerReceiver) blockEntity;
+            if (blockEntity instanceof IVoltageConsumer) {
+                IVoltageConsumer receiver = (IVoltageConsumer) blockEntity;
 
                 receiver.receiveVoltage(voltage);
             }
