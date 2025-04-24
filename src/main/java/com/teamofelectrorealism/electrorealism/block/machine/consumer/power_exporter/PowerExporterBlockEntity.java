@@ -22,7 +22,7 @@ public class PowerExporterBlockEntity extends AbstractPowerConsumerBlockEntity {
     private final ModEnergyStorage ENERGY_STORAGE = createEnergyStorage();
 
     private ModEnergyStorage createEnergyStorage() {
-        return new ModEnergyStorage(64000, 320) {
+        return new ModEnergyStorage(64000, ENERGY_TRANSFER_AMOUNT) {
             @Override
             public void onEnergyChanged() {
                 setChanged();
@@ -55,7 +55,8 @@ public class PowerExporterBlockEntity extends AbstractPowerConsumerBlockEntity {
 
     @Override
     public void tick(Level level, BlockPos pos, BlockState state) {
-
+        fillUpOnEnergy();
+        pushEnergyToNeighborAbove();
     }
 
     @Override
