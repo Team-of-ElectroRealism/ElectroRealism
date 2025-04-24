@@ -453,7 +453,6 @@ public class NetlistBuilder {
         builder.append("    set wr_vecnames\n");
         builder.append("    option numdgt=9\n");
         builder.append("    wrdata results.csv time all\n");
-        builder.append("    quit\n");
         builder.append(".endc\n");
         builder.append("\n* Transient Analysis\n");
         builder.append(".tran 0.1ms 1ms\n");
