@@ -36,6 +36,8 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
         this.dropSelf(ModBlocks.WATER_WHEEL.get());
         this.dropSelf(ModBlocks.POWER_EXPORTER.get());
         this.dropSelf(ModBlocks.POWER_IMPORTER.get());
+        this.dropSelf(ModBlocks.ELECTRIC_GENERATOR.get());
+
         this.dropSelf(ModBlocks.STRIPPED_DARK_OAK_FENCE.get());
         this.dropSelf(ModBlocks.STONE_WALL.get());
         this.dropSelf(ModBlocks.COPPER_WIRE.get());

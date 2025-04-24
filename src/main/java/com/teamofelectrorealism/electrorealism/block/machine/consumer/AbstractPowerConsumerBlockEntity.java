@@ -1,12 +1,12 @@
 package com.teamofelectrorealism.electrorealism.block.machine.consumer;
 
-import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
+import com.teamofelectrorealism.electrorealism.block.IVoltageConsumer;
 import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-public abstract class AbstractPowerConsumerBlockEntity extends AbstractMachineBlockEntity implements IPowerReceiver {
+public abstract class AbstractPowerConsumerBlockEntity extends AbstractMachineBlockEntity implements IVoltageConsumer {
     public AbstractPowerConsumerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
     }
