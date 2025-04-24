@@ -16,7 +16,7 @@ public class ElectricCrusherScreen extends AbstractContainerScreen<ElectricCrush
     private static final ResourceLocation ARROW_TEXTURE =
             ResourceLocation.parse("textures/gui/sprites/container/furnace/burn_progress.png");
     private static final ResourceLocation POWER_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/crusher/electric_crusher_power.png");
+            ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/icons/icon_power.png");
 
     public ElectricCrusherScreen(ElectricCrusherMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);

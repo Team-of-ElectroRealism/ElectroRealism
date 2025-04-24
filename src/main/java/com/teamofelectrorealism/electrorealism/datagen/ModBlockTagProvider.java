@@ -1,8 +1,10 @@
 package com.teamofelectrorealism.electrorealism.datagen;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.ModBlocks;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
+import net.minecraft.tags.BlockTags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
@@ -15,6 +17,22 @@ public class ModBlockTagProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
+        this.tag(BlockTags.MINEABLE_WITH_PICKAXE)
+                .add(ModBlocks.BAUXITE_ORE.get())
+                .add(ModBlocks.DEEPSLATE_BAUXITE_ORE.get())
+                .add(ModBlocks.ALUMINIUM_BLOCK.get());
 
+        this.tag(BlockTags.NEEDS_IRON_TOOL)
+                .add(ModBlocks.BAUXITE_ORE.get())
+                .add(ModBlocks.DEEPSLATE_BAUXITE_ORE.get());
+
+        tag(BlockTags.WOODEN_FENCES).add(ModBlocks.STRIPPED_DARK_OAK_FENCE.get());
+        tag(BlockTags.WALLS).add(ModBlocks.STONE_WALL.get());
+
+        this.tag(BlockTags.LOGS_THAT_BURN)
+                .add(ModBlocks.RUBBER_LOG.get())
+                .add(ModBlocks.RUBBER_WOOD.get())
+                .add(ModBlocks.STRIPPED_RUBBER_LOG.get())
+                .add(ModBlocks.STRIPPED_RUBBER_WOOD.get());
     }
 }

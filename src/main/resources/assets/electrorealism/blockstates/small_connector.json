@@ -1,0 +1,82 @@
+{
+  "variants": {
+    "facing=down,terminal_type=none": {
+      "model": "electrorealism:block/small_connector",
+      "x": 180
+    },
+    "facing=down,terminal_type=positive": {
+      "model": "electrorealism:block/small_connector_positive",
+      "x": 180
+    },
+    "facing=down,terminal_type=negative": {
+      "model": "electrorealism:block/small_connector_negative",
+      "x": 180
+    },
+    "facing=east,terminal_type=none": {
+      "model": "electrorealism:block/small_connector",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,terminal_type=positive": {
+      "model": "electrorealism:block/small_connector_positive",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,terminal_type=negative": {
+      "model": "electrorealism:block/small_connector_negative",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north,terminal_type=none": {
+      "model": "electrorealism:block/small_connector",
+      "x": 90
+    },
+    "facing=north,terminal_type=positive": {
+      "model": "electrorealism:block/small_connector_positive",
+      "x": 90
+    },
+    "facing=north,terminal_type=negative": {
+      "model": "electrorealism:block/small_connector_negative",
+      "x": 90
+    },
+    "facing=south,terminal_type=none": {
+      "model": "electrorealism:block/small_connector",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,terminal_type=positive": {
+      "model": "electrorealism:block/small_connector_positive",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,terminal_type=negative": {
+      "model": "electrorealism:block/small_connector_negative",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up,terminal_type=none": {
+      "model": "electrorealism:block/small_connector"
+    },
+    "facing=up,terminal_type=positive": {
+      "model": "electrorealism:block/small_connector_positive"
+    },
+    "facing=up,terminal_type=negative": {
+      "model": "electrorealism:block/small_connector_negative"
+    },
+    "facing=west,terminal_type=none": {
+      "model": "electrorealism:block/small_connector",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,terminal_type=positive": {
+      "model": "electrorealism:block/small_connector_positive",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,terminal_type=negative": {
+      "model": "electrorealism:block/small_connector_negative",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

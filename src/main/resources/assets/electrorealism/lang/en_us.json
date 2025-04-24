@@ -1,12 +1,57 @@
 {
   "block.electrorealism.programmer_block": "Programmer Block",
+  "block.electrorealism.copper_wire": "Copper Wire",
   "block.electrorealism.electric_crusher": "Electric Crusher",
   "block.electrorealism.voltage_source": "Voltage Source",
-  "block.electrorealism.water_wheel": "Water Wheel",
+  "block.electrorealism.solar_panel": "Solar Panel",
+  "block.electrorealism.smeltables_generator": "Combustion Generator",
   "block.electrorealism.fe_generator": "FE Generator",
+  "block.electrorealism.water_wheel": "Water Wheel",
+  "block.electrorealism.electric_generator": "Electric Generator",
+  "block.electrorealism.arc_furnace": "Arc Furnace",
+  "block.electrorealism.small_connector": "Small Connector",
+  "block.electrorealism.large_connector": "Large Connector",
+  "block.electrorealism.duo_connector": "Duo Connector",
+
+  "block.electrorealism.stripped_dark_oak_fence": "Stripped Dark Oak Fence",
+  "block.electrorealism.stone_wall": "Stone Wall",
+  "block.electrorealism.mounting_plate": "Mounting Plate",
+
+  "block.electrorealism.bauxite_ore": "Bauxite Ore",
+  "block.electrorealism.deepslate_bauxite_ore": "Deepslate Bauxite Ore",
+
+  "block.electrorealism.rubber_log": "Rubber Log",
+  "block.electrorealism.rubber_wood": "Rubber Wood",
+  "block.electrorealism.stripped_rubber_log": "Stripped Rubber Log",
+  "block.electrorealism.stripped_rubber_wood": "Stripped Rubber Wood",
+  "block.electrorealism.rubber_planks": "Rubber Planks",
+  "block.electrorealism.rubber_leaves": "Rubber Leaves",
+  "block.electrorealism.rubber_sapling": "Rubber Sapling",
 
   "item.electrorealism.test_item": "Test Item",
+  "item.electrorealism.spool": "Spool",
+  "item.electrorealism.copper_wire_spool": "Copper Wire Spool",
+  "item.electrorealism.aluminum_wire_spool": "Aluminum Wire Spool",
 
   "creativetab.electrorealism.electrorealism_items": "ElectroRealism Items",
-  "creativetab.electrorealism.electrorealism_blocks": "ElectroRealism Blocks"
+  "creativetab.electrorealism.electrorealism_blocks": "ElectroRealism Blocks",
+
+  "statusbar.electrorealism.wire.linked": "Nodes linked",
+  "statusbar.electrorealism.wire.linked_in": "Wire linked to input",
+  "statusbar.electrorealism.wire.linked_out": "Wire linked to output",
+
+  "statusbar.electrorealism.wire.connect": "Wire connector selected",
+  "statusbar.electrorealism.wire.connect_in": "Wire connector input selected",
+  "statusbar.electrorealism.wire.connect_out": "Wire connector output selected",
+
+  "statusbar.electrorealism.wire.long": "Wire is too long",
+  "statusbar.electrorealism.wire.count": "Wire node is full",
+  "statusbar.electrorealism.wire.removed": "Wire removed",
+  "statusbar.electrorealism.wire.exists": "Wire connection already exists",
+  "statusbar.electrorealism.wire.no_connection": "Wire not connected here",
+  "statusbar.electrorealism.wire.invalid": "Invalid connection",
+  "statusbar.electrorealism.wire.error": "No NetworkManager for this level",
+  "statusbar.electrorealism.wire.requires_high_current": "This connection requires a high current wire",
+
+  "statusbar.electrorealism.connector_set": "Connector terminal mode toggled"
 }
