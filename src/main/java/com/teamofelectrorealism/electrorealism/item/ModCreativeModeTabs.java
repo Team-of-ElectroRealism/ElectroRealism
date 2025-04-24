@@ -44,8 +44,8 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.COMBUSTION_GENERATOR);
                         output.accept(ModBlocks.WATER_WHEEL);
                         output.accept(ModBlocks.ELECTRIC_GENERATOR);
-                        output.accept(ModBlocks.FE_GENERATOR);
-                        output.accept(ModBlocks.FE_CONVERTER);
+                        output.accept(ModBlocks.POWER_EXPORTER);
+                        output.accept(ModBlocks.POWER_IMPORTER);
 
                         output.accept(ModBlocks.SMALL_CONNECTOR);
                         output.accept(ModBlocks.LARGE_CONNECTOR);

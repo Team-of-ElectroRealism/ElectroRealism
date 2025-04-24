@@ -3,14 +3,16 @@ package com.teamofelectrorealism.electrorealism.block;
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.connector.duo.DuoConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.large.LargeConnectorBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.combustion.CombustionGeneratorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.combustion.CombustionGeneratorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.electric_generator.ElectricGeneratorBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.solarpanel.SolarPanelBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.test.VoltageSourceBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.waterwheel.WaterWheelBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.machine.user.arc_furnace.ArcFurnaceBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.machine.user.crusher.ElectricCrusherBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.electric_generator.ElectricGeneratorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.power_importer.PowerImporterBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.solarpanel.SolarPanelBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.test.VoltageSourceBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.waterwheel.WaterWheelBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.consumer.arc_furnace.ArcFurnaceBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.consumer.crusher.ElectricCrusherBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.consumer.power_exporter.PowerExporterBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
@@ -68,9 +70,14 @@ public class ModBlockEntityTypes {
     public static final Supplier<BlockEntityType<DuoConnectorBlockEntity>> DUO_CONNECTOR_BE =
             BLOCK_ENTITY_TYPES.register("duo_connector_be",
                     () -> BlockEntityType.Builder.of(DuoConnectorBlockEntity::new, ModBlocks.DUO_CONNECTOR.get()).build(null));
-    public static final Supplier<BlockEntityType<FEToPowerConverterBlockEntity>> FE_CONVERTER_BE =
-            BLOCK_ENTITY_TYPES.register("fe_converter_be",
-                    () -> BlockEntityType.Builder.of(FEToPowerConverterBlockEntity::new, ModBlocks.FE_CONVERTER.get()).build(null));
+
+    public static final Supplier<BlockEntityType<PowerExporterBlockEntity>> POWER_EXPORTER_BE =
+            BLOCK_ENTITY_TYPES.register("power_exporter_be",
+                    () -> BlockEntityType.Builder.of(PowerExporterBlockEntity::new, ModBlocks.POWER_EXPORTER.get()).build(null));
+
+    public static final Supplier<BlockEntityType<PowerImporterBlockEntity>> POWER_IMPORTER_BE =
+            BLOCK_ENTITY_TYPES.register("power_importer_be",
+                    () -> BlockEntityType.Builder.of(PowerImporterBlockEntity::new, ModBlocks.POWER_IMPORTER.get()).build(null));
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITY_TYPES.register(eventBus);

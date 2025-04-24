@@ -2,7 +2,7 @@ package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorPolarity;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.AbstractGeneratorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractGeneratorBlockEntity;
 import com.teamofelectrorealism.electrorealism.rendering.HighlightCircuits;
 import org.slf4j.Logger;
 

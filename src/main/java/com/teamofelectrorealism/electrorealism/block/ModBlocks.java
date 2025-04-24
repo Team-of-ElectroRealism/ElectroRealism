@@ -6,13 +6,15 @@ import com.teamofelectrorealism.electrorealism.block.connector.large.LargeConnec
 import com.teamofelectrorealism.electrorealism.block.custom.ModFlammableRotatedPillarBlock;
 import com.teamofelectrorealism.electrorealism.block.custom.Mounting_PlateBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlock;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.electric_generator.ElectricGeneratorBlock;
-import com.teamofelectrorealism.electrorealism.block.machine.user.crusher.ElectricCrusherBlock;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.combustion.CombustionGeneratorBlock;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.solarpanel.SolarPanelBlock;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.test.VoltageSourceBlock;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.waterwheel.WaterWheelBlock;
-import com.teamofelectrorealism.electrorealism.block.machine.user.arc_furnace.ArcFurnaceBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.electric_generator.ElectricGeneratorBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.power_importer.PowerImporterBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.consumer.crusher.ElectricCrusherBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.combustion.CombustionGeneratorBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.solarpanel.SolarPanelBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.test.VoltageSourceBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.waterwheel.WaterWheelBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.consumer.arc_furnace.ArcFurnaceBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.consumer.power_exporter.PowerExporterBlock;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
 import com.teamofelectrorealism.electrorealism.worldgen.tree.ModTreeGrowers;
 import net.minecraft.core.BlockPos;
@@ -84,16 +86,14 @@ public class ModBlocks {
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));
 
-    public static final DeferredBlock<Block> FE_GENERATOR = registerBlock("fe_generator",
-            () -> new FEGeneratorBlock(BlockBehaviour.Properties.of()
+    public static final DeferredBlock<Block> POWER_EXPORTER = registerBlock("power_exporter",
+            () -> new PowerExporterBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)
-                    .noOcclusion()
-                    .randomTicks(),
-                    1000));
+                    .noOcclusion()));
 
-    public static final DeferredBlock<Block> FE_CONVERTER = registerBlock("fe_converter",
-            () -> new FEToPowerConverterBlock(BlockBehaviour.Properties.of()
+    public static final DeferredBlock<Block> POWER_IMPORTER = registerBlock("power_importer",
+            () -> new PowerImporterBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));
