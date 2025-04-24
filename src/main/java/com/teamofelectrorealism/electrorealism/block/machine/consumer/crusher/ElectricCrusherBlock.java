@@ -3,7 +3,7 @@ package com.teamofelectrorealism.electrorealism.block.machine.consumer.crusher;
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.machine.consumer.AbstractPowerUserBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.consumer.AbstractPowerConsumerBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -24,7 +24,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-public class ElectricCrusherBlock extends AbstractPowerUserBlock {
+public class ElectricCrusherBlock extends AbstractPowerConsumerBlock {
 
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final MapCodec<ElectricCrusherBlock> CODEC = simpleCodec(ElectricCrusherBlock::new);

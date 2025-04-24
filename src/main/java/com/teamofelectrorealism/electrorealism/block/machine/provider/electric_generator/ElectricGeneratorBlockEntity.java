@@ -2,14 +2,14 @@ package com.teamofelectrorealism.electrorealism.block.machine.provider.electric_
 
 import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractGeneratorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractPowerProviderBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class ElectricGeneratorBlockEntity extends AbstractGeneratorBlockEntity {
+public class ElectricGeneratorBlockEntity extends AbstractPowerProviderBlockEntity {
     public final int voltage = 230;
 
     public ElectricGeneratorBlockEntity(BlockPos pos, BlockState blockState) {

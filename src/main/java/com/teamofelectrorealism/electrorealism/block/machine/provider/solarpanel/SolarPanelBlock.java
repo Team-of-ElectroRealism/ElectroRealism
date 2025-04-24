@@ -3,7 +3,7 @@ package com.teamofelectrorealism.electrorealism.block.machine.provider.solarpane
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractGeneratorBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractPowerProviderBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-public class SolarPanelBlock extends AbstractGeneratorBlock {
+public class SolarPanelBlock extends AbstractPowerProviderBlock {
     public static final MapCodec<SolarPanelBlock> CODEC = simpleCodec(SolarPanelBlock::new);
     public SolarPanelBlock(Properties properties) {
         super(properties);

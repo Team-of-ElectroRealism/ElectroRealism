@@ -2,14 +2,14 @@ package com.teamofelectrorealism.electrorealism.block.machine.provider.solarpane
 
 import com.teamofelectrorealism.electrorealism.block.IVoltageConsumer;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractGeneratorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractPowerProviderBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class SolarPanelBlockEntity extends AbstractGeneratorBlockEntity {
+public class SolarPanelBlockEntity extends AbstractPowerProviderBlockEntity {
     private final int voltage = 230;
 
     public SolarPanelBlockEntity(BlockPos pos, BlockState blockState) {

@@ -1,13 +1,13 @@
 package com.teamofelectrorealism.electrorealism.block.machine.provider.power_importer;
 
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.block.machine.consumer.AbstractPowerUserBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.consumer.AbstractPowerConsumerBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class PowerImporterBlockEntity extends AbstractPowerUserBlockEntity {
+public class PowerImporterBlockEntity extends AbstractPowerConsumerBlockEntity {
     public PowerImporterBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlockEntityTypes.POWER_IMPORTER_BE.get(), pos, blockState);
     }

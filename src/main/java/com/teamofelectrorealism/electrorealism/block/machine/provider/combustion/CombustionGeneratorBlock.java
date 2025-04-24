@@ -3,7 +3,7 @@ package com.teamofelectrorealism.electrorealism.block.machine.provider.combustio
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractGeneratorBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractPowerProviderBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -25,7 +25,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-public class CombustionGeneratorBlock extends AbstractGeneratorBlock {
+public class CombustionGeneratorBlock extends AbstractPowerProviderBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
     public static final MapCodec<CombustionGeneratorBlock> CODEC = simpleCodec(CombustionGeneratorBlock::new);

@@ -2,7 +2,7 @@ package com.teamofelectrorealism.electrorealism.block.machine.consumer.crusher;
 
 import com.teamofelectrorealism.electrorealism.api.ElectricalAPI;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.block.machine.consumer.AbstractPowerUserBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.consumer.AbstractPowerConsumerBlockEntity;
 import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.recipe.crusher.ElectricCrusherRecipe;
 import com.teamofelectrorealism.electrorealism.recipe.crusher.ElectricCrusherRecipeInput;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public class ElectricCrusherBlockEntity extends AbstractPowerUserBlockEntity implements MenuProvider {
+public class ElectricCrusherBlockEntity extends AbstractPowerConsumerBlockEntity implements MenuProvider {
     public final ItemStackHandler itemHandler = new ItemStackHandler(3) {
         @Override
         protected void onContentsChanged(int slot) {

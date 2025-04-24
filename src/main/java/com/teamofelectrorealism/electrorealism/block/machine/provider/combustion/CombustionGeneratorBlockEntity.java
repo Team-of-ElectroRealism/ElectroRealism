@@ -2,7 +2,7 @@ package com.teamofelectrorealism.electrorealism.block.machine.provider.combustio
 
 import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
-import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractGeneratorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractPowerProviderBlockEntity;
 import com.teamofelectrorealism.electrorealism.screen.generator.CombustionGeneratorMenu;
 import com.teamofelectrorealism.electrorealism.utils.FuelValues;
 import net.minecraft.core.BlockPos;
@@ -27,7 +27,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
-public class CombustionGeneratorBlockEntity extends AbstractGeneratorBlockEntity implements MenuProvider {
+public class CombustionGeneratorBlockEntity extends AbstractPowerProviderBlockEntity implements MenuProvider {
     public final ItemStackHandler itemHandler = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {

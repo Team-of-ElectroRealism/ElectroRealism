@@ -3,7 +3,7 @@ package com.teamofelectrorealism.electrorealism.block.machine.consumer.arc_furna
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.machine.consumer.AbstractPowerUserBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.consumer.AbstractPowerConsumerBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -27,7 +27,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class ArcFurnaceBlock extends AbstractPowerUserBlock {
+public class ArcFurnaceBlock extends AbstractPowerConsumerBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final MapCodec<ArcFurnaceBlock> CODEC = simpleCodec(ArcFurnaceBlock::new);
     public static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 16, 16);

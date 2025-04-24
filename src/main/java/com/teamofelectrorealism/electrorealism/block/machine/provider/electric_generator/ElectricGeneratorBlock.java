@@ -3,7 +3,7 @@ package com.teamofelectrorealism.electrorealism.block.machine.provider.electric_
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
-import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractGeneratorBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractPowerProviderBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
@@ -21,7 +21,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import org.jetbrains.annotations.Nullable;
 
-public class ElectricGeneratorBlock extends AbstractGeneratorBlock {
+public class ElectricGeneratorBlock extends AbstractPowerProviderBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
     public static final MapCodec<ElectricGeneratorBlock> CODEC = simpleCodec(ElectricGeneratorBlock::new);
