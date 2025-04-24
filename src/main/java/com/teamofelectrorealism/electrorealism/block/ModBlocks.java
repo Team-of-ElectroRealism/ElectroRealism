@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.components.*;
 import com.teamofelectrorealism.electrorealism.block.connector.duo.DuoConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.large.LargeConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.custom.ModFlammableRotatedPillarBlock;
@@ -106,6 +107,34 @@ public class ModBlocks {
 
     public static final DeferredBlock<ResistorBlock> RESISTOR = registerBlock("resistor",
             () -> new ResistorBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .strength(0.2F)
+                    .sound(SoundType.METAL)
+            ));
+
+    public static final DeferredBlock<AndGateBlock> AND_GATE = registerBlock("and_gate",
+            () -> new AndGateBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .strength(0.2F)
+                    .sound(SoundType.METAL)
+            ));
+
+    public static final DeferredBlock<OrGateBlock> OR_GATE = registerBlock("or_gate",
+            () -> new OrGateBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .strength(0.2F)
+                    .sound(SoundType.METAL)
+            ));
+
+    public static final DeferredBlock<NotGateBlock> NOT_GATE = registerBlock("not_gate",
+            () -> new NotGateBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .strength(0.2F)
+                    .sound(SoundType.METAL)
+            ));
+
+    public static final DeferredBlock<GroundBlock> GROUND = registerBlock("ground",
+            () -> new GroundBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .strength(0.2F)
                     .sound(SoundType.METAL)

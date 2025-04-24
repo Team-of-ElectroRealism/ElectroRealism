@@ -1,7 +1,5 @@
-package com.teamofelectrorealism.electrorealism.block;
+package com.teamofelectrorealism.electrorealism.block.components;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;

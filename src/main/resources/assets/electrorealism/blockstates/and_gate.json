@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "electrorealism:block/and_gate" },
+    "facing=south": { "model": "electrorealism:block/and_gate", "y": 180 },
+    "facing=west": { "model": "electrorealism:block/and_gate", "y": 270 },
+    "facing=east": { "model": "electrorealism:block/and_gate", "y": 90 }
+  }
+}

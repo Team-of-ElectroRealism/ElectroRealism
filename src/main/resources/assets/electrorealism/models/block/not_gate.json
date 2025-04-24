@@ -2,8 +2,8 @@
 	"credit": "Made with Blockbench",
 	"texture_size": [32, 32],
 	"textures": {
-		"particle": "smooth_stone",
-		"all": "not_gate"
+		"particle": "electrorealism:block/not_gate",
+		"all": "electrorealism:block/not_gate"
 	},
 	"elements": [
 		{
