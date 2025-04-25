@@ -10,6 +10,7 @@ import com.teamofelectrorealism.electrorealism.block.machine.generator.test.Volt
 import com.teamofelectrorealism.electrorealism.block.machine.generator.waterwheel.WaterWheelBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.user.arc_furnace.ArcFurnaceBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.user.crusher.ElectricCrusherBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.components.ANDGate.AndGateBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
@@ -35,6 +36,14 @@ public class ModBlockEntityTypes {
                             ModBlocks.ARC_FURNACE.get()
                     )
                     .build(null));
+
+    public static final Supplier<BlockEntityType<AndGateBlockEntity>> AND_GATE_BE =
+            BLOCK_ENTITY_TYPES.register("and_gate_be",
+                    () -> BlockEntityType.Builder.of(
+                            AndGateBlockEntity::new,
+                            ModBlocks.AND_GATE.get()
+                    ).build(null));
+
 
     public static final Supplier<BlockEntityType<VoltageSourceBlockEntity>> VOLTAGE_SOURCE_BE =
             BLOCK_ENTITY_TYPES.register("voltage_source_be",

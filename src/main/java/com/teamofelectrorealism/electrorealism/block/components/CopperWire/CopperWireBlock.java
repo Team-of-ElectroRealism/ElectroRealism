@@ -1,4 +1,4 @@
-package com.teamofelectrorealism.electrorealism.block.components;
+package com.teamofelectrorealism.electrorealism.block.components.CopperWire;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

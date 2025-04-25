@@ -1,4 +1,4 @@
-package com.teamofelectrorealism.electrorealism.block.components;
+package com.teamofelectrorealism.electrorealism.block.components.NOTGate;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -16,10 +16,10 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class OrGateBlock extends Block {
+public class NotGateBlock extends Block {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-    public OrGateBlock(BlockBehaviour.Properties properties) {
+    public NotGateBlock(BlockBehaviour.Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, net.minecraft.core.Direction.NORTH));
     }

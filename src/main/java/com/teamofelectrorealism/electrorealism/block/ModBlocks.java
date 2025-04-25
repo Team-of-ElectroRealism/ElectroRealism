@@ -1,7 +1,12 @@
 package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
-import com.teamofelectrorealism.electrorealism.block.components.*;
+import com.teamofelectrorealism.electrorealism.block.components.ANDGate.AndGateBlock;
+import com.teamofelectrorealism.electrorealism.block.components.CopperWire.CopperWireBlock;
+import com.teamofelectrorealism.electrorealism.block.components.Ground.GroundBlock;
+import com.teamofelectrorealism.electrorealism.block.components.NOTGate.NotGateBlock;
+import com.teamofelectrorealism.electrorealism.block.components.ORGate.OrGateBlock;
+import com.teamofelectrorealism.electrorealism.block.components.Resistor.ResistorBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.duo.DuoConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.large.LargeConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.custom.ModFlammableRotatedPillarBlock;
