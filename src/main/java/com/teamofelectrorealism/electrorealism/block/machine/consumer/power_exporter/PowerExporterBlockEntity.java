@@ -1,5 +1,6 @@
 package com.teamofelectrorealism.electrorealism.block.machine.consumer.power_exporter;
 
+import com.teamofelectrorealism.electrorealism.api.ElectricalAPI;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.machine.consumer.AbstractPowerConsumerBlockEntity;
 import com.teamofelectrorealism.electrorealism.energy.ModEnergyStorage;
@@ -8,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.energy.IEnergyStorage;
@@ -15,9 +17,19 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
 import javax.annotation.Nullable;
 
 public class PowerExporterBlockEntity extends AbstractPowerConsumerBlockEntity {
-    private static final int ENERGY_TRANSFER_AMOUNT = 320;
 
     private static final String ENERGY_KEY = "power_exporter.energy";
+    private static final String BUFFER_LEVEL_KEY = "power_exporter.buffer_level";
+    private static final String BUFFER_TOTAL_LEVEL_KEY = "power_exporter.buffer_total_level";
+    private static final String INTERNAL_RESISTANCE_KEY = "power_exporter.internal_resistance";
+
+    private static final int TOTAL_BUFFER_CAPACITY = 2000; // In mAh
+    private static final int INTERNAL_RESISTANCE = 10; // In ohm
+    private static final int ENERGY_TRANSFER_AMOUNT = 320;
+
+    private int bufferLevel;
+    private int bufferTotalLevel = TOTAL_BUFFER_CAPACITY;
+    private int internalResistance = INTERNAL_RESISTANCE;
 
     private final ModEnergyStorage ENERGY_STORAGE = createEnergyStorage();
 
@@ -40,34 +52,56 @@ public class PowerExporterBlockEntity extends AbstractPowerConsumerBlockEntity {
 
     @Override
     public void receiveVoltage(int voltage) {
+        int totalResistance = this.internalResistance;
 
+        int chargeIncrease = ElectricalAPI.getChargeIncreaseMah(voltage, totalResistance, (double) 1 / 20);
+
+        setBufferCharge(bufferLevel + chargeIncrease);
     }
 
     @Override
     public int getBufferCharge() {
-        return 0;
+        return bufferLevel;
     }
 
     @Override
     public void setBufferCharge(int charge) {
-
+        this.bufferLevel = Math.max(0, Math.min(charge, bufferTotalLevel));
     }
 
     @Override
     public void tick(Level level, BlockPos pos, BlockState state) {
-        fillUpOnEnergy();
-        pushEnergyToNeighborAbove();
+        if (isPowered() && hasBufferEnoughCharge()) {
+            fillUpOnEnergy();
+            decreaseBufferCharge();
+            pushEnergyToNeighborAbove();
+        }
+    }
+
+    private boolean hasBufferEnoughCharge() {
+        return bufferLevel >= 100;
+    }
+
+    private void decreaseBufferCharge() {
+        bufferLevel = bufferLevel - 3;
+    }
+
+    private boolean isPowered() {
+        return this.bufferLevel > 0;
     }
 
     @Override
     public boolean isFaceAllowed(BlockState state, Direction faceAccessed) {
-        return false;
+        return true;
     }
 
     //  --- SAVE/LOAD ---
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putInt(ENERGY_KEY, ENERGY_STORAGE.getEnergyStored());
+        tag.putInt(BUFFER_LEVEL_KEY, bufferLevel);
+        tag.putInt(BUFFER_TOTAL_LEVEL_KEY, bufferTotalLevel);
+        tag.putInt(INTERNAL_RESISTANCE_KEY, internalResistance);
         super.saveAdditional(tag, registries);
     }
 
@@ -75,6 +109,9 @@ public class PowerExporterBlockEntity extends AbstractPowerConsumerBlockEntity {
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         ENERGY_STORAGE.setEnergy(tag.getInt(ENERGY_KEY));
+        bufferLevel = tag.getInt(BUFFER_LEVEL_KEY);
+        bufferTotalLevel = tag.getInt(BUFFER_TOTAL_LEVEL_KEY);
+        internalResistance = tag.getInt(INTERNAL_RESISTANCE_KEY);
     }
 
     // --- FUNCTIONALITY ---
