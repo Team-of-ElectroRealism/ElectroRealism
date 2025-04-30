@@ -6,6 +6,7 @@ import com.teamofelectrorealism.electrorealism.block.connector.large.LargeConnec
 import com.teamofelectrorealism.electrorealism.block.custom.ModFlammableRotatedPillarBlock;
 import com.teamofelectrorealism.electrorealism.block.custom.Mounting_PlateBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlock;
+import com.teamofelectrorealism.electrorealism.block.machine.consumer.refinery.RefineryBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.provider.electric_generator.ElectricGeneratorBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.provider.power_importer.PowerImporterBlock;
 import com.teamofelectrorealism.electrorealism.block.machine.consumer.crusher.ElectricCrusherBlock;
@@ -50,8 +51,15 @@ public class ModBlocks {
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));
+
     public static final DeferredBlock<Block> ARC_FURNACE = registerBlock("arc_furnace",
             () -> new ArcFurnaceBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_RED)
+                    .noOcclusion()));
+
+    public static final DeferredBlock<Block> REFINERY = registerBlock("refinery",
+            () -> new RefineryBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_RED)
                     .noOcclusion()));

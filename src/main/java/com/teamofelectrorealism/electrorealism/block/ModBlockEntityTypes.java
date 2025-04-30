@@ -3,6 +3,7 @@ package com.teamofelectrorealism.electrorealism.block;
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.connector.duo.DuoConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.large.LargeConnectorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.consumer.refinery.RefineryBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.provider.combustion.CombustionGeneratorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.small.SmallConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.provider.electric_generator.ElectricGeneratorBlockEntity;
@@ -58,6 +59,10 @@ public class ModBlockEntityTypes {
     public static final Supplier<BlockEntityType<CombustionGeneratorBlockEntity>> COMBUSTION_GENERATOR_BE =
             BLOCK_ENTITY_TYPES.register("combustion_generator_be",
                     () -> BlockEntityType.Builder.of(CombustionGeneratorBlockEntity::new, ModBlocks.COMBUSTION_GENERATOR.get()).build(null));
+
+    public static final Supplier<BlockEntityType<RefineryBlockEntity>> REFINERY_BE =
+            BLOCK_ENTITY_TYPES.register("refinery_be",
+                    () -> BlockEntityType.Builder.of(RefineryBlockEntity::new, ModBlocks.REFINERY.get()).build(null));
 
     public static final Supplier<BlockEntityType<SmallConnectorBlockEntity>> SMALL_CONNECTOR_BE =
             BLOCK_ENTITY_TYPES.register("small_connector_be",
