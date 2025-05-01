@@ -86,6 +86,7 @@ public interface IWireNode {
      * otherwise an error code indicating the reason for failure.
      */
     static WireConnectResult connect(Level level, BlockPos pos1, int connectionPointIndex1, BlockPos pos2, int connectionPointIndex2, WireType wireType) {
+        LOGGER.info("Attempting to connect wires at " + pos1 + " and " + pos2);
         BlockEntity blockEntity1 = level.getBlockEntity(pos1);
         BlockEntity blockEntity2 = level.getBlockEntity(pos2);
         if (blockEntity1 == null || blockEntity2 == null || blockEntity1 == blockEntity2) { return WireConnectResult.INVALID; }

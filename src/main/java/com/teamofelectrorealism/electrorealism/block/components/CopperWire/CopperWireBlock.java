@@ -1,13 +1,20 @@
 package com.teamofelectrorealism.electrorealism.block.components.CopperWire;
 
+import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.network.INetworkMember;
+import com.teamofelectrorealism.electrorealism.power.IWireNode;
+import com.teamofelectrorealism.electrorealism.power.WireType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -16,7 +23,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CopperWireBlock extends Block {
+public class CopperWireBlock extends Block implements BlockEntity {
 
     public static final BooleanProperty NORTH = BooleanProperty.create("north");
     public static final BooleanProperty EAST = BooleanProperty.create("east");
@@ -100,6 +107,34 @@ public class CopperWireBlock extends Block {
         }
 
         return newState;
+    }
+
+    @Override
+    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moved) {
+        LOGGER.info("onPlace triggered at {}", pos);
+        super.onPlace(state, level, pos, oldState, moved);
+
+
+        if (level.isClientSide) return;
+
+        BlockEntity selfBe = level.getBlockEntity(pos);
+        LOGGER.info("  Self BlockEntity at {} = {}", pos, selfBe);
+        if (!(selfBe instanceof IWireNode selfNode)) return;
+
+        for (Direction dir : Direction.values()) {
+            BlockPos neighborPos = pos.relative(dir);
+            BlockEntity neighborBe = level.getBlockEntity(neighborPos);
+            LOGGER.info("  Neighbor BlockEntity at {} = {}", pos.above(), neighborBe);
+            if (neighborBe instanceof IWireNode neighborNode) {
+                int selfIndex = selfNode.getAvailableNode();
+                int neighborIndex = neighborNode.getAvailableNode();
+
+                if (selfIndex != -1 && neighborIndex != -1) {
+                    IWireNode.connect(level, pos, selfIndex, neighborPos, neighborIndex, WireType.COPPER);
+                    LOGGER.info("Connected copper wires at {} <-> {}", pos, neighborPos);
+                }
+            }
+        }
     }
 
     @Override
@@ -193,4 +228,19 @@ public class CopperWireBlock extends Block {
             LOGGER.info("Forced render update at {}", pos);
         }
     }
+
+    @Override
+    public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof INetworkMember member && member.getNetworkId() != null) {
+            ElectroRealism.NETWORK_MANAGER.registerINetworkMemberInNetwork(member.getNetworkId(), member);
+        }
+    }
+
+    /*@Nullable
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new CopperWireBlockEntity(ModBlockEntityTypes.COPPER_WIRE_BE.get(), pos, state);
+    }*/
+
 }

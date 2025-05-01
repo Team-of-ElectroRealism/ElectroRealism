@@ -19,4 +19,6 @@ public interface ILogicGate extends INetworkMember {
      * The type of logic gate (AND, OR, NOT, etc.).
      */
     LogicGateType getLogicType();
+
+    void tick();
 }
