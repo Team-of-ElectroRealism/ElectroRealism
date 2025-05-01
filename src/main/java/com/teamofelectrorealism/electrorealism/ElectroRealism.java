@@ -7,12 +7,12 @@ import com.teamofelectrorealism.electrorealism.datacomponents.ModDataComponents;
 import com.teamofelectrorealism.electrorealism.item.ModCreativeModeTabs;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
 import com.teamofelectrorealism.electrorealism.network.NetworkManager;
-import com.teamofelectrorealism.electrorealism.network.ValidateNetworkCommand;
 import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.screen.ModMenuTypes;
 import com.teamofelectrorealism.electrorealism.screen.arc_furnace.ArcFurnaceScreen;
 import com.teamofelectrorealism.electrorealism.screen.crusher.ElectricCrusherScreen;
 import com.teamofelectrorealism.electrorealism.screen.generator.CombustionGeneratorScreen;
+import com.teamofelectrorealism.electrorealism.screen.refinery.RefineryScreen;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.slf4j.Logger;
@@ -132,6 +132,7 @@ public class ElectroRealism
             event.register(ModMenuTypes.ELECTRIC_CRUSHER_MENU.get(), ElectricCrusherScreen::new);
             event.register(ModMenuTypes.ARC_FURNACE_MENU.get(), ArcFurnaceScreen::new);
             event.register(ModMenuTypes.COMBUSTION_GENERATOR_MENU.get(), CombustionGeneratorScreen::new);
+            event.register(ModMenuTypes.REFINERY_MENU.get(), RefineryScreen::new);
         }
     }
 }

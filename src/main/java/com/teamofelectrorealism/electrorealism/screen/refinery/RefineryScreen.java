@@ -16,7 +16,7 @@ public class RefineryScreen extends AbstractModScreen<RefineryMenu> {
     private static final ResourceLocation POWER_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/icons/icon_power.png");
 
-    protected RefineryScreen(RefineryMenu menu, Inventory playerInventory, Component title) {
+    public RefineryScreen(RefineryMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
     }
 
