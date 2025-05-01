@@ -82,7 +82,7 @@ public abstract class AbstractModMenu extends AbstractContainerMenu {
                 return ItemStack.EMPTY;
             }
         } else {
-            System.err.println("Invalid slotIndex:" + pIndex + " for block entity menu."); // Use System.err for errors
+            System.out.println("Invalid slotIndex:" + pIndex + " for block entity menu.");
             return ItemStack.EMPTY;
         }
 

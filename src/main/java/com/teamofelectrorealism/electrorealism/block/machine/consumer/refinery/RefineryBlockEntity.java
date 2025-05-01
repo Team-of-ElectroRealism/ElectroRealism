@@ -6,6 +6,7 @@ import com.teamofelectrorealism.electrorealism.block.machine.consumer.AbstractPo
 import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.recipe.refinery.RefineryRecipe;
 import com.teamofelectrorealism.electrorealism.recipe.refinery.RefineryRecipeInput;
+import com.teamofelectrorealism.electrorealism.screen.refinery.RefineryMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;

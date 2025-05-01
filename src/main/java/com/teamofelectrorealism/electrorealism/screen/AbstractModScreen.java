@@ -56,7 +56,6 @@ public abstract class AbstractModScreen<T extends AbstractModMenu> extends Abstr
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        // Standard render loop
         renderBackground(guiGraphics, mouseX, mouseY, delta);
         super.render(guiGraphics, mouseX, mouseY, delta);
         renderTooltip(guiGraphics, mouseX, mouseY);

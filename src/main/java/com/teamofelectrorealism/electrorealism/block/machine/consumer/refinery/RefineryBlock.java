@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.consumer.AbstractPowerConsumerBlock;
-import com.teamofelectrorealism.electrorealism.block.machine.consumer.crusher.ElectricCrusherBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
