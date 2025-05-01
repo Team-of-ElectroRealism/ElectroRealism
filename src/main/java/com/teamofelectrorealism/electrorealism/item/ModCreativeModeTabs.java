@@ -46,6 +46,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.ELECTRIC_GENERATOR);
                         output.accept(ModBlocks.POWER_EXPORTER);
                         output.accept(ModBlocks.POWER_IMPORTER);
+                        output.accept(ModBlocks.REFINERY);
 
                         output.accept(ModBlocks.SMALL_CONNECTOR);
                         output.accept(ModBlocks.LARGE_CONNECTOR);
