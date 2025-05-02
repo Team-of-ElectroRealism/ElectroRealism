@@ -143,23 +143,15 @@ public class NetworkSavedData extends SavedData {
 
     /**
      * Updates the network data with the current networks from the {@link NetworkManager}.
-     * Marks the data as dirty if changes are detected.
+     * Marks the data as dirty unconditionally when called, ensuring internal changes are saved.
      *
      * @param currentNetworksFromManager The current set of {@link Network} from the manager.
      */
     public void updateNetworkData(Set<Network> currentNetworksFromManager) {
-        int currentInternalSize = this.networks.size();
-        int incomingSize = currentNetworksFromManager.size();
-        LOGGER.debug("updateNetworkData called. Internal size: {}, Incoming size: {}", currentInternalSize, incomingSize);
+        this.networks = currentNetworksFromManager != null ? new HashSet<>(currentNetworksFromManager) : new HashSet<>();
 
-
-        if (!this.networks.equals(currentNetworksFromManager)) {
-            this.networks = new HashSet<>(currentNetworksFromManager);
-            LOGGER.info("Network data CHANGED. Updating internal set (new size: {}) and marking dirty.", this.networks.size());
-            setDirty();
-        } else {
-            LOGGER.debug("Network data appears unchanged, not marking as dirty.");
-        }
+        LOGGER.info("Updating internal network set (new size: {}) and marking dirty.", this.networks.size());
+        setDirty();
     }
 
     /**
@@ -168,6 +160,7 @@ public class NetworkSavedData extends SavedData {
      * @return A new {@link Set} containing the current {@link Network} instances.
      */
     Set<Network> getNetworks() {
-        return new HashSet<>(this.networks);
+        // Add null check for safety
+        return this.networks != null ? new HashSet<>(this.networks) : new HashSet<>();
     }
 }

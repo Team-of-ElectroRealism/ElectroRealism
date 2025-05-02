@@ -6,6 +6,7 @@ import com.teamofelectrorealism.electrorealism.block.ModBlocks;
 import com.teamofelectrorealism.electrorealism.item.ModItems;
 import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import com.teamofelectrorealism.electrorealism.rendering.DuoConnectorRenderer;
+import com.teamofelectrorealism.electrorealism.rendering.HighlightCircuits;
 import com.teamofelectrorealism.electrorealism.rendering.HighlightNetworks;
 import com.teamofelectrorealism.electrorealism.rendering.RenderOutlineUtil;
 import net.minecraft.client.DeltaTracker;
@@ -42,6 +43,19 @@ public class ClientEvents {
 
         HighlightNetworks.highlightNetwork(networkManager.getNetworksDataForClient());
         HighlightNetworks.renderHighlights(poseStack, buffer, partialTick);
+    }
+
+    @SubscribeEvent
+    public static void renderCircuitHighlights(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
+
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+
+        MultiBufferSource buffer = mc.renderBuffers().bufferSource();
+        PoseStack poseStack = event.getPoseStack();
+
+        HighlightCircuits.renderCircuitHighlights(poseStack, buffer);
     }
 
     @SubscribeEvent

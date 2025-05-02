@@ -35,7 +35,7 @@ public enum WireType {
         return ID;
     }
 
-    public double getResistance() {
+    public double getResistivity() {
         return RESISTIVITY;
     }
 

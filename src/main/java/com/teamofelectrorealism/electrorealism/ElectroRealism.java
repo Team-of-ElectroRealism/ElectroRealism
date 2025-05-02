@@ -12,6 +12,9 @@ import com.teamofelectrorealism.electrorealism.screen.ModMenuTypes;
 import com.teamofelectrorealism.electrorealism.screen.arc_furnace.ArcFurnaceScreen;
 import com.teamofelectrorealism.electrorealism.screen.crusher.ElectricCrusherScreen;
 import com.teamofelectrorealism.electrorealism.screen.generator.CombustionGeneratorScreen;
+import com.teamofelectrorealism.electrorealism.simulation.NgSpiceSimulator;
+import com.teamofelectrorealism.electrorealism.Config;
+import com.teamofelectrorealism.electrorealism.screen.refinery.RefineryScreen;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.slf4j.Logger;
@@ -35,29 +38,23 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
-// The value here should match an entry in the META-INF/neoforge.mods.toml file
+import java.io.IOException;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
 @Mod(ElectroRealism.MODID)
-public class ElectroRealism
-{
-    // Define mod id in a common place for everything to reference
+public class ElectroRealism {
     public static final String MODID = "electrorealism";
-    // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static final NetworkManager NETWORK_MANAGER = new NetworkManager();
 
-    // The constructor for the mod class is the first code that is run when your mod is loaded.
-    // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
-    public ElectroRealism(IEventBus modEventBus, ModContainer modContainer)
-    {
+    /** Holds every line ngspice prints via sendCharCallback */
+    public static final BlockingQueue<String> SPICE_OUTPUT_QUEUE = new LinkedBlockingQueue<>();
 
-        // Register the commonSetup method for modloading
+    public ElectroRealism(IEventBus modEventBus, ModContainer modContainer) {
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::setupRenderers);
-
-        // Register ourselves for server and other game events we are interested in.
-        // Note that this is necessary if and only if we want *this* class (ExampleMod) to respond directly to events.
-        // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
         NeoForge.EVENT_BUS.register(this);
 
         ModCreativeModeTabs.register(modEventBus);
@@ -69,16 +66,19 @@ public class ElectroRealism
         ModRecipes.register(modEventBus);
         ModDataComponents.register(modEventBus);
 
-        // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
 
-        // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
-    private void commonSetup(final FMLCommonSetupEvent event)
-    {
-        // Some common setup code
+    private void commonSetup(final FMLCommonSetupEvent event) {
+        try {
+            NgSpiceSimulator.instance();
+            LOGGER.info("ngspice initialized");
+        } catch (IOException e) {
+            throw new RuntimeException("Could not load ngspice native", e);
+        }
+
         LOGGER.info("HELLO FROM COMMON SETUP");
 
         if (Config.logDirtBlock)
@@ -86,7 +86,7 @@ public class ElectroRealism
 
         LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
 
-        Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
+        Config.items.forEach(item -> LOGGER.info("ITEM >> {}", item.toString()));
     }
 
     private void setupRenderers(final FMLCommonSetupEvent event) {
@@ -95,8 +95,7 @@ public class ElectroRealism
         BlockEntityRenderers.register(ModBlockEntityTypes.DUO_CONNECTOR_BE.get(), ConnectorRenderer::new);
     }
 
-    private void addCreative(BuildCreativeModeTabContentsEvent event)
-    {
+    private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
             event.accept(ModBlocks.PROGRAMMER_BLOCK);
             event.accept(ModBlocks.COPPER_WIRE);
@@ -106,22 +105,15 @@ public class ElectroRealism
         }
     }
 
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event)
-    {
-        // Do something when the server starts
+    public void onServerStarting(ServerStartingEvent event) {
         LOGGER.info("HELLO from server starting");
     }
 
-    // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-    public static class ClientModEvents
-    {
+    public static class ClientModEvents {
         @SubscribeEvent
-        public static void onClientSetup(FMLClientSetupEvent event)
-        {
-            // Some client setup code
+        public static void onClientSetup(FMLClientSetupEvent event) {
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
         }
@@ -131,6 +123,7 @@ public class ElectroRealism
             event.register(ModMenuTypes.ELECTRIC_CRUSHER_MENU.get(), ElectricCrusherScreen::new);
             event.register(ModMenuTypes.ARC_FURNACE_MENU.get(), ArcFurnaceScreen::new);
             event.register(ModMenuTypes.COMBUSTION_GENERATOR_MENU.get(), CombustionGeneratorScreen::new);
+            event.register(ModMenuTypes.REFINERY_MENU.get(), RefineryScreen::new);
         }
     }
 }

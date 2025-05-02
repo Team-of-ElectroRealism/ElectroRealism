@@ -34,6 +34,11 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
         this.dropSelf(ModBlocks.SOLAR_PANEL.get());
         this.dropSelf(ModBlocks.COMBUSTION_GENERATOR.get());
         this.dropSelf(ModBlocks.WATER_WHEEL.get());
+        this.dropSelf(ModBlocks.POWER_EXPORTER.get());
+        this.dropSelf(ModBlocks.POWER_IMPORTER.get());
+        this.dropSelf(ModBlocks.ELECTRIC_GENERATOR.get());
+        this.dropSelf(ModBlocks.REFINERY.get());
+
         this.dropSelf(ModBlocks.STRIPPED_DARK_OAK_FENCE.get());
         this.dropSelf(ModBlocks.STONE_WALL.get());
         this.dropSelf(ModBlocks.COPPER_WIRE.get());
@@ -60,8 +65,6 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
         this.add(ModBlocks.RUBBER_LEAVES.get(),
                 block -> createLeavesDrops(block, ModBlocks.RUBBER_SAPLING.get(), NORMAL_LEAVES_SAPLING_CHANCES));
     }
-
-    // Helpers
 
     @Override
     protected Iterable<Block> getKnownBlocks() {

@@ -3,7 +3,7 @@ package com.teamofelectrorealism.electrorealism.block.connector.large;
 import com.mojang.serialization.MapCodec;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlock;
-import com.teamofelectrorealism.electrorealism.block.connector.TerminalType;
+import com.teamofelectrorealism.electrorealism.block.connector.ConnectorPolarity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -36,13 +36,13 @@ public class LargeConnectorBlock extends AbstractConnectorBlock {
     public static final VoxelShape SOUTH_SHAPE = Block.box(5, 5, 0, 11, 11, 7);
     public static final VoxelShape WEST_SHAPE = Block.box(9, 5, 5, 16, 11, 11);
     public static final VoxelShape EAST_SHAPE = Block.box(0, 5, 5, 7, 11, 11);
-    public static final EnumProperty<TerminalType> TERMINAL_TYPE = EnumProperty.create("terminal_type", TerminalType.class);
+    public static final EnumProperty<ConnectorPolarity> TERMINAL_TYPE = EnumProperty.create("terminal_type", ConnectorPolarity.class);
 
     public LargeConnectorBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
-                .setValue(TERMINAL_TYPE, TerminalType.None)
+                .setValue(TERMINAL_TYPE, ConnectorPolarity.NONE)
         );
     }
 
@@ -54,15 +54,15 @@ public class LargeConnectorBlock extends AbstractConnectorBlock {
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        return super.getStateForPlacement(context).setValue(TERMINAL_TYPE, TerminalType.None);
+        return super.getStateForPlacement(context).setValue(TERMINAL_TYPE, ConnectorPolarity.NONE);
     }
 
     @Override
     protected @NotNull InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (player.getMainHandItem().isEmpty()) {
             if (!level.isClientSide()) {
-                TerminalType currentType = state.getValue(TERMINAL_TYPE);
-                TerminalType nextType = currentType.getNext();
+                ConnectorPolarity currentType = state.getValue(TERMINAL_TYPE);
+                ConnectorPolarity nextType = currentType.getNext();
                 level.setBlock(pos, state.setValue(TERMINAL_TYPE, nextType), 3); // 3 = Send update to client
 
                 if (player instanceof ServerPlayer serverPlayer) {

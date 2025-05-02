@@ -2,6 +2,7 @@ package com.teamofelectrorealism.electrorealism.datagen;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.ModBlocks;
+import com.teamofelectrorealism.electrorealism.utils.ModTags;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
@@ -28,5 +29,9 @@ public class ModItemTagProvider extends ItemTagsProvider {
 
         this.tag(ItemTags.PLANKS)
                 .add(ModBlocks.RUBBER_PLANKS.get().asItem());
+
+        this.tag(ModTags.Items.BAUXITE_ORES)
+                .add(ModBlocks.DEEPSLATE_BAUXITE_ORE.get().asItem())
+                .add(ModBlocks.BAUXITE_ORE.get().asItem());
     }
 }

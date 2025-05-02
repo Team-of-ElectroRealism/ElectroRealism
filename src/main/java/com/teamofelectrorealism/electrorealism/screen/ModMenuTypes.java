@@ -4,6 +4,7 @@ import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.screen.arc_furnace.ArcFurnaceMenu;
 import com.teamofelectrorealism.electrorealism.screen.crusher.ElectricCrusherMenu;
 import com.teamofelectrorealism.electrorealism.screen.generator.CombustionGeneratorMenu;
+import com.teamofelectrorealism.electrorealism.screen.refinery.RefineryMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -25,6 +26,9 @@ public class ModMenuTypes {
 
     public static final DeferredHolder<MenuType<?>, MenuType<CombustionGeneratorMenu>> COMBUSTION_GENERATOR_MENU =
             registerMenuType("combustion_generator_menu", CombustionGeneratorMenu::new);
+
+    public static final DeferredHolder<MenuType<?>, MenuType<RefineryMenu>> REFINERY_MENU =
+            registerMenuType("refinery_menu", RefineryMenu::new);
 
     private static <T extends AbstractContainerMenu> DeferredHolder<MenuType<?>, MenuType<T>> registerMenuType(String name, IContainerFactory<T> factory) {
         return MENUS.register(name, () -> IMenuTypeExtension.create(factory));

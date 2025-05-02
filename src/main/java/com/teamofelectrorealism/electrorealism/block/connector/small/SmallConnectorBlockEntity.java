@@ -4,7 +4,7 @@ import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlock;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
-import com.teamofelectrorealism.electrorealism.block.connector.TerminalType;
+import com.teamofelectrorealism.electrorealism.block.connector.ConnectorPolarity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -56,7 +56,7 @@ public class SmallConnectorBlockEntity extends AbstractConnectorBlockEntity {
     }
 
     @Override
-    public TerminalType getTerminalType(int index) { // Return non-nullable TerminalType
+    public ConnectorPolarity getTerminalType(int index) { // Return non-nullable TerminalType
         // Read the type DIRECTLY from the BlockState property
         BlockState blockState = this.getBlockState();
         if (blockState.hasProperty(SmallConnectorBlock.TERMINAL_TYPE)) {
@@ -64,6 +64,6 @@ public class SmallConnectorBlockEntity extends AbstractConnectorBlockEntity {
             return blockState.getValue(SmallConnectorBlock.TERMINAL_TYPE);
         }
         // Fallback if property is missing (shouldn't happen)
-        return TerminalType.None;
+        return ConnectorPolarity.NONE;
     }
 }

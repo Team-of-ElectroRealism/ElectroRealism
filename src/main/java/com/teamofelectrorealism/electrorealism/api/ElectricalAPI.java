@@ -12,6 +12,13 @@ public class ElectricalAPI {
         return current * resistance;
     }
 
+    public static int getVoltageFromPower(int power, int current) {
+        if (current == 0) {
+            throw new IllegalArgumentException("Current cannot be zero.");
+        }
+        return power / current;
+    }
+
     public static int getResistance(int voltage, int current) {
         if (current == 0) {
             throw new IllegalArgumentException("Current cannot be zero.");

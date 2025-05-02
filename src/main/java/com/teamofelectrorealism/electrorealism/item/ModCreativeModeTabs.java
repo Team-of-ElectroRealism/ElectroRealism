@@ -26,6 +26,10 @@ public class ModCreativeModeTabs {
                         output.accept(ModItems.SPOOL);
                         output.accept(ModItems.COPPER_WIRE_SPOOL);
                         output.accept(ModItems.ALUMINUM_WIRE_SPOOL);
+                        output.accept(ModItems.RAW_BAUXITE);
+                        output.accept(ModItems.ALUMNIA_POWDER);
+                        output.accept(ModItems.ENRICHED_ALUMNIA);
+                        output.accept(ModItems.ALUMINIUM_INGOT);
 
                     }).build());
 
@@ -43,6 +47,10 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.SOLAR_PANEL);
                         output.accept(ModBlocks.COMBUSTION_GENERATOR);
                         output.accept(ModBlocks.WATER_WHEEL);
+                        output.accept(ModBlocks.ELECTRIC_GENERATOR);
+                        output.accept(ModBlocks.POWER_EXPORTER);
+                        output.accept(ModBlocks.POWER_IMPORTER);
+                        output.accept(ModBlocks.REFINERY);
 
                         output.accept(ModBlocks.SMALL_CONNECTOR);
                         output.accept(ModBlocks.LARGE_CONNECTOR);
@@ -51,6 +59,9 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.COPPER_WIRE);
                         output.accept(ModBlocks.STRIPPED_DARK_OAK_FENCE);
                         output.accept(ModBlocks.STONE_WALL);
+
+                        output.accept(ModBlocks.BAUXITE_ORE);
+                        output.accept(ModBlocks.DEEPSLATE_BAUXITE_ORE);
 
                     }).build());
 
