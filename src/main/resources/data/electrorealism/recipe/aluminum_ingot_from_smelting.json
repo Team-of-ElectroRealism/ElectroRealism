@@ -1,0 +1,9 @@
+{
+  "type": "electrorealism:smelting",
+  "ingredient": {
+    "item": "electrorealism:enriched_alumnia"
+  },
+  "result": {
+    "id": "electrorealism:aluminium_ingot"
+  }
+}

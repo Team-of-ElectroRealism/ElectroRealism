@@ -1,9 +1,10 @@
 {
 	"credit": "Made by Danders",
+	"render_type": "minecraft:cutout",
 	"textures": {
 		"0": "minecraft:block/glass",
 		"1": "electrorealism:block/refinery_bowl_side",
-		"2": "electrorealism:block/trefinery_bowl_top",
+		"2": "electrorealism:block/refinery_bowl_top",
 		"5": "minecraft:block/furnace_side",
 		"6": "minecraft:block/furnace_top",
 		"7": "minecraft:block/iron_block",

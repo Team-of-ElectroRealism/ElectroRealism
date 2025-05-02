@@ -34,6 +34,10 @@
   "item.electrorealism.spool": "Spool",
   "item.electrorealism.copper_wire_spool": "Copper Wire Spool",
   "item.electrorealism.aluminum_wire_spool": "Aluminum Wire Spool",
+  "item.electrorealism.aluminium_ingot": "Aluminium Ingot",
+  "item.electrorealism.alumnia_powder": "Alumnia Powder",
+  "item.electrorealism.enriched_alumnia": "Enriched Alumnia",
+  "item.electrorealism.raw_bauxite": "Raw Bauxite",
 
   "creativetab.electrorealism.electrorealism_items": "ElectroRealism Items",
   "creativetab.electrorealism.electrorealism_blocks": "ElectroRealism Blocks",
