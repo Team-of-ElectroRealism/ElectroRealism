@@ -10,7 +10,7 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class RefineryScreen extends AbstractModScreen<RefineryMenu> {
     private static final ResourceLocation GUI_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/crusher/refinery_gui.png");
+            ResourceLocation.fromNamespaceAndPath(ElectroRealism.MODID, "textures/gui/crusher/electric_crusher_gui.png");
     private static final ResourceLocation ARROW_TEXTURE =
             ResourceLocation.parse("textures/gui/sprites/container/furnace/burn_progress.png");
     private static final ResourceLocation POWER_TEXTURE =
