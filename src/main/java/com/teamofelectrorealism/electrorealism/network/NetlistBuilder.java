@@ -1,8 +1,8 @@
 package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.logging.LogUtils;
-import com.teamofelectrorealism.electrorealism.block.IPowerProvider;
-import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
+import com.teamofelectrorealism.electrorealism.block.IVoltageProvider;
+import com.teamofelectrorealism.electrorealism.block.IVoltageConsumer;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorPolarity;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.WireType;
@@ -88,9 +88,9 @@ public class NetlistBuilder {
         classified.put(CONNECTORS_KEY, new ArrayList<>());
 
         for (INetworkMember member : adjacencyMap.keySet()) {
-            if (member instanceof IPowerProvider && !(member instanceof IWireNode)) {
+            if (member instanceof IVoltageProvider && !(member instanceof IWireNode)) {
                 classified.get(GENERATORS_KEY).add(member);
-            } else if (member instanceof IPowerReceiver && !(member instanceof IWireNode)) {
+            } else if (member instanceof IVoltageConsumer && !(member instanceof IWireNode)) {
                 classified.get(MACHINES_KEY).add(member);
             } else if (member instanceof IWireNode) {
                 classified.get(CONNECTORS_KEY).add(member);
@@ -145,7 +145,7 @@ public class NetlistBuilder {
 
             for (ConnectionInfo connectionInfo : entry.getValue()) {
                 INetworkMember neighbor = connectionInfo.neighbor();
-                if (!(neighbor instanceof IPowerReceiver)) continue;
+                if (!(neighbor instanceof IVoltageConsumer)) continue;
 
                 int index = connectionInfo.sourceNodeIndex() >= 0
                         ? connectionInfo.sourceNodeIndex() : 0;
@@ -171,7 +171,7 @@ public class NetlistBuilder {
         // Union generator terminals with wire neighbors by polarity
         for (var entry : adjacencyMap.entrySet()) {
             INetworkMember provider = entry.getKey();
-            if (!(provider instanceof IPowerProvider)) continue;
+            if (!(provider instanceof IVoltageProvider)) continue;
 
             for (ConnectionInfo connectionInfo : entry.getValue()) {
                 if (connectionInfo.polarityAtNeighborEntry() == ConnectorPolarity.POSITIVE
@@ -189,7 +189,7 @@ public class NetlistBuilder {
         // Ground negative generator terminal
         for (var entry : adjacencyMap.entrySet()) {
             INetworkMember provider = entry.getKey();
-            if (!(provider instanceof IPowerProvider)) continue;
+            if (!(provider instanceof IVoltageProvider)) continue;
 
             for (ConnectionInfo connectionInfo : entry.getValue()) {
                 if (connectionInfo.polarityAtNeighborEntry() == ConnectorPolarity.NEGATIVE
@@ -207,11 +207,11 @@ public class NetlistBuilder {
         // Collect all NodeKeys
         List<NodeKey> allTerminals = new ArrayList<>();
         for (INetworkMember member : adjacencyMap.keySet()) {
-            if (member instanceof IPowerProvider) {
+            if (member instanceof IVoltageProvider) {
                 allTerminals.add(new NodeKey(member, POSITIVE_TERMINAL));
                 allTerminals.add(new NodeKey(member, NEGATIVE_TERMINAL));
             }
-            if (member instanceof IPowerReceiver) {
+            if (member instanceof IVoltageConsumer) {
                 allTerminals.add(new NodeKey(member, INPUT_TERMINAL));
                 allTerminals.add(new NodeKey(member, OUTPUT_TERMINAL));
             }
@@ -255,7 +255,7 @@ public class NetlistBuilder {
         Map<NodeKey, Integer> numbering = new HashMap<>();
         // Ground the first generator's negative terminal to node 0
         adjacencyMap.keySet().stream()
-                .filter(m -> m instanceof IPowerProvider)
+                .filter(m -> m instanceof IVoltageProvider)
                 .findFirst()
                 .ifPresent(gen -> {
                     NodeKey negKey = new NodeKey(gen, NEGATIVE_TERMINAL);
@@ -295,7 +295,7 @@ public class NetlistBuilder {
         if (generators == null) return components;
 
         for (INetworkMember member : generators) {
-            IPowerProvider provider = (IPowerProvider) member;
+            IVoltageProvider provider = (IVoltageProvider) member;
             int positiveNode = nodeIdMap.get(new NodeKey(member, POSITIVE_TERMINAL));
             int negativeNode = nodeIdMap.get(new NodeKey(member, NEGATIVE_TERMINAL));
             String sourceName = "V" + voltageSourceIndex++;
@@ -323,7 +323,7 @@ public class NetlistBuilder {
         if (machines == null) return components;
 
         for (INetworkMember member : machines) {
-            IPowerReceiver receiver = (IPowerReceiver) member;
+            IVoltageConsumer consumer = (IVoltageConsumer) member;
             NodeKey inputKey = new NodeKey(member, INPUT_TERMINAL);
             NodeKey outputKey = new NodeKey(member, OUTPUT_TERMINAL);
             int inputNode = nodeIdMap.get(inputKey);
@@ -339,7 +339,7 @@ public class NetlistBuilder {
             components.add(
                     String.format(Locale.US,
                             "%s %d %d %d",
-                            resistorName, inputNode, outputNode, receiver.getResistance())
+                            resistorName, inputNode, outputNode, consumer.getResistance())
             );
         }
         return components;

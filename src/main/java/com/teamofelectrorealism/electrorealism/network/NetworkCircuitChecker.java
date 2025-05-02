@@ -2,7 +2,7 @@ package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorPolarity;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.AbstractGeneratorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.AbstractPowerProviderBlockEntity;
 import com.teamofelectrorealism.electrorealism.rendering.HighlightCircuits;
 import org.slf4j.Logger;
 
@@ -41,7 +41,7 @@ public class NetworkCircuitChecker {
 
         // Identify a generator.
         Optional<INetworkMember> generatorOpt = members.stream()
-                .filter(m -> m instanceof AbstractGeneratorBlockEntity)
+                .filter(m -> m instanceof AbstractPowerProviderBlockEntity)
                 .findFirst();
         if (generatorOpt.isEmpty()) {
             LOGGER.warn("Closed circuit check failed: No generator found in the network.");
@@ -89,7 +89,7 @@ public class NetworkCircuitChecker {
     public int getClosedCircuitCount(Set<INetworkMember> members, Map<INetworkMember, List<ConnectionInfo>> adjacencyList) {
         // Identify a generator.
         Optional<INetworkMember> generatorOpt = members.stream()
-                .filter(m -> m instanceof AbstractGeneratorBlockEntity)
+                .filter(m -> m instanceof AbstractPowerProviderBlockEntity)
                 .findFirst();
         if (generatorOpt.isEmpty()) {
             LOGGER.warn("Cannot count closed circuits: No generator found.");

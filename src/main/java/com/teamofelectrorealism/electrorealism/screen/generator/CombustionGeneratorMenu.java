@@ -1,7 +1,7 @@
 package com.teamofelectrorealism.electrorealism.screen.generator;
 
 import com.teamofelectrorealism.electrorealism.block.ModBlocks;
-import com.teamofelectrorealism.electrorealism.block.machine.generator.combustion.CombustionGeneratorBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.machine.provider.combustion.CombustionGeneratorBlockEntity;
 import com.teamofelectrorealism.electrorealism.screen.ModMenuTypes;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;

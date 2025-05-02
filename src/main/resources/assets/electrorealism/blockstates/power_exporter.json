@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "electrorealism:block/power_exporter",
+      "y": 0
+    },
+    "facing=east": {
+      "model": "electrorealism:block/power_exporter",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "electrorealism:block/power_exporter",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "electrorealism:block/power_exporter",
+      "y": 270
+    }
+  }
+}

@@ -14,6 +14,7 @@ import com.teamofelectrorealism.electrorealism.screen.crusher.ElectricCrusherScr
 import com.teamofelectrorealism.electrorealism.screen.generator.CombustionGeneratorScreen;
 import com.teamofelectrorealism.electrorealism.simulation.NgSpiceSimulator;
 import com.teamofelectrorealism.electrorealism.Config;
+import com.teamofelectrorealism.electrorealism.screen.refinery.RefineryScreen;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.slf4j.Logger;
@@ -122,6 +123,7 @@ public class ElectroRealism {
             event.register(ModMenuTypes.ELECTRIC_CRUSHER_MENU.get(), ElectricCrusherScreen::new);
             event.register(ModMenuTypes.ARC_FURNACE_MENU.get(), ArcFurnaceScreen::new);
             event.register(ModMenuTypes.COMBUSTION_GENERATOR_MENU.get(), CombustionGeneratorScreen::new);
+            event.register(ModMenuTypes.REFINERY_MENU.get(), RefineryScreen::new);
         }
     }
 }
