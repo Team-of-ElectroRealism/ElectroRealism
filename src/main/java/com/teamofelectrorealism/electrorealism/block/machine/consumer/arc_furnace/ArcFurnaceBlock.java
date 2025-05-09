@@ -43,7 +43,7 @@ public class ArcFurnaceBlock extends AbstractPowerConsumerBlock {
 
     @Override
     protected MapCodec<? extends BaseEntityBlock> codec() {
-        return null;
+        return CODEC;
     }
 
     @Override

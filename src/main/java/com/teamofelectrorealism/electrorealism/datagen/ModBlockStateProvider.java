@@ -25,7 +25,6 @@ public class ModBlockStateProvider extends BlockStateProvider {
     protected void registerStatesAndModels() {
         blockWithItem(ModBlocks.PROGRAMMER_BLOCK);
         blockWithItem(ModBlocks.VOLTAGE_SOURCE);
-        blockWithItem(ModBlocks.SOLAR_PANEL);
         blockWithItem(ModBlocks.ALUMINIUM_BLOCK);
         blockWithItem(ModBlocks.BAUXITE_ORE);
         blockWithItem(ModBlocks.DEEPSLATE_BAUXITE_ORE);
