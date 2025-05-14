@@ -1,0 +1,11 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": [
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp",
+    "minecraft:beach",
+    "minecraft:river"
+  ],
+  "features": "powersim:rubber_placed",
+  "step": "vegetal_decoration"
+}

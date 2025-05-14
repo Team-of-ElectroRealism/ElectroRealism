@@ -1,0 +1,11 @@
+{
+  "type": "powersim:smelting",
+  "ingredient": [
+    {
+      "item": "minecraft:iron_ore"
+    }
+  ],
+  "result": {
+    "id": "powersim:test_item"
+  }
+}

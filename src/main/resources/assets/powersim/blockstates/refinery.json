@@ -1,0 +1,19 @@
+{
+	"variants": {
+		"facing=east": {
+			"model": "powersim:block/refinery",
+			"y": 90
+		},
+		"facing=north": {
+			"model": "powersim:block/refinery"
+		},
+		"facing=south": {
+			"model": "powersim:block/refinery",
+			"y": 180
+		},
+		"facing=west": {
+			"model": "powersim:block/refinery",
+			"y": 270
+		}
+	}
+}

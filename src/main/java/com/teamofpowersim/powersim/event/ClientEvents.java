@@ -1,0 +1,81 @@
+package com.teamofpowersim.powersim.event;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.teamofpowersim.powersim.PowerSim;
+import com.teamofpowersim.powersim.block.ModBlocks;
+import com.teamofpowersim.powersim.item.ModItems;
+import com.teamofpowersim.powersim.network.NetworkManager;
+import com.teamofpowersim.powersim.rendering.DuoConnectorRenderer;
+import com.teamofpowersim.powersim.rendering.HighlightCircuits;
+import com.teamofpowersim.powersim.rendering.HighlightNetworks;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.core.BlockPos;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+
+@EventBusSubscriber(Dist.CLIENT)
+public class ClientEvents {
+    @SubscribeEvent
+    public static void renderNetworkOutline(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
+            return;
+        }
+
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+
+        if (!mc.player.getMainHandItem().getItem().equals(ModItems.TEST_ITEM.get())) {
+            return;
+        }
+
+        PoseStack poseStack = event.getPoseStack();
+        DeltaTracker partialTick = event.getPartialTick();
+
+        // Get the MultiBufferSource from the Minecraft instance.
+        MultiBufferSource buffer = mc.renderBuffers().bufferSource();
+
+        NetworkManager networkManager = PowerSim.NETWORK_MANAGER;
+
+        HighlightNetworks.highlightNetwork(networkManager.getNetworksDataForClient());
+        HighlightNetworks.renderHighlights(poseStack, buffer, partialTick);
+    }
+
+    @SubscribeEvent
+    public static void renderCircuitHighlights(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
+
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+
+        MultiBufferSource buffer = mc.renderBuffers().bufferSource();
+        PoseStack poseStack = event.getPoseStack();
+
+        HighlightCircuits.renderCircuitHighlights(poseStack, buffer);
+    }
+
+    @SubscribeEvent
+    public static void renderDuoConnectorOutline(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
+
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+
+        // Ensure the hit result exists and is a block hit.
+        if (mc.hitResult == null || mc.hitResult.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK) return;
+
+        net.minecraft.world.phys.BlockHitResult blockHit = (net.minecraft.world.phys.BlockHitResult) mc.hitResult;
+        BlockPos lookPos = blockHit.getBlockPos();
+
+        // Make sure the level is not null and that the block at lookPos is a DUO_CONNECTOR.
+        if (mc.level == null || !mc.level.getBlockState(lookPos).is(ModBlocks.DUO_CONNECTOR.get())) return;
+
+        MultiBufferSource buffer = mc.renderBuffers().bufferSource();
+        PoseStack poseStack = event.getPoseStack();
+
+        DuoConnectorRenderer.renderOutline(poseStack, buffer, lookPos, blockHit);
+    }
+}

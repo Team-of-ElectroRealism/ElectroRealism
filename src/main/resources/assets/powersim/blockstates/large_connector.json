@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "powersim:block/large_connector",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "powersim:block/large_connector",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "powersim:block/large_connector",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "powersim:block/large_connector",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "powersim:block/large_connector"
+    },
+    "facing=west": {
+      "model": "powersim:block/large_connector",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

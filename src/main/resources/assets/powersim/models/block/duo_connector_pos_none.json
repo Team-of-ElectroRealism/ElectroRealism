@@ -1,0 +1,136 @@
+{
+  "credit": "Made by Danders",
+  "textures": {
+    "ring0": "powersim:block/small_connector_ring_positive",
+    "ring1": "powersim:block/small_connector_ring",
+    "base": "minecraft:block/cobblestone",
+    "core": "minecraft:block/copper_block",
+    "particle": "minecraft:block/copper_block"
+  },
+  "elements": [
+    {
+      "from": [6, 0, 6], "to": [10, 1, 10],
+      "faces": {
+        "north": {"uv": [6, 5, 10, 6], "texture": "#base"},
+        "south": {"uv": [6, 10, 10, 11], "texture": "#base"},
+        "up": {"uv": [10, 10, 6, 6], "texture": "#base"},
+        "down": {"uv": [10, 6, 6, 10], "texture": "#base"}
+      }
+    },
+    {
+      "from": [2, 0, 6], "to": [6, 2, 10],
+      "faces": {
+        "north": {"uv": [6, 4, 10, 6], "texture": "#base"},
+        "east": {"uv": [10, 6, 12, 10], "rotation": 90, "texture": "#base"},
+        "south": {"uv": [6, 10, 10, 12], "texture": "#base"},
+        "west": {"uv": [4, 6, 6, 10], "rotation": 90, "texture": "#base"},
+        "up": {"uv": [10, 10, 6, 6], "texture": "#base"},
+        "down": {"uv": [10, 6, 6, 10], "texture": "#base"}
+      }
+    },
+    {
+      "from": [3, 2, 7], "to": [5, 5, 9],
+      "faces": {
+        "north": {"uv": [7, 8, 9, 11], "texture": "#core"},
+        "east": {"uv": [9, 8, 11, 11], "texture": "#core"},
+        "south": {"uv": [7, 3, 9, 6], "rotation": 180, "texture": "#core"},
+        "west": {"uv": [5, 8, 7, 11], "texture": "#core"},
+        "up": {"uv": [9, 8, 7, 6], "texture": "#core"}
+      }
+    },
+    {
+      "from": [2, 3, 6], "to": [6, 4, 10],
+      "faces": {
+        "north": {"uv": [6, 6, 10, 7], "texture": "#ring0"},
+        "east": {"uv": [9, 6, 10, 10], "rotation": 90, "texture": "#ring0"},
+        "south": {"uv": [6, 9, 10, 10], "texture": "#ring0"},
+        "west": {"uv": [6, 6, 7, 10], "rotation": 90, "texture": "#ring0"},
+        "up": {"uv": [6, 6, 10, 10], "texture": "#ring0"},
+        "down": {"uv": [6, 6, 10, 10], "texture": "#ring0"}
+      }
+    },
+    {
+      "from": [10, 0, 6], "to": [14, 2, 10],
+      "faces": {
+        "north": {"uv": [6, 4, 10, 6], "texture": "#base"},
+        "east": {"uv": [10, 6, 12, 10], "rotation": 90, "texture": "#base"},
+        "south": {"uv": [6, 10, 10, 12], "texture": "#base"},
+        "west": {"uv": [4, 6, 6, 10], "rotation": 90, "texture": "#base"},
+        "up": {"uv": [10, 10, 6, 6], "texture": "#base"},
+        "down": {"uv": [10, 6, 6, 10], "texture": "#base"}
+      }
+    },
+    {
+      "from": [11, 2, 7], "to": [13, 5, 9],
+      "faces": {
+        "north": {"uv": [7, 8, 9, 11], "texture": "#core"},
+        "east": {"uv": [9, 8, 11, 11], "texture": "#core"},
+        "south": {"uv": [7, 3, 9, 6], "rotation": 180, "texture": "#core"},
+        "west": {"uv": [5, 8, 7, 11], "texture": "#core"},
+        "up": {"uv": [9, 8, 7, 6], "texture": "#core"}
+      }
+    },
+    {
+      "from": [10, 3, 6], "to": [14, 4, 10],
+      "faces": {
+        "north": {"uv": [6, 6, 10, 7], "texture": "#ring1"},
+        "east": {"uv": [9, 6, 10, 10], "rotation": 90, "texture": "#ring1"},
+        "south": {"uv": [6, 9, 10, 10], "texture": "#ring1"},
+        "west": {"uv": [6, 6, 7, 10], "rotation": 90, "texture": "#ring1"},
+        "up": {"uv": [6, 6, 10, 10], "texture": "#ring1"},
+        "down": {"uv": [6, 6, 10, 10], "texture": "#ring1"}
+      }
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 2.5, 2.5],
+      "scale": [0.375, 0.375, 0.375]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 2.5, 2.5],
+      "scale": [0.375, 0.375, 0.375]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 45, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    "firstperson_lefthand": {
+      "rotation": [0, 225, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    "ground": {
+      "translation": [0, 3, 0],
+      "scale": [0.7, 0.7, 0.7]
+    },
+    "gui": {
+      "rotation": [30, 225, 0],
+      "scale": [0.7, 0.7, 0.7]
+    },
+    "head": {
+      "translation": [0, 14.25, 0]
+    },
+    "fixed": {
+      "scale": [0.6, 0.6, 0.6]
+    }
+  },
+  "groups": [
+    0,
+    {
+      "name": "small_connector",
+      "origin": [0, 0, 0],
+      "color": 0,
+      "children": [1, 2, 3]
+    },
+    {
+      "name": "small_connector",
+      "origin": [0, 0, 0],
+      "color": 0,
+      "children": [4, 5, 6]
+    }
+  ]
+}

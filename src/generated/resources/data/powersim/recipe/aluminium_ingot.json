@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "powersim:aluminium_block"
+    }
+  ],
+  "result": {
+    "count": 9,
+    "id": "powersim:aluminium_ingot"
+  }
+}

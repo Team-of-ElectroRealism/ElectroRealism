@@ -1,0 +1,19 @@
+{
+	"variants": {
+		"facing=east": {
+			"model": "powersim:block/arc_furnace",
+			"y": 90
+		},
+		"facing=north": {
+			"model": "powersim:block/arc_furnace"
+		},
+		"facing=south": {
+			"model": "powersim:block/arc_furnace",
+			"y": 180
+		},
+		"facing=west": {
+			"model": "powersim:block/arc_furnace",
+			"y": 270
+		}
+	}
+}
