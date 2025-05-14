@@ -39,8 +39,8 @@
   "item.powersim.enriched_alumnia": "Enriched Alumnia",
   "item.powersim.raw_bauxite": "Raw Bauxite",
 
-  "creativetab.powersim.powersim_items": "powersim Items",
-  "creativetab.powersim.powersim_blocks": "powersim Blocks",
+  "creativetab.powersim.mod_items": "powersim Items",
+  "creativetab.powersim.mod_blocks": "powersim Blocks",
 
   "statusbar.powersim.wire.linked": "Nodes linked",
   "statusbar.powersim.wire.linked_in": "Wire linked to input",
