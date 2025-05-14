@@ -1,0 +1,9 @@
+{
+  "type": "powersim:refining",
+  "ingredient": {
+    "item": "powersim:alumnia_powder"
+  },
+  "result": {
+    "id": "powersim:enriched_alumnia"
+  }
+}

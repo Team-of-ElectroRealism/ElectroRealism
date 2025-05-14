@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "powersim:block/power_importer",
+      "y": 0
+    },
+    "facing=east": {
+      "model": "powersim:block/power_importer",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "powersim:block/power_importer",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "powersim:block/power_importer",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "powersim:block/mounting_plate"
+    },
+    "facing=south": {
+      "model": "powersim:block/mounting_plate",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "powersim:block/mounting_plate",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "powersim:block/mounting_plate",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "powersim:block/stripped_rubber_log",
+    "side": "powersim:block/stripped_rubber_log"
+  }
+}

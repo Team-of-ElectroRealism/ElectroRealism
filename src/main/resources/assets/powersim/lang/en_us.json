@@ -1,0 +1,63 @@
+{
+  "block.powersim.programmer_block": "Programmer Block",
+  "block.powersim.copper_wire": "Copper Wire",
+  "block.powersim.electric_crusher": "Electric Crusher",
+  "block.powersim.voltage_source": "Voltage Source",
+  "block.powersim.solar_panel": "Solar Panel",
+  "block.powersim.smeltables_generator": "Combustion Generator",
+  "block.powersim.power_importer": "Power Importer",
+  "block.powersim.power_exporter": "Power Exporter",
+  "block.powersim.water_wheel": "Water Wheel",
+  "block.powersim.electric_generator": "Electric Generator",
+  "block.powersim.arc_furnace": "Arc Furnace",
+  "block.powersim.refinery": "Refinery",
+  "block.powersim.small_connector": "Small Connector",
+  "block.powersim.large_connector": "Large Connector",
+  "block.powersim.duo_connector": "Duo Connector",
+
+  "block.powersim.stripped_dark_oak_fence": "Stripped Dark Oak Fence",
+  "block.powersim.stone_wall": "Stone Wall",
+  "block.powersim.mounting_plate": "Mounting Plate",
+
+  "block.powersim.bauxite_ore": "Bauxite Ore",
+  "block.powersim.deepslate_bauxite_ore": "Deepslate Bauxite Ore",
+
+  "block.powersim.rubber_log": "Rubber Log",
+  "block.powersim.rubber_wood": "Rubber Wood",
+  "block.powersim.stripped_rubber_log": "Stripped Rubber Log",
+  "block.powersim.stripped_rubber_wood": "Stripped Rubber Wood",
+  "block.powersim.rubber_planks": "Rubber Planks",
+  "block.powersim.rubber_leaves": "Rubber Leaves",
+  "block.powersim.rubber_sapling": "Rubber Sapling",
+
+  "item.powersim.test_item": "Test Item",
+  "item.powersim.spool": "Spool",
+  "item.powersim.copper_wire_spool": "Copper Wire Spool",
+  "item.powersim.aluminum_wire_spool": "Aluminum Wire Spool",
+  "item.powersim.aluminium_ingot": "Aluminium Ingot",
+  "item.powersim.alumnia_powder": "Alumnia Powder",
+  "item.powersim.enriched_alumnia": "Enriched Alumnia",
+  "item.powersim.raw_bauxite": "Raw Bauxite",
+
+  "creativetab.powersim.mod_items": "powersim Items",
+  "creativetab.powersim.mod_blocks": "powersim Blocks",
+
+  "statusbar.powersim.wire.linked": "Nodes linked",
+  "statusbar.powersim.wire.linked_in": "Wire linked to input",
+  "statusbar.powersim.wire.linked_out": "Wire linked to output",
+
+  "statusbar.powersim.wire.connect": "Wire connector selected",
+  "statusbar.powersim.wire.connect_in": "Wire connector input selected",
+  "statusbar.powersim.wire.connect_out": "Wire connector output selected",
+
+  "statusbar.powersim.wire.long": "Wire is too long",
+  "statusbar.powersim.wire.count": "Wire node is full",
+  "statusbar.powersim.wire.removed": "Wire removed",
+  "statusbar.powersim.wire.exists": "Wire connection already exists",
+  "statusbar.powersim.wire.no_connection": "Wire not connected here",
+  "statusbar.powersim.wire.invalid": "Invalid connection",
+  "statusbar.powersim.wire.error": "No NetworkManager for this level",
+  "statusbar.powersim.wire.requires_high_current": "This connection requires a high current wire",
+
+  "statusbar.powersim.connector_set": "Connector terminal mode toggled"
+}

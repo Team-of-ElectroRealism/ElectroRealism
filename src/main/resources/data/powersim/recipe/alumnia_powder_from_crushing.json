@@ -1,0 +1,14 @@
+{
+  "type": "powersim:crushing",
+  "ingredient": [
+    {
+      "tag": "powersim:bauxite_ores"
+    },
+    {
+      "item": "powersim:raw_bauxite"
+    }
+  ],
+  "result": {
+    "id": "powersim:alumnia_powder"
+  }
+}

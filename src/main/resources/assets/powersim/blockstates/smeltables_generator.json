@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "powersim:block/smeltables_generator",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "powersim:block/smeltables_generator"
+    },
+    "facing=south": {
+      "model": "powersim:block/smeltables_generator",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "powersim:block/smeltables_generator",
+      "y": 270
+    }
+  }
+}
