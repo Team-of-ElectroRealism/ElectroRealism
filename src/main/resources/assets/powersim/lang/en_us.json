@@ -33,10 +33,10 @@
   "item.powersim.test_item": "Test Item",
   "item.powersim.spool": "Spool",
   "item.powersim.copper_wire_spool": "Copper Wire Spool",
-  "item.powersim.aluminum_wire_spool": "Aluminum Wire Spool",
+  "item.powersim.aluminium_wire_spool": "Aluminium Wire Spool",
   "item.powersim.aluminium_ingot": "Aluminium Ingot",
-  "item.powersim.alumnia_powder": "Alumnia Powder",
-  "item.powersim.enriched_alumnia": "Enriched Alumnia",
+  "item.powersim.alumina_powder": "Alumina Powder",
+  "item.powersim.enriched_alumina": "Enriched Alumina",
   "item.powersim.raw_bauxite": "Raw Bauxite",
 
   "creativetab.powersim.mod_items": "powersim Items",

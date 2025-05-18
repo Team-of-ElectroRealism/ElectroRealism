@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "powersim:item/aluminum_wire_spool"
+    "layer0": "powersim:item/enriched_alumina"
   }
 }
