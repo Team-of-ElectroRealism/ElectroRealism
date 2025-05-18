@@ -2,6 +2,8 @@ package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.logging.LogUtils;
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
+import com.teamofelectrorealism.electrorealism.block.components.CopperWire.CopperWireBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.*;
@@ -17,6 +19,7 @@ class Network {
 
     private Set<INetworkMember> networkMembers; // runtime
     private Set<BlockPos> memberPositions; // for loading, saving
+
 
     private static final String NETWORK_ID_KEY = "networkid";
     private static final String IS_VALID_KEY = "isvalid";
@@ -288,6 +291,17 @@ class Network {
             removeRuntimeMember(member);
             removeMemberPosition(member.getPos());
             member.setNetworkId(null);
+        }
+    }
+
+    public void propagateSignal(boolean powered) {
+        for (INetworkMember member : networkMembers) {
+            if (member instanceof CopperWireBlockEntity wire) {
+                wire.externallyPowered = powered;
+                wire.setPowered(powered);
+                wire.propagateSignal(powered);
+                wire.setChanged();
+            }
         }
     }
 }

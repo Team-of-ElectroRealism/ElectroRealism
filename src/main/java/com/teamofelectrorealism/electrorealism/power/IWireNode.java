@@ -1,15 +1,18 @@
 package com.teamofelectrorealism.electrorealism.power;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
 import com.teamofelectrorealism.electrorealism.network.INetworkMember;
 import com.teamofelectrorealism.electrorealism.network.NetworkManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import com.mojang.logging.LogUtils;
@@ -20,6 +23,11 @@ import java.util.UUID;
 
 public interface IWireNode {
     static final Logger LOGGER = LogUtils.getLogger();
+
+    void setPowered(boolean powered);
+    void joinNetwork();
+
+    UUID getNetworkId();
 
     /**
      * Disconnects two {@link IWireNode}s at the given positions.
@@ -349,4 +357,17 @@ public interface IWireNode {
         }
         return false;
     }
+
+    public static void deliverVoltageToAdjacentMachines(Level level, BlockPos pos, int voltage) {
+        for (Direction dir : Direction.values()) {
+            BlockPos neighborPos = pos.relative(dir);
+            BlockEntity neighbor = level.getBlockEntity(neighborPos);
+
+            if (neighbor instanceof IPowerReceiver receiver) {
+                    receiver.receiveVoltage(voltage);
+                    LOGGER.info("Delivered {}V to machine at {}", voltage, neighborPos);
+            }
+        }
+    }
+
 }

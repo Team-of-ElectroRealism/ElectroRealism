@@ -1,8 +1,14 @@
 package com.teamofelectrorealism.electrorealism.block.machine.generator.combustion;
 
+import com.teamofelectrorealism.electrorealism.ElectroRealism;
 import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
+import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.AbstractGeneratorBlockEntity;
+import com.teamofelectrorealism.electrorealism.network.INetworkMember;
+import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
+import com.teamofelectrorealism.electrorealism.power.IWireNode;
+import com.teamofelectrorealism.electrorealism.power.WireType;
 import com.teamofelectrorealism.electrorealism.screen.generator.CombustionGeneratorMenu;
 import com.teamofelectrorealism.electrorealism.utils.FuelValues;
 import net.minecraft.core.BlockPos;
@@ -24,10 +30,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
-public class CombustionGeneratorBlockEntity extends AbstractGeneratorBlockEntity implements MenuProvider {
+import java.util.UUID;
+
+public class CombustionGeneratorBlockEntity extends AbstractGeneratorBlockEntity implements MenuProvider, IWireNode, INetworkMember {
     public final ItemStackHandler itemHandler = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -38,7 +47,11 @@ public class CombustionGeneratorBlockEntity extends AbstractGeneratorBlockEntity
         }
     };
 
+    private UUID networkId = null;
     private static final int SLOT_FUEL = 0;
+
+    private final ConnectionPoint[] connectionPoints = new ConnectionPoint[1];
+    private final IWireNode[] nodeCache = new IWireNode[1];
 
     private static final String INVENTORY_KEY = "inventory";
     private static final String LIT_TIME_KEY = "combustion_generator.lit_time";
@@ -48,6 +61,7 @@ public class CombustionGeneratorBlockEntity extends AbstractGeneratorBlockEntity
     private int litDuration;
     private final ContainerData data;
     private final int voltage = 400;
+    private boolean lastPropagatedLit  = false;
 
     public CombustionGeneratorBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlockEntityTypes.COMBUSTION_GENERATOR_BE.get(), pos, blockState);
@@ -97,6 +111,15 @@ public class CombustionGeneratorBlockEntity extends AbstractGeneratorBlockEntity
             removeFuel();
             isLit = true;
         }
+
+        if (!level.isClientSide()) {
+            if (isLit != lastPropagatedLit) {
+                lastPropagatedLit = isLit;
+                ElectroRealism.NETWORK_MANAGER.propagateSignal(level, worldPosition);
+                LOGGER.info("Generator at {} triggered propagateSignal", worldPosition);
+            }
+        }
+
 
         if (isLit) {
             transferVoltage(level, pos);
@@ -206,5 +229,65 @@ public class CombustionGeneratorBlockEntity extends AbstractGeneratorBlockEntity
     @Override
     public @Nullable AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new CombustionGeneratorMenu(containerId, playerInventory, this, this.data);
+    }
+
+    @Override
+    public void setPowered(boolean powered) {
+
+    }
+
+    @Override
+    public void joinNetwork() {
+
+    }
+
+    @Override
+    public UUID getNetworkId() {
+        return networkId;
+    }
+
+    @Override
+    public void setNetworkId(UUID id) {
+        this.networkId = id;
+    }
+
+    @Override
+    public ConnectorType getConnectorType() {
+        return ConnectorType.Small;
+    }
+
+    @Override
+    public int getMaxWireLength() {
+        return 16;
+    }
+
+    @Override
+    public int getConnectionPointCount() {
+        return 1;
+    }
+
+    @Override
+    public ConnectionPoint getConnectionPoint(int index) {
+        return connectionPoints[index];
+    }
+
+    @Override
+    public void setConnectionPoint(int pointIndex, int connectingPointIndex, WireType wireType, BlockPos targetPos) {
+        connectionPoints[pointIndex] = new ConnectionPoint(this, pointIndex, connectingPointIndex, wireType, targetPos);
+    }
+
+    @Override
+    public void removeConnectionPoint(int index, boolean dropWire) {
+        connectionPoints[index] = null;
+    }
+
+    @Override
+    public Vec3 getConnectionPointOffset(int node) {
+        return new Vec3(0.5, 0.5, 0.5); // center of block or adjust as needed
+    }
+
+    @Override
+    public @Nullable IWireNode getWireNode(int index) {
+        return IWireNode.getWireNodeFrom(index, this, connectionPoints, nodeCache, level);
     }
 }

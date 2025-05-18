@@ -1,6 +1,11 @@
 package com.teamofelectrorealism.electrorealism.block;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.components.CopperWire.CopperWireBlock;
+import com.teamofelectrorealism.electrorealism.block.components.CopperWire.CopperWireBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.components.NOTGate.NotGateBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.components.ORGate.OrGateBlockEntity;
+import com.teamofelectrorealism.electrorealism.block.components.Resistor.ResistorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.duo.DuoConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.large.LargeConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.generator.combustion.CombustionGeneratorBlockEntity;
@@ -42,6 +47,34 @@ public class ModBlockEntityTypes {
                     () -> BlockEntityType.Builder.of(
                             AndGateBlockEntity::new,
                             ModBlocks.AND_GATE.get()
+                    ).build(null));
+
+    public static final Supplier<BlockEntityType<OrGateBlockEntity>> OR_GATE_BE =
+            BLOCK_ENTITY_TYPES.register("or_gate_be",
+                    () -> BlockEntityType.Builder.of(
+                            OrGateBlockEntity::new,
+                            ModBlocks.OR_GATE.get()
+                    ).build(null));
+
+    public static final Supplier<BlockEntityType<NotGateBlockEntity>> NOT_GATE_BE =
+            BLOCK_ENTITY_TYPES.register("not_gate_be",
+                    () -> BlockEntityType.Builder.of(
+                            NotGateBlockEntity::new,
+                            ModBlocks.NOT_GATE.get()
+                    ).build(null));
+
+    public static final Supplier<BlockEntityType<ResistorBlockEntity>> RESISTOR_BE =
+            BLOCK_ENTITY_TYPES.register("resistor_be",
+                    () -> BlockEntityType.Builder.of(
+                            ResistorBlockEntity::new,
+                            ModBlocks.RESISTOR.get()
+                    ).build(null));
+
+    public static final Supplier<BlockEntityType<CopperWireBlockEntity>> COPPER_WIRE_BE =
+            BLOCK_ENTITY_TYPES.register("copper_wire_be",
+                    () -> BlockEntityType.Builder.of(
+                            (pos, state) -> new CopperWireBlockEntity(ModBlockEntityTypes.COPPER_WIRE_BE.get(), pos, state),
+                            ModBlocks.COPPER_WIRE.get()
                     ).build(null));
 
 

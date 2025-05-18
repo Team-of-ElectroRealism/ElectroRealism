@@ -1,8 +1,13 @@
 package com.teamofelectrorealism.electrorealism.block.machine.user.crusher;
 
 import com.teamofelectrorealism.electrorealism.api.ElectricalAPI;
+import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
+import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
 import com.teamofelectrorealism.electrorealism.block.machine.user.AbstractPowerUserBlockEntity;
+import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
+import com.teamofelectrorealism.electrorealism.power.IWireNode;
+import com.teamofelectrorealism.electrorealism.power.WireType;
 import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
 import com.teamofelectrorealism.electrorealism.recipe.crusher.ElectricCrusherRecipe;
 import com.teamofelectrorealism.electrorealism.recipe.crusher.ElectricCrusherRecipeInput;
@@ -26,12 +31,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public class ElectricCrusherBlockEntity extends AbstractPowerUserBlockEntity implements MenuProvider {
+public class ElectricCrusherBlockEntity extends AbstractPowerUserBlockEntity implements MenuProvider, IPowerReceiver, IWireNode {
     public final ItemStackHandler itemHandler = new ItemStackHandler(3) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -251,6 +257,7 @@ public class ElectricCrusherBlockEntity extends AbstractPowerUserBlockEntity imp
 
     @Override
     public void receiveVoltage(int voltage) {
+        System.out.println("[Crusher] Receiving voltage: " + voltage + " at " + getBlockPos());
         int totalResistance = this.internalResistance;
 
         int chargeIncrease = ElectricalAPI.getChargeIncreaseMah(voltage, totalResistance, (double) 1 / 20);
@@ -266,5 +273,68 @@ public class ElectricCrusherBlockEntity extends AbstractPowerUserBlockEntity imp
     @Override
     public void setBufferCharge(int charge) {
         this.bufferLevel = Math.max(0, Math.min(charge, bufferTotalLevel));
+    }
+
+    private final ConnectionPoint[] connectionPoints = new ConnectionPoint[1];
+    private boolean isPoweredExternally = false;
+
+    @Override
+    public void setPowered(boolean powered) {
+        if (this.isPoweredExternally != powered) {
+            this.isPoweredExternally = powered;
+            if (powered) {
+                System.out.println("[Crusher] setPowered(true) at " + getBlockPos());
+                IWireNode.deliverVoltageToAdjacentMachines(getLevel(), getBlockPos(), 230);
+            }
+        }
+    }
+
+    @Override
+    public void joinNetwork() {
+        System.out.println("[Crusher] joinNetwork called at " + getBlockPos());
+    }
+
+    @Override
+    public void setConnectionPoint(int pointIndex, int connectingPointIndex, WireType wireType, BlockPos pos) {
+        if (pointIndex >= 0 && pointIndex < connectionPoints.length) {
+            connectionPoints[pointIndex] = new ConnectionPoint(this, pointIndex, connectingPointIndex, wireType, pos);
+        }
+    }
+
+    @Override
+    public ConnectionPoint getConnectionPoint(int index) {
+        return (index >= 0 && index < connectionPoints.length) ? connectionPoints[index] : null;
+    }
+
+    @Override
+    public void removeConnectionPoint(int index, boolean dropWire) {
+        if (index >= 0 && index < connectionPoints.length) {
+            connectionPoints[index] = null;
+        }
+    }
+
+    @Override
+    public ConnectorType getConnectorType() {
+        return ConnectorType.Small;
+    }
+
+    @Override
+    public int getMaxWireLength() {
+        return 16;
+    }
+
+    @Override
+    public int getAvailableNode(Vec3 clickLocation) {
+        return 0;
+    }
+
+    @Override
+    public Vec3 getConnectionPointOffset(int node) {
+        return new Vec3(0.5, 0.5, 0.5);
+    }
+
+    @Override
+    public IWireNode getWireNode(int index) {
+        return null;
     }
 }

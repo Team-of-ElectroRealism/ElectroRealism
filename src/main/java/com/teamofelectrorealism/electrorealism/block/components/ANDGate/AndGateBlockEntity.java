@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.block.components.ANDGate;
 
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
+import com.teamofelectrorealism.electrorealism.block.components.CopperWire.CopperWireBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.ConnectorType;
 import com.teamofelectrorealism.electrorealism.logic.ILogicGate;
 import com.teamofelectrorealism.electrorealism.logic.LogicGateType;
@@ -17,7 +18,7 @@ import net.minecraft.world.phys.Vec3;
 import javax.annotation.Nullable;
 import java.util.UUID;
 
-public class AndGateBlockEntity extends BlockEntity implements ILogicGate, IWireNode {  // <-- add EntityBlock
+public class AndGateBlockEntity extends BlockEntity implements ILogicGate, IWireNode {
 
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
@@ -27,9 +28,19 @@ public class AndGateBlockEntity extends BlockEntity implements ILogicGate, IWire
 
     private UUID networkId = null;
     private boolean outputState = false;
-    private boolean[] inputStates = new boolean[2]; // 2 inputs for AND
+    private boolean[] inputStates = new boolean[2];
     private ConnectionPoint[] connectionPoints = new ConnectionPoint[2];
 
+
+    @Override
+    public void setPowered(boolean powered) {
+
+    }
+
+    @Override
+    public void joinNetwork() {
+
+    }
 
     @Override
     public UUID getNetworkId() {
@@ -58,9 +69,15 @@ public class AndGateBlockEntity extends BlockEntity implements ILogicGate, IWire
 
     @Override
     public void updateInputState(boolean[] inputs) {
+        boolean oldOutput = this.outputState;
+
         this.inputStates = inputs;
         this.outputState = LogicGateType.AND.compute(inputs);
-        // TODO: Update block state or trigger neighbor notification
+        propagateOutputToWires();
+
+        if (oldOutput != this.outputState) {
+            level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
+        }
     }
 
     @Override
@@ -100,17 +117,16 @@ public class AndGateBlockEntity extends BlockEntity implements ILogicGate, IWire
 
     @Override
     public ConnectorType getConnectorType() {
-        return ConnectorType.Small;  // Pick what fits your system (Small, Large, etc.)
+        return ConnectorType.Small;
     }
 
     @Override
     public int getMaxWireLength() {
-        return 10; // Example: max length for logic wires, tweak as you need
+        return 10;
     }
 
     @Override
     public Vec3 getConnectionPointOffset(int index) {
-        // Very simple version: 2 points offset slightly left and right
         if (index == 0) return new Vec3(-0.25, 0.5, 0);
         if (index == 1) return new Vec3(0.25, 0.5, 0);
         return Vec3.ZERO;
@@ -119,8 +135,20 @@ public class AndGateBlockEntity extends BlockEntity implements ILogicGate, IWire
     @Override
     @Nullable
     public IWireNode getWireNode(int index) {
-        return null; // For now, you can return null (this is for cached remote nodes)
+        return null;
     }
 
+    private void propagateOutputToWires() {
+        if (level == null || level.isClientSide) return;
+
+        for (ConnectionPoint cp : connectionPoints) {
+            if (cp == null) continue;
+
+            BlockEntity target = level.getBlockEntity(cp.getPos());
+            if (target instanceof CopperWireBlockEntity wire) {
+                wire.propagateSignal(outputState);
+            }
+        }
+    }
 
 }

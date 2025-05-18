@@ -102,6 +102,16 @@ public class DuoConnectorBlockEntity extends AbstractConnectorBlockEntity {
     }
 
     @Override
+    public void setPowered(boolean powered) {
+
+    }
+
+    @Override
+    public void joinNetwork() {
+
+    }
+
+    @Override
     public ConnectorType getConnectorType() {
         return ConnectorType.Duo;
     }

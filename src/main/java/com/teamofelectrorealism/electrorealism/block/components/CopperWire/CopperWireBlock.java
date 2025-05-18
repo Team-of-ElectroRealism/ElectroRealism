@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.block.components.CopperWire;
 
 import com.teamofelectrorealism.electrorealism.ElectroRealism;
+import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.network.INetworkMember;
 import com.teamofelectrorealism.electrorealism.power.IWireNode;
 import com.teamofelectrorealism.electrorealism.power.WireType;
@@ -12,18 +13,22 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CopperWireBlock extends Block implements BlockEntity {
+public class CopperWireBlock extends Block implements EntityBlock {
 
     public static final BooleanProperty NORTH = BooleanProperty.create("north");
     public static final BooleanProperty EAST = BooleanProperty.create("east");
@@ -33,14 +38,26 @@ public class CopperWireBlock extends Block implements BlockEntity {
     public static final BooleanProperty UP_SOUTH = BooleanProperty.create("up_south");
     public static final BooleanProperty UP_EAST = BooleanProperty.create("up_east");
     public static final BooleanProperty UP_WEST = BooleanProperty.create("up_west");
-    public static final BooleanProperty DOWN_NORTH = BooleanProperty.create("down_north");
-    public static final BooleanProperty DOWN_SOUTH = BooleanProperty.create("down_south");
-    public static final BooleanProperty DOWN_EAST = BooleanProperty.create("down_east");
-    public static final BooleanProperty DOWN_WEST = BooleanProperty.create("down_west");
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CopperWireBlock.class);
 
     private static final VoxelShape WIRE_SHAPE = Block.box(0, 0, 0, 16, 1, 16);
+
+    private boolean shouldConnectTo(LevelAccessor world, BlockPos pos) {
+        BlockState state = world.getBlockState(pos);
+        BlockEntity be = world.getBlockEntity(pos);
+
+        boolean isConnectable = state.getBlock() instanceof CopperWireBlock;
+
+        if (be != null) {
+            if (be instanceof IWireNode) {
+                isConnectable = true;
+            }
+        }
+
+        LOGGER.info("shouldConnectTo at {}: block={} | blockEntity={} | connectable={}", pos, state.getBlock(), be, isConnectable);
+        return isConnectable;
+    }
 
     public CopperWireBlock(Properties sound) {
         super(BlockBehaviour.Properties.of()
@@ -56,11 +73,7 @@ public class CopperWireBlock extends Block implements BlockEntity {
                 .setValue(UP_NORTH, false)
                 .setValue(UP_SOUTH, false)
                 .setValue(UP_EAST, false)
-                .setValue(UP_WEST, false)
-                .setValue(DOWN_NORTH, false)
-                .setValue(DOWN_SOUTH, false)
-                .setValue(DOWN_EAST, false)
-                .setValue(DOWN_WEST, false));
+                .setValue(UP_WEST, false));
     }
 
     @Override
@@ -70,21 +83,15 @@ public class CopperWireBlock extends Block implements BlockEntity {
 
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
-        boolean north = world.getBlockState(pos.north()).getBlock() instanceof CopperWireBlock;
-        boolean south = world.getBlockState(pos.south()).getBlock() instanceof CopperWireBlock;
-        boolean east = world.getBlockState(pos.east()).getBlock() instanceof CopperWireBlock;
-        boolean west = world.getBlockState(pos.west()).getBlock() instanceof CopperWireBlock;
+        boolean north = shouldConnectTo(world, pos.north());
+        boolean south = shouldConnectTo(world, pos.south());
+        boolean east = shouldConnectTo(world, pos.east());
+        boolean west = shouldConnectTo(world, pos.west());
 
-        // Diagonal checks for inclines (one block to the side AND up/down)
-        boolean upNorth = world.getBlockState(pos.north().above()).getBlock() instanceof CopperWireBlock;
-        boolean upSouth = world.getBlockState(pos.south().above()).getBlock() instanceof CopperWireBlock;
-        boolean upEast = world.getBlockState(pos.east().above()).getBlock() instanceof CopperWireBlock;
-        boolean upWest = world.getBlockState(pos.west().above()).getBlock() instanceof CopperWireBlock;
-
-        boolean downNorth = world.getBlockState(pos.north().below()).getBlock() instanceof CopperWireBlock;
-        boolean downSouth = world.getBlockState(pos.south().below()).getBlock() instanceof CopperWireBlock;
-        boolean downEast = world.getBlockState(pos.east().below()).getBlock() instanceof CopperWireBlock;
-        boolean downWest = world.getBlockState(pos.west().below()).getBlock() instanceof CopperWireBlock;
+        boolean upNorth = shouldConnectTo(world, pos.north().above());
+        boolean upSouth = shouldConnectTo(world, pos.south().above());
+        boolean upEast = shouldConnectTo(world, pos.east().above());
+        boolean upWest = shouldConnectTo(world, pos.west().above());
 
         BlockState newState = state.setValue(NORTH, north)
                 .setValue(SOUTH, south)
@@ -93,15 +100,10 @@ public class CopperWireBlock extends Block implements BlockEntity {
                 .setValue(UP_NORTH, upNorth)
                 .setValue(UP_SOUTH, upSouth)
                 .setValue(UP_EAST, upEast)
-                .setValue(UP_WEST, upWest)
-                .setValue(DOWN_NORTH, downNorth)
-                .setValue(DOWN_SOUTH, downSouth)
-                .setValue(DOWN_EAST, downEast)
-                .setValue(DOWN_WEST, downWest);
+                .setValue(UP_WEST, upWest);
 
         LOGGER.info("updateShape called at {} | North: {} | South: {} | East: {} | West: {}", pos, north, south, east, west);
 
-        // Force update using sendBlockUpdated instead of manual render update
         if (!state.equals(newState) && world instanceof Level level) {
             level.sendBlockUpdated(pos, newState, newState, 3);
         }
@@ -114,6 +116,9 @@ public class CopperWireBlock extends Block implements BlockEntity {
         LOGGER.info("onPlace triggered at {}", pos);
         super.onPlace(state, level, pos, oldState, moved);
 
+        if (level.getBlockEntity(pos) instanceof CopperWireBlockEntity wire) {
+            wire.setPowered(false);
+        }
 
         if (level.isClientSide) return;
 
@@ -151,7 +156,6 @@ public class CopperWireBlock extends Block implements BlockEntity {
             world.updateNeighborsAt(pos.above(), this);
             world.updateNeighborsAt(pos.below(), this);
 
-            // Force client rendering update
             forceRenderUpdate(world, pos);
         }
     }
@@ -161,17 +165,16 @@ public class CopperWireBlock extends Block implements BlockEntity {
         LOGGER.info("neighborChanged at {} | From: {} | Block: {}", pos, fromPos, block);
 
         BlockState newState = world.getBlockState(pos);
-        if (state == newState) return; // Prevent redundant updates
+        if (state == newState) return;
 
         super.neighborChanged(state, world, pos, block, fromPos, flag);
 
-        // Update surrounding blocks, including above and below
         world.updateNeighborsAt(pos.north(), this);
         world.updateNeighborsAt(pos.south(), this);
         world.updateNeighborsAt(pos.east(), this);
         world.updateNeighborsAt(pos.west(), this);
-        world.updateNeighborsAt(pos.above(), this); // <-- Ensure above updates
-        world.updateNeighborsAt(pos.below(), this); // <-- Ensure below updates
+        world.updateNeighborsAt(pos.above(), this);
+        world.updateNeighborsAt(pos.below(), this);
 
         forceRenderUpdate(world, pos);
     }
@@ -179,8 +182,7 @@ public class CopperWireBlock extends Block implements BlockEntity {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(NORTH, SOUTH, EAST, WEST,
-                UP_NORTH, UP_SOUTH, UP_EAST, UP_WEST,
-                DOWN_NORTH, DOWN_SOUTH, DOWN_EAST, DOWN_WEST);
+                UP_NORTH, UP_SOUTH, UP_EAST, UP_WEST);
     }
 
 
@@ -189,20 +191,15 @@ public class CopperWireBlock extends Block implements BlockEntity {
         Level world = context.getLevel();
         BlockPos pos = context.getClickedPos();
 
-        boolean north = !world.getBlockState(pos.north()).isAir() && world.getBlockState(pos.north()).getBlock() instanceof CopperWireBlock;
-        boolean south = !world.getBlockState(pos.south()).isAir() && world.getBlockState(pos.south()).getBlock() instanceof CopperWireBlock;
-        boolean east = !world.getBlockState(pos.east()).isAir() && world.getBlockState(pos.east()).getBlock() instanceof CopperWireBlock;
-        boolean west = !world.getBlockState(pos.west()).isAir() && world.getBlockState(pos.west()).getBlock() instanceof CopperWireBlock;
+        boolean north = shouldConnectTo(world, pos.north());
+        boolean south = shouldConnectTo(world, pos.south());
+        boolean east = shouldConnectTo(world, pos.east());
+        boolean west = shouldConnectTo(world, pos.west());
 
-        boolean up_north = !world.getBlockState(pos.north().above()).isAir() && world.getBlockState(pos.north().above()).getBlock() instanceof CopperWireBlock;
-        boolean up_south = !world.getBlockState(pos.south().above()).isAir() && world.getBlockState(pos.south().above()).getBlock() instanceof CopperWireBlock;
-        boolean up_east = !world.getBlockState(pos.east().above()).isAir() && world.getBlockState(pos.east().above()).getBlock() instanceof CopperWireBlock;
-        boolean up_west = !world.getBlockState(pos.west().above()).isAir() && world.getBlockState(pos.west().above()).getBlock() instanceof CopperWireBlock;
-
-        boolean down_north = !world.getBlockState(pos.north().below()).isAir() && world.getBlockState(pos.north().below()).getBlock() instanceof CopperWireBlock;
-        boolean down_south = !world.getBlockState(pos.south().below()).isAir() && world.getBlockState(pos.south().below()).getBlock() instanceof CopperWireBlock;
-        boolean down_east = !world.getBlockState(pos.east().below()).isAir() && world.getBlockState(pos.east().below()).getBlock() instanceof CopperWireBlock;
-        boolean down_west = !world.getBlockState(pos.west().below()).isAir() && world.getBlockState(pos.west().below()).getBlock() instanceof CopperWireBlock;
+        boolean up_north = shouldConnectTo(world, pos.north().above());
+        boolean up_south = shouldConnectTo(world, pos.south().above());
+        boolean up_east = shouldConnectTo(world, pos.east().above());
+        boolean up_west = shouldConnectTo(world, pos.west().above());
 
         LOGGER.info("getStateForPlacement called at {} | North: {} | South: {} | East: {} | West: {}", pos, north, south, east, west);
 
@@ -214,11 +211,7 @@ public class CopperWireBlock extends Block implements BlockEntity {
                 .setValue(UP_NORTH, up_north)
                 .setValue(UP_SOUTH, up_south)
                 .setValue(UP_EAST, up_east)
-                .setValue(UP_WEST, up_west)
-                .setValue(DOWN_NORTH, down_north)
-                .setValue(DOWN_SOUTH, down_south)
-                .setValue(DOWN_EAST, down_east)
-                .setValue(DOWN_WEST, down_west);
+                .setValue(UP_WEST, up_west);
     }
 
     private void forceRenderUpdate(Level world, BlockPos pos) {
@@ -237,10 +230,17 @@ public class CopperWireBlock extends Block implements BlockEntity {
         }
     }
 
-    /*@Nullable
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new CopperWireBlockEntity(ModBlockEntityTypes.COPPER_WIRE_BE.get(), pos, state);
-    }*/
+    }
 
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return level.isClientSide ? null : (lvl, pos, st, be) -> {
+            if (be instanceof CopperWireBlockEntity wireBE) {
+                CopperWireBlockEntity.tick(lvl, pos, st, wireBE);
+            }
+        };
+    }
 }

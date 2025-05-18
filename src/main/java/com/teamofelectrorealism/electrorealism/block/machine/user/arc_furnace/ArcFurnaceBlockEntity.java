@@ -1,6 +1,7 @@
 package com.teamofelectrorealism.electrorealism.block.machine.user.arc_furnace;
 
 import com.teamofelectrorealism.electrorealism.api.ElectricalAPI;
+import com.teamofelectrorealism.electrorealism.block.IPowerReceiver;
 import com.teamofelectrorealism.electrorealism.block.ModBlockEntityTypes;
 import com.teamofelectrorealism.electrorealism.block.machine.user.AbstractPowerUserBlockEntity;
 import com.teamofelectrorealism.electrorealism.recipe.ModRecipes;
@@ -31,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public class ArcFurnaceBlockEntity extends AbstractPowerUserBlockEntity implements MenuProvider {
+public class ArcFurnaceBlockEntity extends AbstractPowerUserBlockEntity implements MenuProvider, IPowerReceiver {
     public final ItemStackHandler itemHandler = new ItemStackHandler(2) {
         @Override
         protected void onContentsChanged(int slot) {

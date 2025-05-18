@@ -1,6 +1,8 @@
 package com.teamofelectrorealism.electrorealism.network;
 
 import com.mojang.logging.LogUtils;
+import com.teamofelectrorealism.electrorealism.block.IPowerProvider;
+import com.teamofelectrorealism.electrorealism.block.components.CopperWire.CopperWireBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.connector.AbstractConnectorBlockEntity;
 import com.teamofelectrorealism.electrorealism.block.machine.AbstractMachineBlockEntity;
 import com.teamofelectrorealism.electrorealism.power.ConnectionPoint;
@@ -10,6 +12,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -633,5 +636,34 @@ public class NetworkManager {
             return wireA.hasConnectionTo(networkMember2.getPos());
         }
         return false;
+    }
+
+    public void propagateSignal(Level level, BlockPos sourcePos) {
+        BlockEntity sourceEntity = level.getBlockEntity(sourcePos);
+
+        if (!(sourceEntity instanceof IWireNode node)) {
+            LOGGER.warn("No IWireNode at {}", sourcePos);
+            return;
+        }
+
+        for (int i = 0; i < node.getConnectionPointCount(); i++) {
+            ConnectionPoint cp = node.getConnectionPoint(i);
+            if (cp == null) continue;
+
+            BlockPos connectedPos = cp.getPos();
+            BlockEntity connectedEntity = level.getBlockEntity(connectedPos);
+
+            if (connectedEntity instanceof CopperWireBlockEntity wire) {
+                LOGGER.info("Propagating signal from generator to wire at {}", connectedPos);
+
+                wire.externallyPowered = true;
+                wire.propagateSignal(true);
+            }
+        }
+    }
+
+    @Nullable
+    public UUID getNetworkIdFor(@Nullable IWireNode node) {
+        return node != null ? node.getNetworkId() : null;
     }
 }
