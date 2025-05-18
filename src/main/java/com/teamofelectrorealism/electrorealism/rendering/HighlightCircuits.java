@@ -57,9 +57,9 @@ public class HighlightCircuits {
             List<BlockPos> blockList = entry.getValue();
             int color = getColorForCircuit(circuitId);
 
-            double xOffset = (double) 2 /16;
-            double yOffset = (double) 2 /16;
-            double zOffset = (double) 2 /16;
+            double xOffset = 0 * (double) 2 /16;
+            double yOffset = 0 * (double) 2 /16;
+            double zOffset = 0 * (double) 2 /16;
 
             double xSize = 1.0 + xOffset;
             double ySize = 1.0 + yOffset;

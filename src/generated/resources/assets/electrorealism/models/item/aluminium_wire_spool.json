@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "electrorealism:item/enriched_alumnia"
+    "layer0": "electrorealism:item/aluminium_wire_spool"
   }
 }

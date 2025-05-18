@@ -25,12 +25,12 @@ public class ModItemModelProvider extends ItemModelProvider {
         fenceItem(ModBlocks.STRIPPED_DARK_OAK_FENCE, mcLoc("block/stripped_dark_oak_log"));
         wallItem(ModBlocks.STONE_WALL, mcLoc("block/stone"));
         basicItem(ModItems.COPPER_WIRE_SPOOL.get());
-        basicItem(ModItems.ALUMINUM_WIRE_SPOOL.get());
+        basicItem(ModItems.ALUMINIUM_WIRE_SPOOL.get());
         basicItem(ModItems.SPOOL.get());
         basicItem(ModItems.RAW_BAUXITE.get());
         basicItem(ModItems.ALUMINIUM_INGOT.get());
-        basicItem(ModItems.ALUMNIA_POWDER.get());
-        basicItem(ModItems.ENRICHED_ALUMNIA.get());
+        basicItem(ModItems.ALUMINA_POWDER.get());
+        basicItem(ModItems.ENRICHED_ALUMINA.get());
 
         saplingItem(ModBlocks.RUBBER_SAPLING);
     }

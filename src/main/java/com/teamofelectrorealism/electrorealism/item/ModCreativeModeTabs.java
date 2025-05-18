@@ -25,10 +25,10 @@ public class ModCreativeModeTabs {
                         output.accept(ModItems.TEST_ITEM);
                         output.accept(ModItems.SPOOL);
                         output.accept(ModItems.COPPER_WIRE_SPOOL);
-                        output.accept(ModItems.ALUMINUM_WIRE_SPOOL);
+                        output.accept(ModItems.ALUMINIUM_WIRE_SPOOL);
                         output.accept(ModItems.RAW_BAUXITE);
-                        output.accept(ModItems.ALUMNIA_POWDER);
-                        output.accept(ModItems.ENRICHED_ALUMNIA);
+                        output.accept(ModItems.ALUMINA_POWDER);
+                        output.accept(ModItems.ENRICHED_ALUMINA);
                         output.accept(ModItems.ALUMINIUM_INGOT);
 
                     }).build());
@@ -40,7 +40,6 @@ public class ModCreativeModeTabs {
                     .displayItems((itemDisplayParameters, output) -> {
 
                         // Blocks to be added to the tab
-                        output.accept(ModBlocks.PROGRAMMER_BLOCK);
                         output.accept(ModBlocks.ELECTRIC_CRUSHER);
                         output.accept(ModBlocks.ARC_FURNACE);
                         output.accept(ModBlocks.VOLTAGE_SOURCE);

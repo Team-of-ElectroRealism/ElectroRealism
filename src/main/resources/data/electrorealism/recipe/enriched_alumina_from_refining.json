@@ -1,0 +1,9 @@
+{
+  "type": "electrorealism:refining",
+  "ingredient": {
+    "item": "electrorealism:alumina_powder"
+  },
+  "result": {
+    "id": "electrorealism:enriched_alumina"
+  }
+}

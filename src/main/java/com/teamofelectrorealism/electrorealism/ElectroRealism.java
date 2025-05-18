@@ -97,7 +97,6 @@ public class ElectroRealism {
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
-            event.accept(ModBlocks.PROGRAMMER_BLOCK);
             event.accept(ModBlocks.COPPER_WIRE);
             event.accept(ModBlocks.ELECTRIC_CRUSHER);
             event.accept(ModBlocks.ARC_FURNACE);
