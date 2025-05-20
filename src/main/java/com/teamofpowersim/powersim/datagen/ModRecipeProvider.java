@@ -20,15 +20,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 
     @Override
     protected void buildRecipes(RecipeOutput recipeOutput) {
-        shaped(RecipeCategory.MISC, ModBlocks.PROGRAMMER_BLOCK)
-                .pattern("OOO")
-                .pattern("OXO")
-                .pattern("OOO")
-                .define('X', Items.DIRT)
-                .define('O', Items.IRON_NUGGET)
-                .unlockedBy(getHasName(ModBlocks.PROGRAMMER_BLOCK.get()), has(ModBlocks.PROGRAMMER_BLOCK.get()))
-                .save(recipeOutput);
-
+        // Arc Furnace recipe
         shaped(RecipeCategory.MISC, ModBlocks.ARC_FURNACE)
                 .pattern("CGC")
                 .pattern("BGB")
@@ -56,6 +48,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
                 .unlockedBy("has_stone", has(Items.STONE))
                 .save(recipeOutput);
 
+        // Water Wheel recipe
         shaped(RecipeCategory.MISC, ModBlocks.WATER_WHEEL)
                 .pattern("PPP")
                 .pattern("PIP")

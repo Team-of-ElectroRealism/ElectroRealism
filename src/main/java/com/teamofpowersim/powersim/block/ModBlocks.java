@@ -40,12 +40,6 @@ public class ModBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(PowerSim.MODID);
 
     // Blocks under here
-
-    public static final DeferredBlock<Block> PROGRAMMER_BLOCK = registerBlock("programmer_block",
-            () -> new Block(BlockBehaviour.Properties.of()
-                    .instabreak()
-                    .mapColor(MapColor.COLOR_MAGENTA)));
-
     public static final DeferredBlock<Block> ELECTRIC_CRUSHER = registerBlock("electric_crusher",
             () -> new ElectricCrusherBlock(BlockBehaviour.Properties.of()
                     .instabreak()

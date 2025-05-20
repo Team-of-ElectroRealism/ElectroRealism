@@ -12,8 +12,8 @@ public interface NgSpiceLibrary extends Library {
             NgSpiceSendCharCallback  sendChar,
             NgSpiceSendStatCallback  sendStat,
             NgSpiceCtrlCallback      ctrlExit,
-            Pointer                  sendData,      // we’ll use null
-            Pointer                  sendInitData,  //     ”
+            Pointer                  sendData,
+            Pointer                  sendInitData,
             NgSpiceBgThreadCallback  bgThread,
             Pointer                  userData
     );
@@ -55,7 +55,6 @@ public interface NgSpiceLibrary extends Library {
         public int    v_length;      // number of points
         public Pointer v_realdata;   // double*
         public Pointer v_compdata;   // complex* (struct { double cx_real, cx_imag; })
-        // you can add more fields if you need them
 
         @Override
         protected java.util.List<String> getFieldOrder() {
