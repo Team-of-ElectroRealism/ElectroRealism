@@ -167,6 +167,9 @@ public class ArcFurnaceBlockEntity extends AbstractPowerConsumerBlockEntity impl
     }
 
     public void tick(Level level, BlockPos blockPos, BlockState blockState) {
+        boolean wasLit = blockState.getValue(ArcFurnaceBlock.LIT);
+        boolean isLit = isLit();
+
         if (isPowered()) {
             heatUp();
         } else {
@@ -187,6 +190,15 @@ public class ArcFurnaceBlockEntity extends AbstractPowerConsumerBlockEntity impl
         } else {
             smeltingProgress = 0;
         }
+
+        if (wasLit != isLit) {
+            level.setBlockAndUpdate(blockPos, blockState.setValue(ArcFurnaceBlock.LIT, isLit));
+            setChanged();
+        }
+    }
+
+    private boolean isLit() {
+        return isHeated() && isPowered();
     }
 
     @Override
