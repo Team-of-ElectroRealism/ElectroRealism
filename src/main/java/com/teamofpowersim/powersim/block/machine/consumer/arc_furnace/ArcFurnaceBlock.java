@@ -93,7 +93,7 @@ public class ArcFurnaceBlock extends AbstractPowerConsumerBlock {
         if (!level.isClientSide()) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof ArcFurnaceBlockEntity arcFurnaceBlockEntity) {
-                player.openMenu(new SimpleMenuProvider(arcFurnaceBlockEntity, Component.literal("Arch Furnace")), pos);
+                player.openMenu(new SimpleMenuProvider(arcFurnaceBlockEntity, Component.literal("Arc Furnace")), pos);
             } else {
                 throw new IllegalStateException("Our Container provider is missing!");
             }
