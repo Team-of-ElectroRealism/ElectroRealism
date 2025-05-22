@@ -5,7 +5,9 @@ import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.machine.AbstractMachineBlockEntity;
 import com.teamofpowersim.powersim.block.machine.provider.AbstractPowerProviderBlock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
@@ -39,6 +41,17 @@ public class CombustionGeneratorBlock extends AbstractPowerProviderBlock {
         blockEntity.tick(level1, pos, state1);
     }
 
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (state.getValue(LIT)) {
+            double xPos = pos.getX() + 0.5f;
+            double yPos = pos.getY() + 1.25f;
+            double zPos = pos.getZ() + 0.5f;
+            double offset = random.nextDouble() * 0.6 - 0.3;
+
+            level.addParticle(ParticleTypes.SMOKE, xPos + offset, yPos, zPos + offset, 0.0, 0.0, 0.0);
+        }
+    }
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return new CombustionGeneratorBlockEntity(blockPos, blockState);
