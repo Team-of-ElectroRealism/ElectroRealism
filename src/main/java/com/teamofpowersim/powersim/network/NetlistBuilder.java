@@ -447,8 +447,14 @@ public class NetlistBuilder {
         if (!mach.isEmpty()) { b.append("\n* Machine Resistances\n");  mach.forEach(l -> b.append(l).append('\n')); }
         if (!wir.isEmpty())  { b.append("\n* Wire Resistances\n");     wir.forEach(l -> b.append(l).append('\n')); }
 
-        // ---- single .save line that captures everything ----
-        b.append("\n.save all");                                        // all node voltages
+        // ---- Add a .print dc line for diagnostics ----
+        // From your example: V1 1 0 DC 400; R1 2 3 10
+        // So nodes 0, 1, 2, 3 are relevant.
+        b.append("\n* Diagnostic DC print\n");
+        b.append(".print dc v(0) v(1) v(2) v(3)\n");
+        // ---- End Diagnostic print ----
+
+        b.append("\n.save all");
         for (String v : voltageSourceNames) b.append(" @").append(v).append("[i]");
         for (String r : resistorNames)      b.append(" @").append(r).append("[i] @").append(r).append("[p]");
         b.append('\n');

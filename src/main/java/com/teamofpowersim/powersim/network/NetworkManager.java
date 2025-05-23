@@ -898,43 +898,39 @@ public class NetworkManager {
         }
 
         String spiceNetlist = buildResult.netlist();
-        // LOGGER.debug("Netlist for network {}:\n{}", network.getNetworkId(), spiceNetlist); // Can be very verbose
-
+        final String finalSpiceNetlist = spiceNetlist; // Make effectively final for lambda
+        LOGGER.info("Attempting ASYNC simulation (TESTING WITH 'run' COMMAND) for network {}. Full Netlist:\n{}", network.getNetworkId(), finalSpiceNetlist);
         try {
-            NgSpiceSimulator.instance().simulateAsync(spiceNetlist,
-                    simData -> { // OnResult Consumer (executes on NgSpiceSimulator's async handler thread)
-                        // Schedule the application of results on the main server thread
+            // TEMPORARILY USE THE DIAGNOSTIC METHOD
+            NgSpiceSimulator.instance().simulateAsync(finalSpiceNetlist,
+                    simData -> { // OnResult Consumer
                         this.server.execute(() -> {
                             try {
-                                // Check if network is still valid and has members, as state might have changed
-                                // while simulation was running.
                                 if (!network.isValid() || network.getNetworkMembers().isEmpty()) {
-                                    LOGGER.info("Network {} became invalid or empty while simulation was running. Discarding results.", network.getNetworkId());
+                                    LOGGER.info("Network {} became invalid/empty while (TEST 'run') sim was running. Discarding.", network.getNetworkId());
                                     return;
                                 }
-                                LOGGER.info("Successfully simulated network {}. Applying results.", network.getNetworkId());
+                                LOGGER.info("Async (TEST 'run') sim for {} COMPLETED successfully. Applying results.", network.getNetworkId());
                                 SimulationDataApplier.apply(simData, buildResult, finalLevel, null, membersSnapshot);
                                 network.setLastSimulationTime(System.currentTimeMillis());
                             } catch (Exception e) {
-                                LOGGER.error("Error applying async sim data for network {}: {}", network.getNetworkId(), e.getMessage(), e);
-                                network.markDirty(); // Re-mark for retry if application failed
+                                LOGGER.error("Error applying (TEST 'run') sim data for network {}: {}. Original Netlist:\n{}", network.getNetworkId(), e.getMessage(), finalSpiceNetlist, e);
+                                if (network.isValid()) network.markDirty();
                             } finally {
                                 currentlySimulating.remove(network.getNetworkId());
                             }
                         });
                     },
-                    exception -> { // OnError Consumer (executes on NgSpiceSimulator's async handler thread)
-                        this.server.execute(() -> { // Process error on main server thread
+                    exception -> { // OnError Consumer
+                        this.server.execute(() -> {
                             try {
-                                LOGGER.error("Async simulation failed for network {}: {}", network.getNetworkId(), exception.getMessage(), exception);
-                                if (network.isValid()) { // Only apply zero power if network still valid
+                                LOGGER.error("Async (TEST 'run') simulation FAILED for network {}: {}. Original Netlist:\n{}", network.getNetworkId(), exception.getMessage(), finalSpiceNetlist, exception);
+                                if (network.isValid()) {
                                     applyZeroPowerToNetwork(network, finalLevel, membersSnapshot);
                                 }
-                                network.setLastSimulationTime(System.currentTimeMillis()); // Update time even on failure
-                                // Optionally mark dirty to retry, or let user fix and re-dirty manually
-                                // network.markDirty();
+                                network.setLastSimulationTime(System.currentTimeMillis());
                             } catch (Exception e_handler) {
-                                LOGGER.error("Error during simulation error handling for network {}: {}", network.getNetworkId(), e_handler.getMessage(), e_handler);
+                                LOGGER.error("Error during (TEST 'run') simulation error handling for network {}: {}", network.getNetworkId(), e_handler.getMessage(), e_handler);
                             } finally {
                                 currentlySimulating.remove(network.getNetworkId());
                             }
@@ -942,9 +938,9 @@ public class NetworkManager {
                     }
             );
         } catch (IOException e) { // Catch IOException from NgSpiceSimulator.instance()
-            LOGGER.error("IOException obtaining/starting NgSpiceSimulator for network {}: {}", network.getNetworkId(), e.getMessage(), e);
+            LOGGER.error("IOException obtaining/starting (TEST 'run') NgSpiceSimulator for network {}: {}. Netlist:\n{}", network.getNetworkId(), e.getMessage(), finalSpiceNetlist, e);
             currentlySimulating.remove(network.getNetworkId());
-            network.markDirty(); // Re-mark for retry
+            if (network.isValid()) network.markDirty();
         }
     }
 }
