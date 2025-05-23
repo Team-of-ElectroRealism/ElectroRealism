@@ -153,6 +153,9 @@ public class ElectricCrusherBlockEntity extends AbstractPowerConsumerBlockEntity
     }
 
     public void tick(Level level, BlockPos blockPos, BlockState blockState) {
+        boolean wasCrushing = blockState.getValue(ElectricCrusherBlock.CRUSHING);
+        boolean isCrushing = isCrushing();
+
         if(hasRecipe() && isOutputSlotEmptyOrReceivable()) {
             if (isPowered() && hasBufferEnoughCharge()) {
                 increaseCrushingProgress();
@@ -167,6 +170,15 @@ public class ElectricCrusherBlockEntity extends AbstractPowerConsumerBlockEntity
         } else {
             crushingProgress = 0;
         }
+
+        if (wasCrushing != isCrushing) {
+            level.setBlockAndUpdate(blockPos, blockState.setValue(ElectricCrusherBlock.CRUSHING, isCrushing));
+            setChanged();
+        }
+    }
+
+    private boolean isCrushing() {
+        return this.crushingProgress > 0;
     }
 
     @Override

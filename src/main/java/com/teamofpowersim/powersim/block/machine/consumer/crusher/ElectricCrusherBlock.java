@@ -5,7 +5,9 @@ import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.machine.AbstractMachineBlockEntity;
 import com.teamofpowersim.powersim.block.machine.consumer.AbstractPowerConsumerBlock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
@@ -20,6 +22,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 public class ElectricCrusherBlock extends AbstractPowerConsumerBlock {
 
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final BooleanProperty CRUSHING = BlockStateProperties.CRAFTING;
     public static final MapCodec<ElectricCrusherBlock> CODEC = simpleCodec(ElectricCrusherBlock::new);
 
     public ElectricCrusherBlock(Properties properties) {
@@ -36,6 +40,18 @@ public class ElectricCrusherBlock extends AbstractPowerConsumerBlock {
     @Override
     protected void tick(Level level1, BlockPos pos, BlockState state1, AbstractMachineBlockEntity blockEntity) {
         blockEntity.tick(level1, pos, state1);
+    }
+
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (state.getValue(CRUSHING)) {
+            double xPos = pos.getX() + 0.5;
+            double yPos = pos.getY() + 1;
+            double zPos = pos.getZ() + 0.5;
+            double offset = random.nextDouble() * 0.6 - 0.3;
+
+            level.addParticle(ParticleTypes.CRIT, xPos + offset, yPos, zPos + offset, 0.0, 0.0, 0.0);
+        }
     }
 
     @Override
@@ -55,12 +71,12 @@ public class ElectricCrusherBlock extends AbstractPowerConsumerBlock {
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()).setValue(CRUSHING, false);
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, CRUSHING);
     }
 
     @Override
