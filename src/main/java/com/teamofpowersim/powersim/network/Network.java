@@ -7,6 +7,7 @@ import net.minecraft.nbt.*;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 class Network {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -16,6 +17,9 @@ class Network {
 
     private Set<INetworkMember> networkMembers; // runtime
     private Set<BlockPos> memberPositions; // for loading, saving
+
+    private final AtomicBoolean isDirty = new AtomicBoolean(true); // Start dirty to simulate on first load/creation
+    private long lastSimulationTime = 0; // To potentially throttle simulations
 
     private static final String NETWORK_ID_KEY = "networkid";
     private static final String IS_VALID_KEY = "isvalid";
@@ -27,6 +31,10 @@ class Network {
     Network() {
         this(UUID.randomUUID(), true, new HashSet<>());
         LOGGER.debug("Created new Network with ID: {}", this.networkId);
+        // Automatically dirty on creation, which will trigger requestSimulation
+        if (PowerSim.NETWORK_MANAGER != null) { // Check as NM might not be fully initialized during early static init
+            PowerSim.NETWORK_MANAGER.requestSimulation(this);
+        }
     }
 
     /**
@@ -41,6 +49,37 @@ class Network {
         this.isValid = valid;
         this.memberPositions = positions != null ? new HashSet<>(positions) : new HashSet<>();
         this.networkMembers = new HashSet<>();
+        // If loaded from NBT, it's also considered dirty initially to ensure simulation
+        if (PowerSim.NETWORK_MANAGER != null) {
+            PowerSim.NETWORK_MANAGER.requestSimulation(this);
+        }
+    }
+
+    public void markDirty() {
+        boolean previouslyClean = !this.isDirty.getAndSet(true);
+        if (previouslyClean && this.isValid) { // Only request if it became dirty AND is valid
+            if (PowerSim.NETWORK_MANAGER != null) {
+                LOGGER.trace("Network {} marked dirty (was clean & is valid). Requesting simulation.", this.networkId);
+                PowerSim.NETWORK_MANAGER.requestSimulation(this);
+            } else {
+                LOGGER.warn("Network {} marked dirty, but NetworkManager is null. Simulation won't be requested immediately.", this.networkId);
+            }
+        } else if (!this.isValid) {
+            LOGGER.trace("Network {} marked dirty, but is invalid. Simulation not requested.", this.networkId);
+        }
+        // If it was already dirty, a simulation request is likely pending or running.
+    }
+
+    public boolean isDirtyAndReset() {
+        return this.isDirty.getAndSet(false);
+    }
+
+    public void setLastSimulationTime(long time) {
+        this.lastSimulationTime = time;
+    }
+
+    public long getLastSimulationTime() {
+        return this.lastSimulationTime;
     }
 
     /**
@@ -49,6 +88,9 @@ class Network {
      */
     void setInvalid() {
         isValid = false;
+        // When a network becomes invalid, it should not be simulated.
+        // Its members will either be re-assigned or become part of no network.
+        this.isDirty.set(false); // No longer needs simulation
         NetworkManager networkManager = PowerSim.NETWORK_MANAGER;
         if (networkManager != null && networkManager.getSavedData() != null) {
             networkManager.markDataDirty();
@@ -115,9 +157,12 @@ class Network {
      * @param networkMember The member to add.
      */
     void addNetworkMember(INetworkMember networkMember) {
-        if (networkMember != null) {
-            addRuntimeMember(networkMember);
-            addMemberPosition(networkMember.getPos());
+        if (networkMember != null && this.isValid) { // Only operate on valid networks
+            boolean addedToRuntime = this.networkMembers.add(networkMember);
+            boolean addedToPos = this.memberPositions.add(networkMember.getPos());
+            if (addedToRuntime || addedToPos) {
+                markDirty(); // This will trigger requestSimulation
+            }
         }
     }
 
@@ -127,8 +172,16 @@ class Network {
      * @param networkMembers The members to add.
      */
     void addAllNetworkMembers(Set<INetworkMember> networkMembers) {
+        if (!this.isValid) return;
+        boolean changed = false;
         for (INetworkMember networkMember : networkMembers) {
-            addNetworkMember(networkMember);
+            if (networkMember != null) {
+                if (this.networkMembers.add(networkMember)) changed = true;
+                if (this.memberPositions.add(networkMember.getPos())) changed = true;
+            }
+        }
+        if (changed) {
+            markDirty();
         }
     }
 
@@ -138,8 +191,10 @@ class Network {
      * @param member The member to remove.
      */
     void removeRuntimeMember(INetworkMember member) {
-        if (member != null) {
-            this.networkMembers.remove(member);
+        if (member != null && this.isValid) {
+            if (this.networkMembers.remove(member)) {
+                markDirty();
+            }
         }
     }
 
@@ -149,8 +204,10 @@ class Network {
      * @param pos The position of the member to remove.
      */
     void removeMemberPosition(BlockPos pos) {
-        if (pos != null) {
-            this.memberPositions.remove(pos);
+        if (pos != null && this.isValid) {
+            if (this.memberPositions.remove(pos)) {
+                markDirty();
+            }
         }
     }
 
@@ -167,7 +224,7 @@ class Network {
         for (BlockPos pos : this.memberPositions) {
             membersList.add(NbtUtils.writeBlockPos(pos));
         }
-        LOGGER.trace("  Created membersList with {} entries for Network {}", membersList.size(), networkId);
+        //LOGGER.trace("  Created membersList with {} entries for Network {}", membersList.size(), networkId);
         tag.put(MEMBERS_TAG_KEY, membersList);
         return tag;
     }
@@ -254,31 +311,30 @@ class Network {
      * @param otherNetwork The network to merge members from.
      */
     void mergeMembersFrom(Network otherNetwork) {
-        if (otherNetwork == null) return;
+        if (!this.isValid || otherNetwork == null || !otherNetwork.isValid()) return;
 
+        boolean changed = false;
         Set<INetworkMember> otherRuntimeMembers = otherNetwork.getNetworkMembers();
         Set<BlockPos> otherMemberPositions = otherNetwork.getMemberPositions();
 
-        this.networkMembers.addAll(otherRuntimeMembers);
-        this.memberPositions.addAll(otherMemberPositions);
+        for (INetworkMember member : otherRuntimeMembers) {
+            if (this.networkMembers.add(member)) changed = true;
+        }
+        for (BlockPos pos : otherMemberPositions) {
+            if (this.memberPositions.add(pos)) changed = true;
+        }
+
+        if (changed) {
+            markDirty(); // This network has changed
+        }
 
         UUID targetNetworkId = this.getNetworkId();
         for (INetworkMember member : otherRuntimeMembers) {
-            member.setNetworkId(targetNetworkId);
+            member.setNetworkId(targetNetworkId); // This might also trigger registration logic in NM
         }
 
-        NetworkManager networkManager = PowerSim.NETWORK_MANAGER;
-        if (networkManager != null && networkManager.getSavedData() != null) {
-            networkManager.markDataDirty();
-        }
+        // Do NOT call markDataDirty here, NetworkManager should handle it
     }
-
-    /**
-     * Checks if this network is equal to another object.
-     * Two networks are considered equal if they have the same network ID.
-     * @param object The object to compare to.
-     * @return True if the objects are equal, false otherwise.
-     */
     @Override
     public boolean equals(Object object) {
         if (this == object) return true;
@@ -287,11 +343,6 @@ class Network {
         return networkId.equals(network.networkId);
     }
 
-    /**
-     * Gets the hash code of this network.
-     * The hash code is based on the network ID.
-     * @return The hash code of this network.
-     */
     @Override
     public int hashCode() {
         return Objects.hash(networkId);

@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import com.teamofpowersim.powersim.PowerSim;
 import com.teamofpowersim.powersim.network.INetworkMember;
 import com.teamofpowersim.powersim.network.NetworkManager;
+import com.teamofpowersim.powersim.simulation.ISimulatable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -17,9 +18,12 @@ import org.slf4j.Logger;
 import java.util.Objects;
 import java.util.UUID;
 
-public abstract class AbstractMachineBlockEntity extends BlockEntity implements INetworkMember {
+public abstract class AbstractMachineBlockEntity extends BlockEntity implements INetworkMember, ISimulatable {
     private static final Logger LOGGER = LogUtils.getLogger();
     private UUID networkId;
+
+    private double simVoltage;
+    private double simCurrent;
 
     private static final String NETWORK_KEY = "networkid";
 
@@ -71,6 +75,15 @@ public abstract class AbstractMachineBlockEntity extends BlockEntity implements 
         }
         super.setRemoved();
     }
+
+    @Override
+    public void applySimulation(double voltage, double current) {
+        this.simVoltage = voltage;
+        this.simCurrent = current;
+    }
+
+    public double getSimVoltage() { return simVoltage; }
+    public double getSimCurrent() { return simCurrent; }
 
     @Override
     public void onLoad() {
