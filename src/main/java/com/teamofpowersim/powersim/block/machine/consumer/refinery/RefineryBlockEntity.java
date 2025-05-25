@@ -169,6 +169,9 @@ public class RefineryBlockEntity extends AbstractPowerConsumerBlockEntity implem
 
     @Override
     public void tick(Level level, BlockPos pos, BlockState state) {
+        boolean wasRefining = state.getValue(RefineryBlock.REFINING);
+        boolean isRefining = isRefining();
+
         if (hasRecipe() && isOutputSlotEmptyOrReceivable()) {
             if (isPowered() && hasBufferEnoughCharge()) {
                 increaseRefiningProgress();
@@ -183,6 +186,15 @@ public class RefineryBlockEntity extends AbstractPowerConsumerBlockEntity implem
         } else {
             refiningProgress = 0;
         }
+
+        if (wasRefining != isRefining) {
+            level.setBlockAndUpdate(pos, state.setValue(RefineryBlock.REFINING, isRefining));
+            setChanged();
+        }
+    }
+
+    private boolean isRefining() {
+        return this.refiningProgress > 0;
     }
 
     public void clearContents() {
