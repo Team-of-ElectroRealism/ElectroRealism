@@ -1,4 +1,3 @@
-// com/teamofpowersim/powersim/simulation/SimulationDataApplier.java (new file)
 package com.teamofpowersim.powersim.simulation;
 
 import com.mojang.logging.LogUtils;

@@ -23,7 +23,6 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Manages the creation, loading, saving, and merging of electrical networks.
@@ -289,7 +288,7 @@ public class NetworkManager {
     }
 
     @Nullable
-    Network findNetwork(UUID networkId) {
+    public Network findNetwork(UUID networkId) {
         if (networkId == null) return null;
         for (Network network : networks) {
             if (network.getNetworkId().equals(networkId)) {
@@ -654,6 +653,56 @@ public class NetworkManager {
             level.sendBlockUpdated(networkMember.getPos(), level.getBlockState(networkMember.getPos()), level.getBlockState(networkMember.getPos()), 3);
         }
     }
+
+    /**
+     * Marks a specific network as dirty, prompting a re-simulation.
+     * This should be called when a member's state changes in a way
+     * that affects the simulation (e.g., a generator turning on/off).
+     *
+     * @param networkId The UUID of the network to mark dirty.
+     * @return true if the network was found and marked dirty, false otherwise.
+     */
+    public boolean markNetworkDirty(UUID networkId) {
+        if (networkId == null) {
+            LOGGER.warn("Attempted to mark a network dirty with a null ID.");
+            return false;
+        }
+        Network network = findNetwork(networkId);
+        if (network != null) {
+            if (network.isValid()) {
+                LOGGER.trace("NetworkManager: Marking network {} as dirty.", networkId);
+                network.markDirty(); // This internal call within Network will then call requestSimulation
+                return true;
+            } else {
+                LOGGER.trace("NetworkManager: Attempted to mark network {} dirty, but it's invalid.", networkId);
+                return false;
+            }
+        } else {
+            LOGGER.warn("NetworkManager: Attempted to mark network {} dirty, but it was not found.", networkId);
+            return false;
+        }
+    }
+
+    /**
+     * Marks the network containing the given member as dirty.
+     * Convenience method.
+     * @param member The INetworkMember whose network should be marked dirty.
+     * @return true if the member had a network and it was marked dirty, false otherwise.
+     */
+    public boolean markNetworkDirty(INetworkMember member) {
+        if (member == null) {
+            LOGGER.warn("Attempted to mark network dirty for a null member.");
+            return false;
+        }
+        if (member.getNetworkId() == null) {
+            // This can happen if a block is broken before it's fully initialized into a network,
+            // or if its network was already dissolved.
+            LOGGER.trace("Attempted to mark network dirty for member at {}, but it has no network ID.", member.getPos().toShortString());
+            return false;
+        }
+        return markNetworkDirty(member.getNetworkId());
+    }
+
 
     // --- Ticking ---
 

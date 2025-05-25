@@ -63,7 +63,7 @@ public class ArcFurnaceBlockEntity extends AbstractPowerConsumerBlockEntity impl
     private static final double NOMINAL_OPERATING_CURRENT = 30.0; // Example: Ideal current for full speed
     private static final double MAX_SAFE_CURRENT = 50.0;      // Example: Machine might break or wires melt
 
-    private static final int TOTAL_SMELTING_TIME = 80;
+    private static final int TOTAL_SMELTING_TIME = 40;
     private static final int TOTAL_BUFFER_CAPASITY = 2000; // In mAh
     private static final int INTERNAL_RESISTANCE = 10; // In ohm
 
