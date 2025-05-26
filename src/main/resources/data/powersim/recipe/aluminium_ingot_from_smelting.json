@@ -1,7 +1,7 @@
 {
   "type": "powersim:smelting",
   "ingredient": {
-    "item": "powersim:enriched_alumnia"
+    "item": "powersim:enriched_alumina"
   },
   "result": {
     "id": "powersim:aluminium_ingot",

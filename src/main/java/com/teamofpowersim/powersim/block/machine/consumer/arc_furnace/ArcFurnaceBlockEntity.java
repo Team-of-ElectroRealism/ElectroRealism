@@ -1,7 +1,6 @@
 package com.teamofpowersim.powersim.block.machine.consumer.arc_furnace;
 
 import com.mojang.logging.LogUtils;
-// ElectricalAPI import removed
 import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.machine.consumer.AbstractPowerConsumerBlockEntity;
 import com.teamofpowersim.powersim.recipe.ModRecipes;
@@ -124,6 +123,11 @@ public class ArcFurnaceBlockEntity extends AbstractPowerConsumerBlockEntity impl
 
     @Override
     public void tick(Level level, BlockPos blockPos, BlockState blockState) {
+        boolean wasLit = blockState.getValue(ArcFurnaceBlock.LIT);
+        boolean isLit = isLit();
+
+        if (isPowered()) {
+            heatUp();
         if (level.isClientSide) {
             return;
         }
@@ -160,7 +164,14 @@ public class ArcFurnaceBlockEntity extends AbstractPowerConsumerBlockEntity impl
             resetProgress();
         }
 
-        setChanged();
+        if (wasLit != isLit) {
+            level.setBlockAndUpdate(blockPos, blockState.setValue(ArcFurnaceBlock.LIT, isLit));
+            setChanged();
+        }
+    }
+
+    private boolean isLit() {
+        return isHeated() && isPowered();
     }
 
     private void increaseSmeltingProgress() {

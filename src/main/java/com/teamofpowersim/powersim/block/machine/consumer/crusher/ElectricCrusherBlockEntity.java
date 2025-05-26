@@ -1,7 +1,6 @@
 package com.teamofpowersim.powersim.block.machine.consumer.crusher;
 
 import com.mojang.logging.LogUtils;
-// ElectricalAPI import removed as buffer charging is removed
 import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.machine.consumer.AbstractPowerConsumerBlockEntity;
 import com.teamofpowersim.powersim.recipe.ModRecipes;
@@ -29,7 +28,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger; // Added for consistency
+import org.slf4j.Logger;
 
 import java.util.Optional;
 
@@ -112,6 +111,9 @@ public class ElectricCrusherBlockEntity extends AbstractPowerConsumerBlockEntity
             return;
         }
 
+        boolean wasCrushing = blockState.getValue(ElectricCrusherBlock.CRUSHING);
+        boolean isCrushing = isCrushing();
+
         // Overcurrent check
         double actualCurrent = getSimCurrent();
         if (Math.abs(actualCurrent) > getMaxSafeCurrent()) {
@@ -133,7 +135,15 @@ public class ElectricCrusherBlockEntity extends AbstractPowerConsumerBlockEntity
         } else {
             resetProgress();
         }
-        setChanged();
+
+        if (wasCrushing != isCrushing) {
+            level.setBlockAndUpdate(blockPos, blockState.setValue(ElectricCrusherBlock.CRUSHING, isCrushing));
+            setChanged();
+        }
+    }
+
+    private boolean isCrushing() {
+        return this.crushingProgress > 0;
     }
 
     private void increaseCrushingProgress() {

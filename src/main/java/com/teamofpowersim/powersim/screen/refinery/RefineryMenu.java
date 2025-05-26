@@ -19,7 +19,7 @@ public class RefineryMenu extends AbstractModMenu {
 
     public RefineryMenu(int containerId, Inventory playerInventory, BlockEntity blockEntity, ContainerData containerData) {
         super(ModMenuTypes.REFINERY_MENU.get(), containerId, playerInventory, blockEntity, containerData);
-        this.addSlot(new SlotItemHandler(((RefineryBlockEntity) blockEntity).itemHandler, 0, 56, 17));
+        this.addSlot(new SlotItemHandler(((RefineryBlockEntity) blockEntity).itemHandler, 0, 56, 35));
         this.addSlot(new SlotItemHandler(((RefineryBlockEntity) blockEntity).itemHandler, 1, 116, 35));
     }
 

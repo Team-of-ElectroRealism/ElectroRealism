@@ -5,7 +5,9 @@ import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.machine.AbstractMachineBlockEntity;
 import com.teamofpowersim.powersim.block.machine.consumer.AbstractPowerConsumerBlock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
@@ -44,6 +46,20 @@ public class ArcFurnaceBlock extends AbstractPowerConsumerBlock {
     }
 
     @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (state.getValue(LIT)) {
+            double xPos = pos.getX() + 0.5;
+            double yPos1 = pos.getY() + 0.5;
+            double yPos2 = pos.getY() + 1.25f;
+            double zPos = pos.getZ() + 0.5;
+            double offset = random.nextDouble() * 0.6 - 0.3;
+
+            level.addParticle(ParticleTypes.SMOKE, xPos + offset, yPos2, zPos + offset, 0.0, 0.0, 0.0);
+            level.addParticle(ParticleTypes.SMALL_FLAME, xPos + offset, yPos1, zPos + offset, 0.0, 0.0, 0.0);
+        }
+    }
+
+    @Override
     protected MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
@@ -60,12 +76,12 @@ public class ArcFurnaceBlock extends AbstractPowerConsumerBlock {
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()).setValue(LIT, false);
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, LIT);
     }
 
     @Override
@@ -95,7 +111,7 @@ public class ArcFurnaceBlock extends AbstractPowerConsumerBlock {
         if (!level.isClientSide()) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof ArcFurnaceBlockEntity arcFurnaceBlockEntity) {
-                player.openMenu(new SimpleMenuProvider(arcFurnaceBlockEntity, Component.literal("Arch Furnace")), pos);
+                player.openMenu(new SimpleMenuProvider(arcFurnaceBlockEntity, Component.literal("Arc Furnace")), pos);
             } else {
                 throw new IllegalStateException("Our Container provider is missing!");
             }
