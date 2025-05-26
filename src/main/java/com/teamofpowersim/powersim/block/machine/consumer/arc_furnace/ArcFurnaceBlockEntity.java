@@ -210,12 +210,12 @@ public class ArcFurnaceBlockEntity extends AbstractPowerConsumerBlockEntity impl
         return canInsertAmountIntoOutputSlot(output.getCount()) && canInsertItemIntoOutputSlot(output);
     }
 
-    private boolean canInsertItemIntoOutputSlot(ItemStack output) { // From example structure
+    private boolean canInsertItemIntoOutputSlot(ItemStack output) { 
         return itemHandler.getStackInSlot(SLOT_OUTPUT).isEmpty() ||
                 (ItemStack.isSameItem(itemHandler.getStackInSlot(SLOT_OUTPUT), output) && ItemStack.isSameItemSameComponents(itemHandler.getStackInSlot(SLOT_OUTPUT), output));
     }
 
-    private boolean canInsertAmountIntoOutputSlot(int count) { // From example structure
+    private boolean canInsertAmountIntoOutputSlot(int count) { 
         if (itemHandler.getStackInSlot(SLOT_OUTPUT).isEmpty()) return true;
         return itemHandler.getStackInSlot(SLOT_OUTPUT).getCount() + count <= itemHandler.getStackInSlot(SLOT_OUTPUT).getMaxStackSize();
     }
