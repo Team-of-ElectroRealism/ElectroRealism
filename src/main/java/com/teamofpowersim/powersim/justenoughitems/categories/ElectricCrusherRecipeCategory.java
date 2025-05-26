@@ -15,15 +15,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
 public class ElectricCrusherRecipeCategory implements IRecipeCategory<ElectricCrusherRecipe> {
     public static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(PowerSim.MODID, "crushing");
     public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(PowerSim.MODID, "textures/gui/crusher/electric_crusher_gui_jei.png");
 
     public static final RecipeType<ElectricCrusherRecipe> ELECTRIC_CRUSHER_RECIPE_RECIPE_TYPE = new RecipeType<>(UID, ElectricCrusherRecipe.class);
-
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     private final IDrawable background;
     private final IDrawable icon;
@@ -44,13 +41,13 @@ public class ElectricCrusherRecipeCategory implements IRecipeCategory<ElectricCr
     }
 
     @Override
-    public @Nullable IDrawable getIcon() {
-        return icon;
+    public IDrawable getBackground() {
+        return background;
     }
 
     @Override
-    public IDrawable getBackground() {
-        return background;
+    public @Nullable IDrawable getIcon() {
+        return icon;
     }
 
     @Override

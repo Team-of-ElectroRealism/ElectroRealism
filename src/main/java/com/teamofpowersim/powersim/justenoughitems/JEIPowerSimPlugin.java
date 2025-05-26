@@ -2,9 +2,12 @@ package com.teamofpowersim.powersim.justenoughitems;
 
 import com.teamofpowersim.powersim.PowerSim;
 import com.teamofpowersim.powersim.justenoughitems.categories.ElectricCrusherRecipeCategory;
+import com.teamofpowersim.powersim.justenoughitems.categories.RefineryRecipeCategory;
 import com.teamofpowersim.powersim.recipe.ModRecipes;
 import com.teamofpowersim.powersim.recipe.crusher.ElectricCrusherRecipe;
+import com.teamofpowersim.powersim.recipe.refinery.RefineryRecipe;
 import com.teamofpowersim.powersim.screen.crusher.ElectricCrusherScreen;
+import com.teamofpowersim.powersim.screen.refinery.RefineryScreen;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
@@ -26,7 +29,10 @@ public class JEIPowerSimPlugin implements IModPlugin {
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
-        registration.addRecipeCategories(new ElectricCrusherRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
+        registration.addRecipeCategories(
+                new ElectricCrusherRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new RefineryRecipeCategory(registration.getJeiHelpers().getGuiHelper())
+        );
     }
 
     @Override
@@ -38,11 +44,18 @@ public class JEIPowerSimPlugin implements IModPlugin {
                 .map(RecipeHolder::value)
                 .toList();
 
+        List<RefineryRecipe> refineryRecipes = recipeManager.getAllRecipesFor(ModRecipes.REFINERY_TYPE.get())
+                .stream()
+                .map(RecipeHolder::value)
+                .toList();
+
         registration.addRecipes(ElectricCrusherRecipeCategory.ELECTRIC_CRUSHER_RECIPE_RECIPE_TYPE, electricCrusherRecipes);
+        registration.addRecipes(RefineryRecipeCategory.REFINERY_RECIPE_RECIPE_TYPE, refineryRecipes);
     }
 
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
         registration.addRecipeClickArea(ElectricCrusherScreen.class, 79, 34, 24, 16, ElectricCrusherRecipeCategory.ELECTRIC_CRUSHER_RECIPE_RECIPE_TYPE);
+        registration.addRecipeClickArea(RefineryScreen.class, 79, 34, 24, 16, RefineryRecipeCategory.REFINERY_RECIPE_RECIPE_TYPE);
     }
 }
