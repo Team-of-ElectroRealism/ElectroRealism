@@ -2,6 +2,7 @@ package com.teamofpowersim.powersim.screen.arc_furnace;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.teamofpowersim.powersim.PowerSim;
+import com.teamofpowersim.powersim.screen.AbstractModScreen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -10,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 
-public class ArcFurnaceScreen extends AbstractContainerScreen<ArcFurnaceMenu> {
+public class ArcFurnaceScreen extends AbstractModScreen<ArcFurnaceMenu> {
     private static final ResourceLocation GUI_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(PowerSim.MODID, "textures/gui/arc_furnace/arc_furnace_gui.png");
     private static final ResourceLocation ARROW_TEXTURE =
@@ -34,33 +35,21 @@ public class ArcFurnaceScreen extends AbstractContainerScreen<ArcFurnaceMenu> {
     }
 
     @Override
-    protected void init() {
-        super.init();
-
-        // Gets rid of labels
-        this.inventoryLabelY = 10000;
-        this.titleLabelY = 10000;
+    protected ResourceLocation getGuiTexture() {
+        return GUI_TEXTURE;
     }
 
     @Override
-    protected void renderBg(GuiGraphics pGuiGraphics, float pPartialTick, int pMouseX, int pMouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, GUI_TEXTURE);
-        int x = (width - imageWidth) / 2;
-        int y = (height - imageHeight) / 2;
-
-        pGuiGraphics.blit(GUI_TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
-
-        renderProgressArrow(pGuiGraphics, x, y);
-        renderProgressPower(pGuiGraphics, x, y);
-        renderHeatAnimation(pGuiGraphics, x, y);
+    protected void renderProgressWidgets(GuiGraphics guiGraphics, int x, int y, float partialTick, int mouseX, int mouseY) {
+        renderProgressArrow(guiGraphics, x, y);
+        renderProgressPower(guiGraphics, x, y);
+        renderHeatAnimation(guiGraphics, x, y);
     }
 
     private void renderProgressPower(GuiGraphics pGuiGraphics, int x, int y) {
         int powerHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
         if (powerHeight > 0) {
-            pGuiGraphics.blit(POWER_TEXTURE, x + 34, y + 35 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
+            pGuiGraphics.blit(POWER_TEXTURE, x + 57, y + 54 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
         }
     }
 
@@ -82,12 +71,5 @@ public class ArcFurnaceScreen extends AbstractContainerScreen<ArcFurnaceMenu> {
                 13, 13,
                 13, 13
         );
-    }
-
-    @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        renderBackground(guiGraphics, mouseX, mouseY, delta);
-        super.render(guiGraphics, mouseX, mouseY, delta);
-        renderTooltip(guiGraphics, mouseX, mouseY);
     }
 }
