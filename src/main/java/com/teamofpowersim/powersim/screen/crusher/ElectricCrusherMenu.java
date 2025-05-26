@@ -51,7 +51,7 @@ public class ElectricCrusherMenu extends AbstractModMenu {
 
     @Override
     protected int getContainerDataCount() {
-        return 5;
+        return 4;
     }
 
     @Override

@@ -63,7 +63,7 @@ public class ArcFurnaceBlockEntity extends AbstractPowerConsumerBlockEntity impl
 
     // Operational Parameters
     private static final int DEFAULT_TOTAL_SMELTING_TIME = 80;
-    private static final int DEFAULT_INTERNAL_RESISTANCE = 20;
+    private static final int DEFAULT_INTERNAL_RESISTANCE = 25;
 
     private int heatLevel;
     private int heatTotalLevel = 7;
@@ -126,11 +126,6 @@ public class ArcFurnaceBlockEntity extends AbstractPowerConsumerBlockEntity impl
         boolean wasLit = blockState.getValue(ArcFurnaceBlock.LIT);
         boolean isLit = isLit();
 
-        if (isPowered()) {
-            heatUp();
-        if (level.isClientSide) {
-            return;
-        }
 
         double actualCurrent = getSimCurrent();
         double actualVoltage = getSimVoltage();
@@ -171,7 +166,11 @@ public class ArcFurnaceBlockEntity extends AbstractPowerConsumerBlockEntity impl
     }
 
     private boolean isLit() {
-        return isHeated() && isPowered();
+        return isHeated() && isConsideredPoweredByNetwork();
+    }
+
+    private boolean isHeated() {
+        return this.heatLevel > 6;
     }
 
     private void increaseSmeltingProgress() {

@@ -23,6 +23,7 @@ public class ModCreativeModeTabs {
 
                         // Items to be added to the tab
                         output.accept(ModItems.TEST_ITEM);
+                        output.accept(ModItems.MULTIMETER);
                         output.accept(ModItems.SPOOL);
                         output.accept(ModItems.COPPER_WIRE_SPOOL);
                         output.accept(ModItems.ALUMINIUM_WIRE_SPOOL);

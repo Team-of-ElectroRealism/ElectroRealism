@@ -14,7 +14,7 @@ import net.neoforged.neoforge.items.SlotItemHandler;
 
 public class RefineryMenu extends AbstractModMenu {
     public RefineryMenu(int containerId, Inventory inv, FriendlyByteBuf extraData) {
-        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(5));
+        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(4));
     }
 
     public RefineryMenu(int containerId, Inventory playerInventory, BlockEntity blockEntity, ContainerData containerData) {

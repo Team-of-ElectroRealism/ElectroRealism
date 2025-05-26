@@ -247,12 +247,6 @@ public class RefineryBlockEntity extends AbstractPowerConsumerBlockEntity implem
         return new RefineryMenu(containerId, playerInventory, this, this.data);
     }
 
-    public void clearContents() {
-        for (int i = 0; i < itemHandler.getSlots(); i++) {
-            itemHandler.setStackInSlot(i, ItemStack.EMPTY);
-        }
-    }
-
     public void drops() {
         if (this.level == null) return;
         SimpleContainer inv = new SimpleContainer(itemHandler.getSlots());

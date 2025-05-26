@@ -58,7 +58,7 @@ public class ArcFurnaceMenu extends AbstractModMenu {
 
     @Override
     protected int getContainerDataCount() {
-        return 7;
+        return 6;
     }
 
     @Override
