@@ -34,7 +34,7 @@ public class RefineryScreen extends AbstractModScreen<RefineryMenu> {
     private void renderProgressPower(GuiGraphics guiGraphics, int x, int y) {
         int powerHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
         if (powerHeight > 0) {
-            guiGraphics.blit(POWER_TEXTURE, x + 57, y + 37 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
+            guiGraphics.blit(POWER_TEXTURE, x + 57, y + 54 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
         }
     }
 
