@@ -1,11 +1,14 @@
 package com.teamofpowersim.powersim.justenoughitems;
 
 import com.teamofpowersim.powersim.PowerSim;
+import com.teamofpowersim.powersim.justenoughitems.categories.ArcFurnaceRecipeCategory;
 import com.teamofpowersim.powersim.justenoughitems.categories.ElectricCrusherRecipeCategory;
 import com.teamofpowersim.powersim.justenoughitems.categories.RefineryRecipeCategory;
 import com.teamofpowersim.powersim.recipe.ModRecipes;
+import com.teamofpowersim.powersim.recipe.arc_furnace.ArcFurnaceRecipe;
 import com.teamofpowersim.powersim.recipe.crusher.ElectricCrusherRecipe;
 import com.teamofpowersim.powersim.recipe.refinery.RefineryRecipe;
+import com.teamofpowersim.powersim.screen.arc_furnace.ArcFurnaceScreen;
 import com.teamofpowersim.powersim.screen.crusher.ElectricCrusherScreen;
 import com.teamofpowersim.powersim.screen.refinery.RefineryScreen;
 import mezz.jei.api.IModPlugin;
@@ -31,7 +34,8 @@ public class JEIPowerSimPlugin implements IModPlugin {
     public void registerCategories(IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(
                 new ElectricCrusherRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
-                new RefineryRecipeCategory(registration.getJeiHelpers().getGuiHelper())
+                new RefineryRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new ArcFurnaceRecipeCategory(registration.getJeiHelpers().getGuiHelper())
         );
     }
 
@@ -49,13 +53,20 @@ public class JEIPowerSimPlugin implements IModPlugin {
                 .map(RecipeHolder::value)
                 .toList();
 
+        List<ArcFurnaceRecipe> arcFurnaceRecipes = recipeManager.getAllRecipesFor(ModRecipes.ARC_FURNACE_TYPE.get())
+                .stream()
+                .map(RecipeHolder::value)
+                .toList();
+
         registration.addRecipes(ElectricCrusherRecipeCategory.ELECTRIC_CRUSHER_RECIPE_RECIPE_TYPE, electricCrusherRecipes);
         registration.addRecipes(RefineryRecipeCategory.REFINERY_RECIPE_RECIPE_TYPE, refineryRecipes);
+        registration.addRecipes(ArcFurnaceRecipeCategory.ARC_FURNACE_RECIPE_RECIPE_TYPE, arcFurnaceRecipes);
     }
 
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
         registration.addRecipeClickArea(ElectricCrusherScreen.class, 79, 34, 24, 16, ElectricCrusherRecipeCategory.ELECTRIC_CRUSHER_RECIPE_RECIPE_TYPE);
         registration.addRecipeClickArea(RefineryScreen.class, 79, 34, 24, 16, RefineryRecipeCategory.REFINERY_RECIPE_RECIPE_TYPE);
+        registration.addRecipeClickArea(ArcFurnaceScreen.class, 79, 34, 24, 16, ArcFurnaceRecipeCategory.ARC_FURNACE_RECIPE_RECIPE_TYPE);
     }
 }
