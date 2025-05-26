@@ -9,7 +9,6 @@ import com.teamofpowersim.powersim.block.connector.small.SmallConnectorBlockEnti
 import com.teamofpowersim.powersim.block.machine.provider.electric_generator.ElectricGeneratorBlockEntity;
 import com.teamofpowersim.powersim.block.machine.provider.power_importer.PowerImporterBlockEntity;
 import com.teamofpowersim.powersim.block.machine.provider.solarpanel.SolarPanelBlockEntity;
-import com.teamofpowersim.powersim.block.machine.provider.test.VoltageSourceBlockEntity;
 import com.teamofpowersim.powersim.block.machine.provider.waterwheel.WaterWheelBlockEntity;
 import com.teamofpowersim.powersim.block.machine.consumer.arc_furnace.ArcFurnaceBlockEntity;
 import com.teamofpowersim.powersim.block.machine.consumer.crusher.ElectricCrusherBlockEntity;
@@ -39,10 +38,6 @@ public class ModBlockEntityTypes {
                             ModBlocks.ARC_FURNACE.get()
                     )
                     .build(null));
-
-    public static final Supplier<BlockEntityType<VoltageSourceBlockEntity>> VOLTAGE_SOURCE_BE =
-            BLOCK_ENTITY_TYPES.register("voltage_source_be",
-                    () -> BlockEntityType.Builder.of(VoltageSourceBlockEntity::new, ModBlocks.VOLTAGE_SOURCE.get()).build(null));
 
     public static final Supplier<BlockEntityType<SolarPanelBlockEntity>> SOLAR_PANEL_BE =
             BLOCK_ENTITY_TYPES.register("solar_panel_be",

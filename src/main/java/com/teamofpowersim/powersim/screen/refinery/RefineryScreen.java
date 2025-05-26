@@ -28,20 +28,26 @@ public class RefineryScreen extends AbstractModScreen<RefineryMenu> {
     @Override
     protected void renderProgressWidgets(GuiGraphics guiGraphics, int x, int y, float partialTick, int mouseX, int mouseY) {
         renderProgressArrow(guiGraphics, x, y);
-        renderProgressPower(guiGraphics, x, y);
+        renderProgressPower(guiGraphics, x, y); // This will use the updated logic
     }
 
     private void renderProgressPower(GuiGraphics guiGraphics, int x, int y) {
-        int powerHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
-        if (powerHeight > 0) {
-            guiGraphics.blit(POWER_TEXTURE, x + 57, y + 37 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
+        // Use getPowerDisplayStatus() which returns 1.0f if powered, 0.0f otherwise
+        if (menu.getPowerDisplayStatus() == 1.0f) {
+            // Render the full power icon (14 pixels high)
+            // Adjust x + 57, y + 37 to match your refinery GUI layout for the power icon
+            guiGraphics.blit(POWER_TEXTURE, x + 57, y + 37, 0, 0, 14, 14, 14, 14);
         }
+        // If not powered, do nothing.
     }
 
     private void renderProgressArrow(GuiGraphics guiGraphics, int x, int y) {
-        if(menu.isRefining()) {
+        if(menu.isRefining()) { // isRefining now also checks if powered
             int arrowWidth = Mth.ceil(menu.getRefiningProgress() * 24.0F);
-            guiGraphics.blit(ARROW_TEXTURE, x + 79, y + 34, 0, 0, arrowWidth, 16, 24, 16);
+            if (arrowWidth > 0) {
+                // Adjust x + 79, y + 34 to match your refinery GUI layout for the arrow
+                guiGraphics.blit(ARROW_TEXTURE, x + 79, y + 34, 0, 0, arrowWidth, 16, 24, 16);
+            }
         }
     }
 }

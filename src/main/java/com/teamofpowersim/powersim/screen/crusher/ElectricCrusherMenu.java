@@ -2,6 +2,7 @@ package com.teamofpowersim.powersim.screen.crusher;
 
 import com.teamofpowersim.powersim.block.ModBlocks;
 import com.teamofpowersim.powersim.block.machine.consumer.crusher.ElectricCrusherBlockEntity;
+import com.teamofpowersim.powersim.block.machine.consumer.refinery.RefineryBlockEntity;
 import com.teamofpowersim.powersim.screen.ModMenuTypes;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -18,11 +19,14 @@ public class ElectricCrusherMenu extends AbstractContainerMenu {
     private final ContainerData data;
 
     public ElectricCrusherMenu(int containerId , Inventory inv, FriendlyByteBuf extraData) {
-        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(5));
+        // ElectricCrusherBE ContainerData size is now 4 (crushingProg, crushingTotal, isPowered, resistance)
+        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(4));
     }
 
     public ElectricCrusherMenu(int containerId, Inventory inv, BlockEntity blockEntity, ContainerData containerData) {
         super(ModMenuTypes.ELECTRIC_CRUSHER_MENU.get(), containerId);
+        checkContainerDataCount(containerData, 4); // Verify data size
+
         this.blockEntity = (ElectricCrusherBlockEntity) blockEntity;
         this.level = inv.player.level();
         this.data = containerData;
@@ -31,32 +35,31 @@ public class ElectricCrusherMenu extends AbstractContainerMenu {
         addPlayerHotbar(inv);
 
         this.addSlot(new SlotItemHandler(this.blockEntity.itemHandler, 0, 56, 17));
-        this.addSlot(new SlotItemHandler(this.blockEntity.itemHandler, 1, 56, 53));
-        this.addSlot(new SlotItemHandler(this.blockEntity.itemHandler, 2, 116, 35));
+        this.addSlot(new SlotItemHandler(this.blockEntity.itemHandler, 1, 116, 35));
 
         addDataSlots(data);
     }
 
-    public float getPowerProgress() {
-        int powerLevel = this.data.get(2);
-        int powerTotalLevel = this.data.get(3);
-
-        if (powerTotalLevel == 0) {
-            System.out.println("Potential division by zero detected! powerTotalLevel in Crusher is 0. Returning 0 as power progress.");
-            return 0f;
-        }
-
-        return (float) powerLevel / powerTotalLevel;
+    /**
+     * Returns 1.0f if powered, 0.0f if not.
+     * Used by the screen to determine if the power icon should be fully shown or not at all.
+     */
+    public float getPowerDisplayStatus() {
+        // isPowered is at data index 2, returns 0 or 1
+        return this.data.get(2) == 1 ? 1.0f : 0.0f;
     }
+
     public float getCrushingProgress() {
         int crushingProgress = this.data.get(0);
         int crushingTotalTime = this.data.get(1);
 
-        return crushingTotalTime != 0 && crushingProgress != 0 ? (float) crushingProgress / (float) crushingTotalTime : 0.0F;
+        if (crushingTotalTime == 0) return 0.0F;
+        return Math.min(1.0f, (float) crushingProgress / crushingTotalTime);
     }
 
     public boolean isCrushing() {
-        return data.get(0) > 0;
+        // Crushing if progress > 0 AND powered
+        return data.get(0) > 0 && (data.get(2) == 1);
     }
 
     // CREDIT GOES TO: diesieben07 | https://github.com/diesieben07/SevenCommons
@@ -75,7 +78,7 @@ public class ElectricCrusherMenu extends AbstractContainerMenu {
     private static final int TE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
 
     // THIS YOU HAVE TO DEFINE!
-    private static final int TE_INVENTORY_SLOT_COUNT = 3;  // must be the number of slots you have!
+    private static final int TE_INVENTORY_SLOT_COUNT = 2;  // must be the number of slots you have!
     @Override
     public ItemStack quickMoveStack(Player playerIn, int pIndex) {
         Slot sourceSlot = slots.get(pIndex);

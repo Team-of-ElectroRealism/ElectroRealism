@@ -42,7 +42,6 @@ public class ModCreativeModeTabs {
                         // Blocks to be added to the tab
                         output.accept(ModBlocks.ELECTRIC_CRUSHER);
                         output.accept(ModBlocks.ARC_FURNACE);
-                        output.accept(ModBlocks.VOLTAGE_SOURCE);
                         output.accept(ModBlocks.SOLAR_PANEL);
                         output.accept(ModBlocks.COMBUSTION_GENERATOR);
                         output.accept(ModBlocks.WATER_WHEEL);

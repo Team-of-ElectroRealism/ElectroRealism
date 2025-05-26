@@ -46,16 +46,22 @@ public class CombustionGeneratorScreen extends AbstractContainerScreen<Combustio
     }
 
     private void renderProgressPower(GuiGraphics pGuiGraphics, int x, int y) {
-        int powerHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
-        if (powerHeight > 0) {
-            pGuiGraphics.blit(POWER_TEXTURE, x + 100, y + 42 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
+        if (menu.getPowerDisplayStatus() == 1.0f) {
+            // Render the full power icon (14 pixels high)
+            pGuiGraphics.blit(POWER_TEXTURE, x + 100, y + 42, 0, 0, 14, 14, 14, 14);
         }
     }
 
     private void renderProgressFire(GuiGraphics guiGraphics, int x, int y) {
-        int fireHeight = Mth.ceil(menu.getLitProgress() * 13.0F) + 1; // Scale to max 14 pixels
-        if (fireHeight > 0) {
-            guiGraphics.blit(FIRE_TEXTURE, x + 81, y + 25 + 14 - fireHeight, 0, 14 - fireHeight, 14, fireHeight, 14, 14);
+        // The fire icon can still be a progress bar based on litTime/litDuration
+        if (menu.getLitProgress() > 0) { // Only render if there's some lit progress
+            int fireHeight = Mth.ceil(menu.getLitProgress() * 13.0F) + 1; // Max 14 pixels
+            if (fireHeight > 14) fireHeight = 14; // Cap at 14
+            if (fireHeight > 0) { // Ensure some height before blitting
+                // Draw from bottom up: yPos is y + originalOffset + (totalHeight - currentHeight)
+                // vOffset is originalVOffset + (totalHeightInTexture - currentHeight)
+                guiGraphics.blit(FIRE_TEXTURE, x + 81, y + 25 + (14 - fireHeight), 0, 14 - fireHeight, 14, fireHeight, 14, 14);
+            }
         }
     }
 

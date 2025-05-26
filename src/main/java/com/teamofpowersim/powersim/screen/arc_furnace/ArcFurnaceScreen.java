@@ -18,10 +18,10 @@ public class ArcFurnaceScreen extends AbstractContainerScreen<ArcFurnaceMenu> {
     private static final ResourceLocation POWER_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(PowerSim.MODID, "textures/gui/icons/icon_power.png");
 
-    private static final ResourceLocation[] HEAT_TEXTURES = new ResourceLocation[8];
+    private static final ResourceLocation[] HEAT_TEXTURES = new ResourceLocation[8]; // Assuming 0-7 heat levels
 
     static {
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < HEAT_TEXTURES.length; i++) { // Use HEAT_TEXTURES.length
             HEAT_TEXTURES[i] = ResourceLocation.fromNamespaceAndPath(
                     PowerSim.MODID,
                     "textures/gui/arc_furnace/heat-" + i + ".png"
@@ -36,8 +36,6 @@ public class ArcFurnaceScreen extends AbstractContainerScreen<ArcFurnaceMenu> {
     @Override
     protected void init() {
         super.init();
-
-        // Gets rid of labels
         this.inventoryLabelY = 10000;
         this.titleLabelY = 10000;
     }
@@ -53,35 +51,39 @@ public class ArcFurnaceScreen extends AbstractContainerScreen<ArcFurnaceMenu> {
         pGuiGraphics.blit(GUI_TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
 
         renderProgressArrow(pGuiGraphics, x, y);
-        renderProgressPower(pGuiGraphics, x, y);
+        renderProgressPower(pGuiGraphics, x, y); // This will use the updated logic
         renderHeatAnimation(pGuiGraphics, x, y);
     }
 
     private void renderProgressPower(GuiGraphics pGuiGraphics, int x, int y) {
-        int powerHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
-        if (powerHeight > 0) {
-            pGuiGraphics.blit(POWER_TEXTURE, x + 34, y + 35 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
+        if (menu.getPowerDisplayStatus() == 1.0f) {
+            pGuiGraphics.blit(POWER_TEXTURE, x + 34, y + 35, 0, 0, 14, 14, 14, 14);
         }
     }
 
     private void renderProgressArrow(GuiGraphics pGuiGraphics, int x, int y) {
-        if(menu.isSmelting()) {
+        if(menu.isSmelting()) { // isSmelting now also checks if powered from the menu
             int arrowWidth = Mth.ceil(menu.getSmeltingProgress() * 24.0F);
-            pGuiGraphics.blit(ARROW_TEXTURE, x + 79, y + 34, 0, 0, arrowWidth, 16, 24, 16);
+            if (arrowWidth > 0) { // Only blit if there's some width
+                pGuiGraphics.blit(ARROW_TEXTURE, x + 79, y + 34, 0, 0, arrowWidth, 16, 24, 16);
+            }
         }
     }
 
     private void renderHeatAnimation(GuiGraphics pGuiGraphics, int x, int y) {
-        int heatFrame = (int)(menu.getHeatProgress());
-        RenderSystem.setShaderTexture(0, HEAT_TEXTURES[heatFrame]);
+        // menu.getHeatLevel() should return the current heat level (e.g., 0 to 7)
+        int heatFrame = menu.getHeatLevel(); // Use the renamed/new getter from ArcFurnaceMenu
+        heatFrame = Mth.clamp(heatFrame, 0, HEAT_TEXTURES.length - 1); // Ensure frame is within bounds
 
-        pGuiGraphics.blit(
-                HEAT_TEXTURES[heatFrame],
-                x + 57, y + 18,
-                0, 0,
-                13, 13,
-                13, 13
-        );
+        if (heatFrame >= 0 && heatFrame < HEAT_TEXTURES.length) { // Double check bounds
+            pGuiGraphics.blit(
+                    HEAT_TEXTURES[heatFrame],   // Pass the ResourceLocation directly
+                    x + 57, y + 18,          // Screen position
+                    0, 0,                // U, V offset in the heat texture (assuming it's the full texture)
+                    13, 13,               // Width, Height to draw on screen
+                    13, 13                      // Texture Width, Texture Height (of the heatFrame texture itself)
+            );
+        }
     }
 
     @Override

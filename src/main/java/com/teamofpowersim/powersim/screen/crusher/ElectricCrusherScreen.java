@@ -46,16 +46,17 @@ public class ElectricCrusherScreen extends AbstractContainerScreen<ElectricCrush
     }
 
     private void renderProgressPower(GuiGraphics pGuiGraphics, int x, int y) {
-        int powerHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
-        if (powerHeight > 0) {
-            pGuiGraphics.blit(POWER_TEXTURE, x + 57, y + 37 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
+        if (menu.getPowerDisplayStatus() == 1.0f) {
+            pGuiGraphics.blit(POWER_TEXTURE, x + 57, y + 37, 0, 0, 14, 14, 14, 14);
         }
     }
 
     private void renderProgressArrow(GuiGraphics pGuiGraphics, int x, int y) {
-        if(menu.isCrushing()) {
+        if(menu.isCrushing()) { // isCrushing now also checks if powered
             int arrowWidth = Mth.ceil(menu.getCrushingProgress() * 24.0F);
-            pGuiGraphics.blit(ARROW_TEXTURE, x + 79, y + 34, 0, 0, arrowWidth, 16, 24, 16);
+            if (arrowWidth > 0) { // Only blit if there's some width
+                pGuiGraphics.blit(ARROW_TEXTURE, x + 79, y + 34, 0, 0, arrowWidth, 16, 24, 16);
+            }
         }
     }
 

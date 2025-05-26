@@ -50,22 +50,8 @@ public class PowerExporterBlockEntity extends AbstractPowerConsumerBlockEntity {
     }
 
     @Override
-    public void receiveVoltage(int voltage) {
-        int totalResistance = this.internalResistance;
-
-        int chargeIncrease = ElectricalAPI.getChargeIncreaseMah(voltage, totalResistance, (double) 1 / 20);
-
-        setBufferCharge(bufferLevel + chargeIncrease);
-    }
-
-    @Override
     public int getBufferCharge() {
         return bufferLevel;
-    }
-
-    @Override
-    public void setBufferCharge(int charge) {
-        this.bufferLevel = Math.max(0, Math.min(charge, bufferTotalLevel));
     }
 
     @Override

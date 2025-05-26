@@ -12,7 +12,6 @@ import com.teamofpowersim.powersim.block.machine.provider.power_importer.PowerIm
 import com.teamofpowersim.powersim.block.machine.consumer.crusher.ElectricCrusherBlock;
 import com.teamofpowersim.powersim.block.machine.provider.combustion.CombustionGeneratorBlock;
 import com.teamofpowersim.powersim.block.machine.provider.solarpanel.SolarPanelBlock;
-import com.teamofpowersim.powersim.block.machine.provider.test.VoltageSourceBlock;
 import com.teamofpowersim.powersim.block.machine.provider.waterwheel.WaterWheelBlock;
 import com.teamofpowersim.powersim.block.machine.consumer.arc_furnace.ArcFurnaceBlock;
 import com.teamofpowersim.powersim.block.machine.consumer.power_exporter.PowerExporterBlock;
@@ -56,12 +55,6 @@ public class ModBlocks {
             () -> new RefineryBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_RED)
-                    .noOcclusion()));
-
-    public static final DeferredBlock<Block> VOLTAGE_SOURCE = registerBlock("voltage_source",
-            () -> new VoltageSourceBlock(BlockBehaviour.Properties.of()
-                    .instabreak()
-                    .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));
 
     public static final DeferredBlock<Block> SOLAR_PANEL = registerBlock("solar_panel",

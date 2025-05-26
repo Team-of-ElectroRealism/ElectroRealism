@@ -18,12 +18,14 @@ public class ArcFurnaceMenu extends AbstractContainerMenu {
     private final ContainerData data;
 
     public ArcFurnaceMenu(int containerId, Inventory inv, FriendlyByteBuf extraData) {
-        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(7));
+        // ArcFurnaceBE ContainerData size is now 6 (smeltingProg, smeltingTotal, heat, heatTotal, isPowered, resistance)
+        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(6));
     }
-
 
     public ArcFurnaceMenu(int containerId, Inventory inv, BlockEntity blockEntity, ContainerData containerData) {
         super(ModMenuTypes.ARC_FURNACE_MENU.get(), containerId);
+        checkContainerDataCount(containerData, 6); // Verify data size
+
         this.blockEntity = (ArcFurnaceBlockEntity) blockEntity;
         this.level = inv.player.level();
         this.data = containerData;
@@ -37,27 +39,34 @@ public class ArcFurnaceMenu extends AbstractContainerMenu {
         addDataSlots(data);
     }
 
-    public int getHeatProgress() {
-        int heatLevel = this.data.get(2);
-
-        return heatLevel;
+    public int getHeatLevel() { // Changed from getHeatProgress to return raw level
+        return this.data.get(2);
     }
 
-    public float getPowerProgress() {
-        int powerLevel = this.data.get(4);
-        int powerTotalLevel = this.data.get(5);
+    public int getMaxHeatLevel() { // Added getter for max heat
+        return this.data.get(3);
+    }
 
-        return powerTotalLevel != 0 && powerLevel != 0 ? (float) powerLevel / (float) powerTotalLevel : 0.0F;
+    /**
+     * Returns 1.0f if powered, 0.0f if not.
+     * Used by the screen to determine if the power icon should be fully shown or not at all.
+     */
+    public float getPowerDisplayStatus() {
+        // isPowered is at data index 4, returns 0 or 1
+        return this.data.get(4) == 1 ? 1.0f : 0.0f;
     }
 
     public float getSmeltingProgress() {
         int smeltingProgress = this.data.get(0);
         int smeltingTotalTime = this.data.get(1);
 
-        return smeltingTotalTime != 0 && smeltingProgress != 0 ? (float) smeltingProgress / (float) smeltingTotalTime : 0.0F;
+        if (smeltingTotalTime == 0) return 0.0F;
+        return Math.min(1.0f, (float) smeltingProgress / smeltingTotalTime);
     }
 
-    public boolean isSmelting() {return data.get(0) > 0;}
+    public boolean isSmelting() {
+        return data.get(0) > 0 && (data.get(4) == 1);
+    }
 
     // CREDIT GOES TO: diesieben07 | https://github.com/diesieben07/SevenCommons
     // must assign a slot number to each of the slots used by the GUI.
