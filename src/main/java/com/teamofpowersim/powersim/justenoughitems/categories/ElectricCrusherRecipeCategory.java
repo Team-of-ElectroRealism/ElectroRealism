@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 
 public class ElectricCrusherRecipeCategory implements IRecipeCategory<ElectricCrusherRecipe> {
     public static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(PowerSim.MODID, "crushing");
-    public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(PowerSim.MODID, "textures/gui/crusher/electric_crusher_gui.png");
+    public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(PowerSim.MODID, "textures/gui/crusher/electric_crusher_gui_jei.png");
 
     public static final RecipeType<ElectricCrusherRecipe> ELECTRIC_CRUSHER_RECIPE_RECIPE_TYPE = new RecipeType<>(UID, ElectricCrusherRecipe.class);
 
@@ -55,7 +55,7 @@ public class ElectricCrusherRecipeCategory implements IRecipeCategory<ElectricCr
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, ElectricCrusherRecipe recipe, IFocusGroup focuses) {
-        builder.addInputSlot(54, 34).addIngredients(recipe.input());
-        builder.addOutputSlot(104, 34).addItemStack(recipe.output());
+        builder.addInputSlot(56, 35).addIngredients(recipe.input());
+        builder.addOutputSlot(116, 35).addItemStack(recipe.output());
     }
 }

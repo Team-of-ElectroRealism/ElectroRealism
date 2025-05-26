@@ -43,8 +43,7 @@ public class ElectricCrusherBlockEntity extends AbstractPowerConsumerBlockEntity
     };
 
     private static final int SLOT_INPUT = 0;
-    private static final int SLOT_FUEL = 1;
-    private static final int SLOT_OUTPUT = 2;
+    private static final int SLOT_OUTPUT = 1;
 
     private static final String INVENTORY_KEY = "inventory";
     private static final String BUFFER_LEVEL_KEY = "electric_crusher.buffer_level";
