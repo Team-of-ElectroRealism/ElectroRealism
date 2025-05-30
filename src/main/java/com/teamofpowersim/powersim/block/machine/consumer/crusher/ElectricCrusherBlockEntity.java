@@ -107,7 +107,7 @@ public class ElectricCrusherBlockEntity extends AbstractPowerConsumerBlockEntity
 
     @Override
     public void tick(Level level, BlockPos blockPos, BlockState blockState) {
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return;
         }
 
