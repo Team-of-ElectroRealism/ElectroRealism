@@ -23,6 +23,7 @@ public class ModCreativeModeTabs {
 
                         // Items to be added to the tab
                         output.accept(ModItems.TEST_ITEM);
+                        output.accept(ModItems.MULTIMETER);
                         output.accept(ModItems.SPOOL);
                         output.accept(ModItems.COPPER_WIRE_SPOOL);
                         output.accept(ModItems.ALUMINIUM_WIRE_SPOOL);
@@ -42,7 +43,6 @@ public class ModCreativeModeTabs {
                         // Blocks to be added to the tab
                         output.accept(ModBlocks.ELECTRIC_CRUSHER);
                         output.accept(ModBlocks.ARC_FURNACE);
-                        output.accept(ModBlocks.VOLTAGE_SOURCE);
                         output.accept(ModBlocks.SOLAR_PANEL);
                         output.accept(ModBlocks.COMBUSTION_GENERATOR);
                         output.accept(ModBlocks.WATER_WHEEL);

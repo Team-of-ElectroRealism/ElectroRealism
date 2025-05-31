@@ -1,6 +1,8 @@
 package com.teamofpowersim.powersim.block.machine.provider.combustion;
 
-import com.teamofpowersim.powersim.block.IVoltageConsumer;
+import com.mojang.logging.LogUtils;
+import com.teamofpowersim.powersim.PowerSim;
+import com.teamofpowersim.powersim.block.IActiveVoltageProvider;
 import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.machine.provider.AbstractPowerProviderBlockEntity;
 import com.teamofpowersim.powersim.screen.generator.CombustionGeneratorMenu;
@@ -22,12 +24,14 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
-public class CombustionGeneratorBlockEntity extends AbstractPowerProviderBlockEntity implements MenuProvider {
+public class CombustionGeneratorBlockEntity extends AbstractPowerProviderBlockEntity implements MenuProvider, IActiveVoltageProvider {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     public final ItemStackHandler itemHandler = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -47,7 +51,7 @@ public class CombustionGeneratorBlockEntity extends AbstractPowerProviderBlockEn
     private int litTime;
     private int litDuration;
     private final ContainerData data;
-    private final int voltage = 400;
+    private final int nominalVoltage = 400;
 
     public CombustionGeneratorBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlockEntityTypes.COMBUSTION_GENERATOR_BE.get(), pos, blockState);
@@ -76,34 +80,70 @@ public class CombustionGeneratorBlockEntity extends AbstractPowerProviderBlockEn
         };
     }
 
+    /**
+     * Returns the nominal voltage this generator produces when active.
+     */
     @Override
-    public int getVoltage() {
-        return voltage;
+    public int getNominalVoltage() {
+        return this.nominalVoltage;
+    }
+
+    /**
+     * Checks if the generator is currently active (lit and producing power).
+     * This is used by AbstractPowerProviderBlockEntity.getVoltage() to determine
+     * if 0V should be returned for the simulation.
+     */
+    @Override
+    public boolean isActive() {
+        return this.isLit();
+    }
+
+    private boolean isLit() {
+        return this.litTime > 0;
     }
 
     @Override
     public void tick(Level level, BlockPos pos, BlockState state) {
-        boolean wasLit = state.getValue(CombustionGeneratorBlock.LIT);
-        boolean isLit = isLit();
+        if (level.isClientSide()) {
+            return;
+        }
 
-        if (isLit()) {
+        boolean wasPreviouslyActive = isActive(); // Cache state BEFORE any changes this tick
+
+        boolean currentBlockStateLit = state.getValue(CombustionGeneratorBlock.LIT);
+        boolean currentInternalLit = isLit(); // isLit() is this.litTime > 0
+
+        if (currentInternalLit) {
             litTime--;
         }
 
-
-        if (!isLit && isFuel(itemHandler.getStackInSlot(SLOT_FUEL))) {
+        // Refuel logic
+        if (!currentInternalLit && isFuel(itemHandler.getStackInSlot(SLOT_FUEL))) {
             litTime = getBurnDuration(itemHandler.getStackInSlot(SLOT_FUEL));
             litDuration = litTime;
             removeFuel();
-            isLit = true;
+            currentInternalLit = true; // Update internal lit state
         }
 
-        if (isLit) {
-            transferVoltage(level, pos);
+        // If the LIT block state doesn't match our internal lit state, update block state.
+        if (currentBlockStateLit != currentInternalLit) {
+            level.setBlockAndUpdate(pos, state.setValue(CombustionGeneratorBlock.LIT, currentInternalLit));
+            setChanged(); // Mark BE for saving
         }
-        if (wasLit != isLit) {
-            level.setBlockAndUpdate(pos, state.setValue(CombustionGeneratorBlock.LIT, isLit));
-            setChanged(level, pos, state);
+
+        boolean isCurrentlyActive = isActive(); // Get state AFTER changes this tick
+
+        // If the effective output state for the simulation has changed, mark the network dirty via NetworkManager.
+        if (wasPreviouslyActive != isCurrentlyActive) {
+            LOGGER.debug("Combustion Generator at {} active state changed: {} -> {}. Requesting network dirty status via NetworkManager.",
+                    pos.toShortString(), wasPreviouslyActive, isCurrentlyActive);
+            if (PowerSim.NETWORK_MANAGER != null) {
+                // Use the new NetworkManager method.
+                // We pass 'this' (the INetworkMember instance) to the manager.
+                PowerSim.NETWORK_MANAGER.markNetworkDirty(this);
+            } else {
+                LOGGER.error("Combustion Generator at {} changed active state, but NetworkManager is NULL!", pos.toShortString());
+            }
         }
     }
 
@@ -126,23 +166,6 @@ public class CombustionGeneratorBlockEntity extends AbstractPowerProviderBlockEn
 
     private boolean isFuel(ItemStack stackInSlot) {
         return getBurnDuration(stackInSlot) > 0;
-    }
-
-    private boolean isLit() {
-        return this.litTime > 0;
-    }
-
-    @Override
-    protected void transferVoltage(Level level, BlockPos pos) {
-        for (Direction facing: Direction.values()) {
-            BlockPos neighborPos = pos.offset(facing.getNormal());
-            BlockEntity blockEntity = level.getBlockEntity(neighborPos);
-            if (blockEntity instanceof IVoltageConsumer) {
-                IVoltageConsumer receiver = (IVoltageConsumer) blockEntity;
-
-                receiver.receiveVoltage(voltage);
-            }
-        }
     }
 
     @Override

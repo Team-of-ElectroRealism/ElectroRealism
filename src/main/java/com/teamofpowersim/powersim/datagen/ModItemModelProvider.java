@@ -21,6 +21,7 @@ public class ModItemModelProvider extends ItemModelProvider {
     protected void registerModels() {
 
         basicItem(ModItems.TEST_ITEM.get());
+        basicItem(ModItems.MULTIMETER.get());
 
         fenceItem(ModBlocks.STRIPPED_DARK_OAK_FENCE, mcLoc("block/stripped_dark_oak_log"));
         wallItem(ModBlocks.STONE_WALL, mcLoc("block/stone"));

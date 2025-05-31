@@ -32,16 +32,17 @@ public class RefineryScreen extends AbstractModScreen<RefineryMenu> {
     }
 
     private void renderProgressPower(GuiGraphics guiGraphics, int x, int y) {
-        int powerHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
-        if (powerHeight > 0) {
-            guiGraphics.blit(POWER_TEXTURE, x + 57, y + 54 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
+        if (menu.getPowerDisplayStatus() == 1.0f) {
+            guiGraphics.blit(POWER_TEXTURE, x + 57, y + 54, 0, 0, 14, 14, 14, 14);
         }
     }
 
     private void renderProgressArrow(GuiGraphics guiGraphics, int x, int y) {
         if(menu.isRefining()) {
             int arrowWidth = Mth.ceil(menu.getRefiningProgress() * 24.0F);
-            guiGraphics.blit(ARROW_TEXTURE, x + 79, y + 34, 0, 0, arrowWidth, 16, 24, 16);
+            if (arrowWidth > 0) {
+                guiGraphics.blit(ARROW_TEXTURE, x + 79, y + 34, 0, 0, arrowWidth, 16, 24, 16);
+            }
         }
     }
 }

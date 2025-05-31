@@ -4,6 +4,7 @@
     "item": "powersim:enriched_alumina"
   },
   "result": {
-    "id": "powersim:aluminium_ingot"
+    "id": "powersim:aluminium_ingot",
+    "count": 1
   }
 }

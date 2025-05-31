@@ -2,6 +2,8 @@ package com.teamofpowersim.powersim.simulation;
 
 import com.sun.jna.*;
 
+import java.util.List;
+
 /**
  * JNA mapping of the ngspice API, using the same entry points KiCad does.
  */
@@ -18,24 +20,17 @@ public interface NgSpiceLibrary extends Library {
             Pointer                  userData
     );
 
-    /** Submit a SPICE command, e.g. “source foo.cir” or “bg_run” */
-    int ngSpice_Command(String cmd);
+    int         ngSpice_Command(String cmd);
+    int         ngSpice_CircSim();
+    String      ngSpice_CurPlot();
+    Pointer     ngSpice_AllVecs(String plotName);
+    Pointer     ngGet_Vec_Info(String vecName, String plotName);
+    void        ngSpice_LockRealloc();
+    void        ngSpice_UnlockRealloc();
+    int         ngSpice_Circ(Pointer /*char**/ circArray);
+    Pointer     ngSpice_AllPlots();                  // NULL-terminated array of plot names
+    int         ngSpice_Running();                   // 0 = idle, 1 = running
 
-    /** Driver call for background thread */
-    int ngSpice_CircSim();
-
-    /** Returns the name of the current plot (e.g. “tran” or “plot1”) */
-    String ngSpice_CurPlot();
-
-    /** Returns a NULL-terminated array of char* listing all vectors in the given plot */
-    Pointer ngSpice_AllVecs(String plotName);
-
-    /** Returns a pointer to a vector_info struct for the named vector */
-    VectorInfo ngGet_Vec_Info(String vecName);
-
-    /** (Optional) lock/unlock if you plan to call ngGet_Vec_Info from multiple threads */
-    void ngSpice_LockRealloc();
-    void ngSpice_UnlockRealloc();
 
     interface NgSpiceSendCharCallback extends Callback {
         int apply(String what, int id, Pointer userData);
@@ -51,14 +46,19 @@ public interface NgSpiceLibrary extends Library {
     }
 
     /** Minimal mapping of ngspice’s vector_info struct (see ngspice.h) */
+    @Structure.FieldOrder({"v_name","v_type","v_flags","v_realdata","v_compdata","v_length"})
     class VectorInfo extends Structure {
-        public int    v_length;      // number of points
-        public Pointer v_realdata;   // double*
-        public Pointer v_compdata;   // complex* (struct { double cx_real, cx_imag; })
 
-        @Override
-        protected java.util.List<String> getFieldOrder() {
-            return java.util.List.of("v_length", "v_realdata", "v_compdata");
+        public VectorInfo() {}                     // no-arg still allowed
+        public VectorInfo(Pointer p) {             // <-- add this
+            super(p);
         }
+
+        public String  v_name;     // char*
+        public int     v_type;
+        public int     v_flags;
+        public Pointer v_realdata; // double*
+        public Pointer v_compdata; // complex*
+        public int     v_length;
     }
 }

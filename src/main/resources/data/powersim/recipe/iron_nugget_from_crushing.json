@@ -6,6 +6,7 @@
     }
   ],
   "result": {
-    "id": "powersim:test_item"
+    "id": "minecraft:iron_nugget",
+    "count": 3
   }
 }

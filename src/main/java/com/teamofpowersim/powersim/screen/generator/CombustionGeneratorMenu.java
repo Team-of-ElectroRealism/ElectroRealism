@@ -35,21 +35,21 @@ public class CombustionGeneratorMenu extends AbstractContainerMenu {
         addDataSlots(data);
     }
 
-    public float getPowerProgress() {
+    /**
+     * Returns 1.0f if the generator is lit (active), 0.0f otherwise.
+     * This is used by the screen to show the power icon as full or empty.
+     */
+    public float getPowerDisplayStatus() { // Renamed for consistency, but logic is the same as your old getPowerProgress
         int litTime = this.data.get(0);
-        if(litTime > 0) {
-            return 1f;
-        }
-        return 0f;
+        return litTime > 0 ? 1.0f : 0.0f;
     }
 
-    public float getLitProgress() {
+    public float getLitProgress() { // This is for the fire icon
         int litTime = this.data.get(0);
         int litDuration = this.data.get(1);
-        if (litDuration == 0) {
-            litDuration = 200;
+        if (litDuration == 0) { // Avoid division by zero if fuel was just consumed
+            return litTime > 0 ? 1.0f : 0.0f; // If litTime > 0 but duration is 0, show full for a tick
         }
-
         return (float) litTime / (float) litDuration;
     }
 

@@ -7,6 +7,7 @@ import com.teamofpowersim.powersim.network.NetworkManager;
 import com.teamofpowersim.powersim.power.ConnectionPoint;
 import com.teamofpowersim.powersim.power.IWireNode;
 import com.teamofpowersim.powersim.power.WireType;
+import com.teamofpowersim.powersim.simulation.ISimulatable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -27,12 +28,15 @@ import org.slf4j.Logger;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public abstract class AbstractConnectorBlockEntity extends BlockEntity implements IWireNode, INetworkMember {
+public abstract class AbstractConnectorBlockEntity extends BlockEntity implements IWireNode, INetworkMember, ISimulatable {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private UUID networkId;
     private final ConnectionPoint[] connectionPoints;
     private final IWireNode[] iWireNodeCache;
+
+    private double simVoltage;
+    private double simCurrent;
 
     private final Set<ConnectionPoint> connectionPointCache = new HashSet<>();
 
@@ -80,6 +84,15 @@ public abstract class AbstractConnectorBlockEntity extends BlockEntity implement
     public @Nullable IWireNode getWireNode(int index) {
         return IWireNode.getWireNodeFrom(index, this, this.connectionPoints, this.iWireNodeCache, level);
     }
+
+    @Override
+    public void applySimulation(double voltage, double current) {
+        this.simVoltage = voltage;
+        this.simCurrent = current;
+    }
+
+    public double getSimVoltage() { return simVoltage; }
+    public double getSimCurrent() { return simCurrent; }
 
     @Override
     public UUID getNetworkId() {

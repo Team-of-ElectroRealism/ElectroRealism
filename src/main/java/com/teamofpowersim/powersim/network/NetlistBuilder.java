@@ -6,6 +6,7 @@ import com.teamofpowersim.powersim.block.IVoltageConsumer;
 import com.teamofpowersim.powersim.block.connector.ConnectorPolarity;
 import com.teamofpowersim.powersim.power.IWireNode;
 import com.teamofpowersim.powersim.power.WireType;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 
@@ -39,10 +40,19 @@ public class NetlistBuilder {
     private static final String MACHINES_KEY   = "machines";
     private static final String CONNECTORS_KEY = "connectors";
 
-    private static final int POSITIVE_TERMINAL = 0;
-    private static final int NEGATIVE_TERMINAL = 1;
-    private static final int INPUT_TERMINAL    = 0;
-    private static final int OUTPUT_TERMINAL   = 1;
+    public static final int POSITIVE_TERMINAL = 0;
+    public static final int NEGATIVE_TERMINAL = 1;
+    public static final int INPUT_TERMINAL    = 0;
+    public static final int OUTPUT_TERMINAL   = 1;
+
+    private final List<String> voltageSourceNames = new ArrayList<>();
+    private final List<String> resistorNames      = new ArrayList<>();
+
+    /** lookup: schematic reference (“R1”, “V3” …) → block position in-world */
+    private final Map<String, BlockPos> instanceMap = new HashMap<>();
+
+    /** Bundle returned by the builder: the netlist text plus a ref → position map. */
+    public record BuildResult(String netlist, Map<String, BlockPos> instanceMap, Map<NodeKey, Integer> nodeIdMap) {}
 
     /**
      * Build a SPICE netlist from the provided network adjacency list.
@@ -50,9 +60,9 @@ public class NetlistBuilder {
      * @param adjacencyMap map of network member to list of its connection information
      * @return formatted SPICE netlist as a String
      */
-    public String buildNetlist(Map<INetworkMember, List<ConnectionInfo>> adjacencyMap) {
+    public BuildResult buildNetlist(Map<INetworkMember, List<ConnectionInfo>> adjacencyMap) {
         Map<String, List<INetworkMember>> classifiedMembers = classifyNetworkMembers(adjacencyMap);
-        Map<NodeKey, Integer> nodeIdMap = assignNodeNumbers(adjacencyMap);
+        Map<NodeKey, Integer> nodeIdMap = assignNodeNumbers(adjacencyMap); // Calculated here
 
         List<String> voltageSources = createVoltageSourceComponents(
                 classifiedMembers.get(GENERATORS_KEY), nodeIdMap);
@@ -65,9 +75,9 @@ public class NetlistBuilder {
         allComponents.addAll(machineResistors);
         allComponents.addAll(wireResistors);
 
-        // Remove duplicates while preserving order
         List<String> uniqueComponents = new ArrayList<>(new LinkedHashSet<>(allComponents));
-        return formatSpiceNetlist(uniqueComponents);
+
+        return new BuildResult(formatSpiceNetlist(uniqueComponents), instanceMap, nodeIdMap);
     }
 
     /**
@@ -299,6 +309,8 @@ public class NetlistBuilder {
             int positiveNode = nodeIdMap.get(new NodeKey(member, POSITIVE_TERMINAL));
             int negativeNode = nodeIdMap.get(new NodeKey(member, NEGATIVE_TERMINAL));
             String sourceName = "V" + voltageSourceIndex++;
+            instanceMap.put(sourceName, member.getPos());
+            voltageSourceNames.add(sourceName);
             components.add(
                     String.format(Locale.US,
                             "%s %d %d DC %d",
@@ -336,6 +348,8 @@ public class NetlistBuilder {
             }
 
             String resistorName = "R" + machineResistorIndex++;
+            instanceMap.put(resistorName, member.getPos());
+            resistorNames.add(resistorName);
             components.add(
                     String.format(Locale.US,
                             "%s %d %d %d",
@@ -385,6 +399,8 @@ public class NetlistBuilder {
                 WireType type = wireA.getWireType(indexA);
                 double resistance = calculateWireResistance(wireA, indexA, wireB, indexB, type);
                 String name = "RW" + wireResistorIndex++;
+                instanceMap.put(name, candidate.getPos());
+                resistorNames.add(name);
                 components.add(
                         String.format(Locale.US, "%s %d %d %.7f", name, nodeA, nodeB, resistance)
                 );
@@ -419,47 +435,36 @@ public class NetlistBuilder {
         return resistivity * (distance / crossSectionalArea);
     }
 
-    /**
-     * Format the list of SPICE component definitions into complete netlist text.
-     *
-     * @param components list of SPICE lines (voltage sources, resistors)
-     * @return full netlist text including directives
-     */
-    private String formatSpiceNetlist(List<String> components) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("* Generated PowerSim Netlist (").append(new Date()).append(")\n");
+    private String formatSpiceNetlist(List<String> comps) {
+        StringBuilder b = new StringBuilder();
+        b.append("* Generated PowerSim Netlist (").append(new Date()).append(")\n");
 
-        var sources = components.stream().filter(s -> s.startsWith("V")).toList();
-        var machineRes = components.stream().filter(s -> s.startsWith("R") && !s.startsWith("RW")).toList();
-        var wireRes    = components.stream().filter(s -> s.startsWith("RW")).toList();
+        var src = comps.stream().filter(l -> l.startsWith("V")).toList();
+        var mach= comps.stream().filter(l -> l.startsWith("R") && !l.startsWith("RW")).toList();
+        var wir = comps.stream().filter(l -> l.startsWith("RW")).toList();
 
-        if (!sources.isEmpty()) {
-            builder.append("\n* Voltage Sources\n");
-            sources.forEach(line -> builder.append(line).append("\n"));
-        }
-        if (!machineRes.isEmpty()) {
-            builder.append("\n* Machine Resistances\n");
-            machineRes.forEach(line -> builder.append(line).append("\n"));
-        }
-        if (!wireRes.isEmpty()) {
-            builder.append("\n* Wire Resistances\n");
-            wireRes.forEach(line -> builder.append(line).append("\n"));
-        }
+        if (!src.isEmpty())  { b.append("\n* Voltage Sources\n");      src.forEach(l -> b.append(l).append('\n')); }
+        if (!mach.isEmpty()) { b.append("\n* Machine Resistances\n");  mach.forEach(l -> b.append(l).append('\n')); }
+        if (!wir.isEmpty())  { b.append("\n* Wire Resistances\n");     wir.forEach(l -> b.append(l).append('\n')); }
 
-        builder.append("\n* Simulation Control\n");
-        builder.append(".control\n");
-        builder.append("    run\n");
-        builder.append("    set wr_singlescale\n");
-        builder.append("    set wr_vecnames\n");
-        builder.append("    option numdgt=9\n");
-        builder.append("    wrdata results.csv time all\n");
-        builder.append(".endc\n");
-        builder.append("\n* Transient Analysis\n");
-        builder.append(".tran 0.1ms 1ms\n");
-        builder.append("\n.END\n");
+        // ---- Add a .print dc line for diagnostics ----
+        // From your example: V1 1 0 DC 400; R1 2 3 10
+        // So nodes 0, 1, 2, 3 are relevant.
+        b.append("\n* Diagnostic DC print\n");
+        b.append(".print dc v(0) v(1) v(2) v(3)\n");
+        // ---- End Diagnostic print ----
 
-        return builder.toString();
+        b.append("\n.save all");
+        for (String v : voltageSourceNames) b.append(" @").append(v).append("[i]");
+        for (String r : resistorNames)      b.append(" @").append(r).append("[i] @").append(r).append("[p]");
+        b.append('\n');
+
+        b.append("\n* Transient Analysis\n");
+        b.append(".tran 0.1ms 1ms\n");
+        b.append("\n.END\n");
+        return b.toString();
     }
+
 
     /**
      * Disjoint-set (union-find) structure for merging node terminals into nets.
@@ -493,7 +498,7 @@ public class NetlistBuilder {
      * @param member network component instance
      * @param idx terminal index on the component
      */
-    private record NodeKey(INetworkMember member, int idx) {
+    public record NodeKey(INetworkMember member, int idx) {
         @Override
         public boolean equals(Object o) {
             if (!(o instanceof NodeKey other)) return false;

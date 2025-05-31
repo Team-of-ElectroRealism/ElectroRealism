@@ -1,6 +1,6 @@
 package com.teamofpowersim.powersim.block.machine.consumer.refinery;
 
-import com.teamofpowersim.powersim.api.ElectricalAPI;
+import com.mojang.logging.LogUtils;
 import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.machine.consumer.AbstractPowerConsumerBlockEntity;
 import com.teamofpowersim.powersim.recipe.ModRecipes;
@@ -28,14 +28,17 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.util.Optional;
 
 public class RefineryBlockEntity extends AbstractPowerConsumerBlockEntity implements MenuProvider {
-    public final ItemStackHandler itemHandler = new ItemStackHandler(3) {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+    public final ItemStackHandler itemHandler = new ItemStackHandler(2) {
         @Override
         protected void onContentsChanged(int slot) {
-            if (!level.isClientSide()) {
+            if (level != null && !level.isClientSide()) { // Adapted from example
                 setChanged();
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
             }
@@ -45,22 +48,24 @@ public class RefineryBlockEntity extends AbstractPowerConsumerBlockEntity implem
     private static final int SLOT_INPUT = 0;
     private static final int SLOT_OUTPUT = 1;
 
+    // NBT Keys
     private static final String INVENTORY_KEY = "inventory";
-    private static final String BUFFER_LEVEL_KEY = "refinery.buffer_level";
-    private static final String BUFFER_TOTAL_LEVEL_KEY = "refinery.buffer_total_level";
-    private static final String REFINING_PROGRESS_KEY = "refinery.crushing_progress";
-    private static final String REFINING_TOTAL_TIME_KEY = "refinery.crushing_total_time";
+    private static final String REFINING_PROGRESS_KEY = "refinery.refining_progress";
+    private static final String REFINING_TOTAL_TIME_KEY = "refinery.refining_total_time";
     private static final String INTERNAL_RESISTANCE_KEY = "refinery.internal_resistance";
 
-    private static final int TOTAL_REFINING_TIME = 200;
-    private static final int TOTAL_BUFFER_CAPACITY = 2000; // In mAh
-    private static final int INTERNAL_RESISTANCE = 10; // In ohm
+    // Electrical Configuration
+    private static final double REFINERY_MIN_OPERATING_VOLTAGE = 90.0;
+    private static final double REFINERY_NOMINAL_OPERATING_CURRENT = 12.0;
+    private static final double REFINERY_MAX_SAFE_CURRENT = 25.0;
 
-    private int bufferLevel;
-    private int bufferTotalLevel = TOTAL_BUFFER_CAPACITY;
+    // Operational Parameters
+    private static final int DEFAULT_TOTAL_REFINING_TIME = 150;
+    private static final int DEFAULT_INTERNAL_RESISTANCE = 22;
+
     private int refiningProgress;
-    private int refiningTotalTime = TOTAL_REFINING_TIME;
-    private int internalResistance = INTERNAL_RESISTANCE;
+    private int refiningTotalTime = DEFAULT_TOTAL_REFINING_TIME;
+    private int internalResistance = DEFAULT_INTERNAL_RESISTANCE;
     private final ContainerData data;
 
     public RefineryBlockEntity(BlockPos pos, BlockState blockState) {
@@ -71,9 +76,8 @@ public class RefineryBlockEntity extends AbstractPowerConsumerBlockEntity implem
                 return switch (index) {
                     case 0 -> RefineryBlockEntity.this.refiningProgress;
                     case 1 -> RefineryBlockEntity.this.refiningTotalTime;
-                    case 2 -> RefineryBlockEntity.this.bufferLevel;
-                    case 3 -> RefineryBlockEntity.this.bufferTotalLevel;
-                    case 4 -> RefineryBlockEntity.this.internalResistance;
+                    case 2 -> RefineryBlockEntity.this.getBufferCharge();
+                    case 3 -> RefineryBlockEntity.this.internalResistance;
                     default -> 0;
                 };
             }
@@ -81,19 +85,146 @@ public class RefineryBlockEntity extends AbstractPowerConsumerBlockEntity implem
             @Override
             public void set(int index, int value) {
                 switch (index) {
-                    case 0: RefineryBlockEntity.this.refiningProgress = value;
-                    case 1: RefineryBlockEntity.this.refiningTotalTime = value;
-                    case 2: RefineryBlockEntity.this.bufferLevel = value;
-                    case 3: RefineryBlockEntity.this.bufferTotalLevel = value;
-                    case 4: RefineryBlockEntity.this.internalResistance = value;
+                    case 0: RefineryBlockEntity.this.refiningProgress = value; break;
+                    case 1: RefineryBlockEntity.this.refiningTotalTime = value; break;
+                    case 3: RefineryBlockEntity.this.internalResistance = value; break;
                 }
             }
 
             @Override
             public int getCount() {
-                return 5;
+                return 4;
             }
         };
+    }
+
+    // Override electrical parameters
+    @Override
+    protected double getMinOperatingVoltage() { return REFINERY_MIN_OPERATING_VOLTAGE; }
+    @Override
+    protected double getNominalOperatingCurrent() { return REFINERY_NOMINAL_OPERATING_CURRENT; }
+    @Override
+    protected double getMaxSafeCurrent() { return REFINERY_MAX_SAFE_CURRENT; }
+    @Override
+    public int getResistance() { return this.internalResistance; }
+
+    @Override
+    public void tick(Level level, BlockPos pos, BlockState state) { // Arguments from uploaded file
+        if (level.isClientSide()) {
+            return;
+        }
+
+        boolean wasRefining = state.getValue(RefineryBlock.REFINING);
+        boolean isRefining = isRefining();
+
+        double actualCurrent = getSimCurrent();
+        if (Math.abs(actualCurrent) > getMaxSafeCurrent()) {
+            LOGGER.warn("Refinery at {} OVERCURRENT! I: {:.2f}A > {:.2f}A. Destroying.", pos, actualCurrent, getMaxSafeCurrent());
+            level.destroyBlock(pos, true);
+            return;
+        }
+
+        if (hasRecipe() && isOutputSlotEmptyOrReceivable()) {
+            if (isConsideredPoweredByNetwork()) {
+                increaseRefiningProgress();
+                if (hasRefiningFinished()) {
+                    refineItem();
+                    resetProgress();
+                }
+            } else if (this.refiningProgress > 0) {
+                resetProgress();
+            }
+        } else {
+            resetProgress();
+        }
+
+        if (wasRefining != isRefining) {
+            level.setBlockAndUpdate(pos, state.setValue(RefineryBlock.REFINING, isRefining));
+            setChanged();
+        }
+    }
+
+    private boolean isRefining() {
+        return this.refiningProgress > 0;
+    }
+
+    public void clearContents() {
+        for (int i = 0; i < itemHandler.getSlots(); i++) {
+            itemHandler.setStackInSlot(i, ItemStack.EMPTY);
+        }
+    }
+
+    private void increaseRefiningProgress() {
+        this.refiningProgress++;
+    }
+
+    private boolean hasRefiningFinished() {
+        return this.refiningProgress >= this.refiningTotalTime;
+    }
+
+    private void refineItem() {
+        Optional<RecipeHolder<RefineryRecipe>> recipeOpt = getCurrentRecipe();
+        if (recipeOpt.isEmpty()){
+            return;
+        }
+        RecipeHolder<RefineryRecipe> recipe = recipeOpt.get();
+        ItemStack output = recipe.value().getResultItem(level.registryAccess());
+        itemHandler.extractItem(SLOT_INPUT, 1, false);
+        itemHandler.setStackInSlot(SLOT_OUTPUT, new ItemStack(output.getItem(),
+                itemHandler.getStackInSlot(SLOT_OUTPUT).getCount() + output.getCount()));
+    }
+
+    private void resetProgress() {
+        this.refiningProgress = 0;
+    }
+
+    private boolean hasRecipe() {
+        Optional<RecipeHolder<RefineryRecipe>> recipe = getCurrentRecipe();
+
+        if (recipe.isEmpty()) {
+            return false;
+        }
+
+        ItemStack output = recipe.get().value().getResultItem(null);
+
+        return canInsertAmountIntoOutputSlot(output.getCount()) && canInsertItemIntoOutputSlot(output);
+    }
+
+    private boolean canInsertItemIntoOutputSlot(ItemStack output) {
+        return itemHandler.getStackInSlot(SLOT_OUTPUT).isEmpty() || itemHandler.getStackInSlot(SLOT_OUTPUT).getItem() == output.getItem();
+    }
+
+    private boolean canInsertAmountIntoOutputSlot(int count) {
+        int maxCount = itemHandler.getStackInSlot(SLOT_OUTPUT).isEmpty() ? 64 : itemHandler.getStackInSlot(SLOT_OUTPUT).getMaxStackSize();
+        int currentCount = itemHandler.getStackInSlot(SLOT_OUTPUT).getCount();
+
+        return maxCount >= currentCount + count;
+    }
+
+    private boolean isOutputSlotEmptyOrReceivable() {
+        return this.itemHandler.getStackInSlot(SLOT_OUTPUT).isEmpty() || this.itemHandler.getStackInSlot(SLOT_OUTPUT).getCount() < this.itemHandler.getStackInSlot(SLOT_OUTPUT).getMaxStackSize();
+    }
+
+    private Optional<RecipeHolder<RefineryRecipe>> getCurrentRecipe() {
+        return this.level.getRecipeManager().getRecipeFor(ModRecipes.REFINERY_TYPE.get(), new RefineryRecipeInput(itemHandler.getStackInSlot(SLOT_INPUT)), level);
+    }
+
+    @Override
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        itemHandler.deserializeNBT(registries, tag.getCompound(INVENTORY_KEY));
+        this.refiningProgress = tag.getInt(REFINING_PROGRESS_KEY);
+        this.refiningTotalTime = tag.contains(REFINING_TOTAL_TIME_KEY) ? tag.getInt(REFINING_TOTAL_TIME_KEY) : DEFAULT_TOTAL_REFINING_TIME;
+        this.internalResistance = tag.contains(INTERNAL_RESISTANCE_KEY) ? tag.getInt(INTERNAL_RESISTANCE_KEY) : DEFAULT_INTERNAL_RESISTANCE;
+    }
+
+    @Override
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.put(INVENTORY_KEY, itemHandler.serializeNBT(registries));
+        tag.putInt(REFINING_PROGRESS_KEY, this.refiningProgress);
+        tag.putInt(REFINING_TOTAL_TIME_KEY, this.refiningTotalTime);
+        tag.putInt(INTERNAL_RESISTANCE_KEY, this.internalResistance);
     }
 
     @Override
@@ -116,163 +247,17 @@ public class RefineryBlockEntity extends AbstractPowerConsumerBlockEntity implem
         return new RefineryMenu(containerId, playerInventory, this, this.data);
     }
 
-    @Override
-    public void loadAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
-        super.loadAdditional(compoundTag, registries);
-        itemHandler.deserializeNBT(registries, compoundTag.getCompound(INVENTORY_KEY));
-        bufferLevel = compoundTag.getInt(BUFFER_LEVEL_KEY);
-        bufferTotalLevel = compoundTag.getInt(BUFFER_TOTAL_LEVEL_KEY);
-        refiningProgress = compoundTag.getInt(REFINING_PROGRESS_KEY);
-        refiningTotalTime = compoundTag.getInt(REFINING_TOTAL_TIME_KEY);
-        internalResistance = compoundTag.getInt(INTERNAL_RESISTANCE_KEY);
-    }
-    @Override
-    public void saveAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
-        compoundTag.put(INVENTORY_KEY, itemHandler.serializeNBT(registries));
-        compoundTag.putInt(BUFFER_LEVEL_KEY, bufferLevel);
-        compoundTag.putInt(BUFFER_TOTAL_LEVEL_KEY, bufferTotalLevel);
-        compoundTag.putInt(REFINING_PROGRESS_KEY, refiningProgress);
-        compoundTag.putInt(REFINING_TOTAL_TIME_KEY, refiningTotalTime);
-        compoundTag.putInt(INTERNAL_RESISTANCE_KEY, internalResistance);
-
-        super.saveAdditional(compoundTag, registries);
-    }
-
-    @Override
-    public void receiveVoltage(int voltage) {
-        int totalResistance = this.internalResistance;
-
-        int chargeIncrease = ElectricalAPI.getChargeIncreaseMah(voltage, totalResistance, (double) 1 / 20);
-
-        setBufferCharge(bufferLevel + chargeIncrease);
-    }
-
-    @Override
-    public int getBufferCharge() {
-        return bufferLevel;
-    }
-
-    @Override
-    public void setBufferCharge(int charge) {
-        this.bufferLevel = Math.max(0, Math.min(charge, bufferTotalLevel));
-    }
-
-    @Override
-    public int getResistance() {
-        return internalResistance;
+    public void drops() {
+        if (this.level == null) return;
+        SimpleContainer inv = new SimpleContainer(itemHandler.getSlots());
+        for(int i = 0; i < itemHandler.getSlots(); i++) {
+            inv.setItem(i, itemHandler.getStackInSlot(i));
+        }
+        Containers.dropContents(this.level, this.worldPosition, inv);
     }
 
     @Override
     public boolean isFaceAllowed(BlockState state, Direction faceAccessed) {
         return true;
-    }
-
-    @Override
-    public void tick(Level level, BlockPos pos, BlockState state) {
-        boolean wasRefining = state.getValue(RefineryBlock.REFINING);
-        boolean isRefining = isRefining();
-
-        if (hasRecipe() && isOutputSlotEmptyOrReceivable()) {
-            if (isPowered() && hasBufferEnoughCharge()) {
-                increaseRefiningProgress();
-                decreaseBufferCharge();
-                if (hasRefiningFinished()) {
-                    refineItem();
-                    resetProgress();
-                }
-            } else {
-                refiningProgress = 0;
-            }
-        } else {
-            refiningProgress = 0;
-        }
-
-        if (wasRefining != isRefining) {
-            level.setBlockAndUpdate(pos, state.setValue(RefineryBlock.REFINING, isRefining));
-            setChanged();
-        }
-    }
-
-    private boolean isRefining() {
-        return this.refiningProgress > 0;
-    }
-
-    public void clearContents() {
-        for (int i = 0; i < itemHandler.getSlots(); i++) {
-            itemHandler.setStackInSlot(i, ItemStack.EMPTY);
-        }
-    }
-
-    public void drops() {
-        SimpleContainer inv = new SimpleContainer(itemHandler.getSlots());
-        for(int i = 0; i < itemHandler.getSlots(); i++) {
-            inv.setItem(i, itemHandler.getStackInSlot(i));
-        }
-
-        Containers.dropContents(this.level, this.worldPosition, inv);
-    }
-
-    private boolean hasRefiningFinished() {
-        return this.refiningProgress >= this.refiningTotalTime;
-    }
-
-    private void increaseRefiningProgress() {
-        refiningProgress++;
-    }
-
-    private boolean hasBufferEnoughCharge() {
-        return bufferLevel >= 100;
-    }
-
-    private void decreaseBufferCharge() {
-        bufferLevel = bufferLevel - 3;
-    }
-
-    private boolean isPowered() {
-        return this.bufferLevel > 0;
-    }
-
-    private void resetProgress() {
-        this.refiningProgress = 0;
-        this.refiningTotalTime = TOTAL_REFINING_TIME;
-    }
-
-    private boolean canInsertItemIntoOutputSlot(ItemStack output) {
-        return itemHandler.getStackInSlot(SLOT_OUTPUT).isEmpty() || itemHandler.getStackInSlot(SLOT_OUTPUT).getItem() == output.getItem();
-    }
-
-    private boolean canInsertAmountIntoOutputSlot(int count) {
-        int maxCount = itemHandler.getStackInSlot(SLOT_OUTPUT).isEmpty() ? 64 : itemHandler.getStackInSlot(SLOT_OUTPUT).getMaxStackSize();
-        int currentCount = itemHandler.getStackInSlot(SLOT_OUTPUT).getCount();
-
-        return maxCount >= currentCount + count;
-    }
-
-    private boolean isOutputSlotEmptyOrReceivable() {
-        return this.itemHandler.getStackInSlot(SLOT_OUTPUT).isEmpty() || this.itemHandler.getStackInSlot(SLOT_OUTPUT).getCount() < this.itemHandler.getStackInSlot(SLOT_OUTPUT).getMaxStackSize();
-    }
-
-    private Optional<RecipeHolder<RefineryRecipe>> getCurrentRecipe() {
-        return this.level.getRecipeManager().getRecipeFor(ModRecipes.REFINERY_TYPE.get(), new RefineryRecipeInput(itemHandler.getStackInSlot(SLOT_INPUT)), level);
-    }
-
-    private void refineItem() {
-        Optional<RecipeHolder<RefineryRecipe>> recipe = getCurrentRecipe();
-        ItemStack output = recipe.get().value().getResultItem(null);
-
-        itemHandler.extractItem(SLOT_INPUT, 1, false);
-        itemHandler.setStackInSlot(SLOT_OUTPUT, new ItemStack(output.getItem(), itemHandler.getStackInSlot(SLOT_OUTPUT).getCount() + output.getCount()));
-    }
-
-    private boolean hasRecipe() {
-        Optional<RecipeHolder<RefineryRecipe>> recipe = getCurrentRecipe();
-
-        if (recipe.isEmpty()) {
-            return false;
-        }
-
-        ItemStack output = recipe.get().value().getResultItem(null);
-
-        return canInsertAmountIntoOutputSlot(output.getCount()) && canInsertItemIntoOutputSlot(output);
     }
 }

@@ -1,11 +1,8 @@
 package com.teamofpowersim.powersim.screen.arc_furnace;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.teamofpowersim.powersim.PowerSim;
 import com.teamofpowersim.powersim.screen.AbstractModScreen;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -19,10 +16,10 @@ public class ArcFurnaceScreen extends AbstractModScreen<ArcFurnaceMenu> {
     private static final ResourceLocation POWER_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(PowerSim.MODID, "textures/gui/icons/icon_power.png");
 
-    private static final ResourceLocation[] HEAT_TEXTURES = new ResourceLocation[8];
+    private static final ResourceLocation[] HEAT_TEXTURES = new ResourceLocation[8]; // Assuming 0-7 heat levels
 
     static {
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < HEAT_TEXTURES.length; i++) { // Use HEAT_TEXTURES.length
             HEAT_TEXTURES[i] = ResourceLocation.fromNamespaceAndPath(
                     PowerSim.MODID,
                     "textures/gui/arc_furnace/heat-" + i + ".png"
@@ -47,9 +44,8 @@ public class ArcFurnaceScreen extends AbstractModScreen<ArcFurnaceMenu> {
     }
 
     private void renderProgressPower(GuiGraphics pGuiGraphics, int x, int y) {
-        int powerHeight = Mth.ceil(menu.getPowerProgress() * 13.0F) + 1; // Scale to max 14 pixels
-        if (powerHeight > 0) {
-            pGuiGraphics.blit(POWER_TEXTURE, x + 57, y + 54 + 14 - powerHeight, 0, 14 - powerHeight, 14, powerHeight, 14, 14);
+        if (menu.getPowerDisplayStatus() == 1.0f) {
+            pGuiGraphics.blit(POWER_TEXTURE, x + 57, y + 54, 0, 0, 14, 14, 14, 14);
         }
     }
 
@@ -61,15 +57,18 @@ public class ArcFurnaceScreen extends AbstractModScreen<ArcFurnaceMenu> {
     }
 
     private void renderHeatAnimation(GuiGraphics pGuiGraphics, int x, int y) {
-        int heatFrame = (int)(menu.getHeatProgress());
-        RenderSystem.setShaderTexture(0, HEAT_TEXTURES[heatFrame]);
+        // menu.getHeatLevel() should return the current heat level (e.g., 0 to 7)
+        int heatFrame = menu.getHeatLevel(); // Use the renamed/new getter from ArcFurnaceMenu
+        heatFrame = Mth.clamp(heatFrame, 0, HEAT_TEXTURES.length - 1); // Ensure frame is within bounds
 
-        pGuiGraphics.blit(
-                HEAT_TEXTURES[heatFrame],
-                x + 57, y + 18,
-                0, 0,
-                13, 13,
-                13, 13
-        );
+        if (heatFrame >= 0 && heatFrame < HEAT_TEXTURES.length) { // Double check bounds
+            pGuiGraphics.blit(
+                    HEAT_TEXTURES[heatFrame],   // Pass the ResourceLocation directly
+                    x + 57, y + 18,          // Screen position
+                    0, 0,                // U, V offset in the heat texture (assuming it's the full texture)
+                    13, 13,               // Width, Height to draw on screen
+                    13, 13                      // Texture Width, Texture Height (of the heatFrame texture itself)
+            );
+        }
     }
 }

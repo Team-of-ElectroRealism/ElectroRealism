@@ -6,19 +6,15 @@ import com.teamofpowersim.powersim.screen.AbstractModMenu;
 import com.teamofpowersim.powersim.screen.ModMenuTypes;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
 public class ArcFurnaceMenu extends AbstractModMenu {
     public ArcFurnaceMenu(int containerId, Inventory inv, FriendlyByteBuf extraData) {
-        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(7));
+        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(6));
     }
-
 
     public ArcFurnaceMenu(int containerId, Inventory playerInventory, BlockEntity blockEntity, ContainerData containerData) {
         super(ModMenuTypes.ARC_FURNACE_MENU.get(), containerId, playerInventory, blockEntity, containerData);
@@ -26,27 +22,34 @@ public class ArcFurnaceMenu extends AbstractModMenu {
         this.addSlot(new SlotItemHandler(((ArcFurnaceBlockEntity) blockEntity).itemHandler, 1, 116, 35));
     }
 
-    public int getHeatProgress() {
-        int heatLevel = this.data.get(2);
-
-        return heatLevel;
+    public int getHeatLevel() { // Changed from getHeatProgress to return raw level
+        return this.data.get(2);
     }
 
-    public float getPowerProgress() {
-        int powerLevel = this.data.get(4);
-        int powerTotalLevel = this.data.get(5);
+    public int getMaxHeatLevel() { // Added getter for max heat
+        return this.data.get(3);
+    }
 
-        return powerTotalLevel != 0 && powerLevel != 0 ? (float) powerLevel / (float) powerTotalLevel : 0.0F;
+    /**
+     * Returns 1.0f if powered, 0.0f if not.
+     * Used by the screen to determine if the power icon should be fully shown or not at all.
+     */
+    public float getPowerDisplayStatus() {
+        // isPowered is at data index 4, returns 0 or 1
+        return this.data.get(4) == 1 ? 1.0f : 0.0f;
     }
 
     public float getSmeltingProgress() {
         int smeltingProgress = this.data.get(0);
         int smeltingTotalTime = this.data.get(1);
 
-        return smeltingTotalTime != 0 && smeltingProgress != 0 ? (float) smeltingProgress / (float) smeltingTotalTime : 0.0F;
+        if (smeltingTotalTime == 0) return 0.0F;
+        return Math.min(1.0f, (float) smeltingProgress / smeltingTotalTime);
     }
 
-    public boolean isSmelting() {return data.get(0) > 0;}
+    public boolean isSmelting() {
+        return data.get(0) > 0 && (data.get(4) == 1);
+    }
 
     @Override
     protected int getBlockEntityInventorySlotCount() {
@@ -55,7 +58,7 @@ public class ArcFurnaceMenu extends AbstractModMenu {
 
     @Override
     protected int getContainerDataCount() {
-        return 7;
+        return 6;
     }
 
     @Override

@@ -5,6 +5,9 @@ import com.teamofpowersim.powersim.block.connector.AbstractConnectorBlockEntity;
 import com.teamofpowersim.powersim.block.machine.AbstractMachineBlockEntity;
 import com.teamofpowersim.powersim.power.ConnectionPoint;
 import com.teamofpowersim.powersim.power.WireType;
+import com.teamofpowersim.powersim.simulation.ISimulatable;
+import com.teamofpowersim.powersim.simulation.NgSpiceSimulator;
+import com.teamofpowersim.powersim.simulation.SimulationDataApplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -17,6 +20,7 @@ import org.slf4j.Logger;
 import com.teamofpowersim.powersim.power.IWireNode;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,17 +30,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NetworkManager {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private Set<Network> networks = ConcurrentHashMap.newKeySet();
-    @Nullable
-    private NetworkSavedData savedData = null;
-    @Nullable
-    private MinecraftServer server = null;
+    private Set<Network> networks = ConcurrentHashMap.newKeySet(); // Ensure this is initialized
+    @Nullable private NetworkSavedData savedData = null;
+    @Nullable private MinecraftServer server = null; // Will be set on first tick or level load
+
+    private final Set<UUID> currentlySimulating = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     /**
      * Constructs a new NetworkManager.
      */
-    public NetworkManager() {
-    }
+    public NetworkManager() {}
 
     // --- Loading and Saving ---
 
@@ -49,6 +52,7 @@ public class NetworkManager {
             this.networks.clear();
             LOGGER.debug("Cleared runtime networks set.");
         }
+        this.currentlySimulating.clear(); // Clear this too
         this.savedData = null;
         this.server = null;
         LOGGER.info("NetworkManager runtime state cleared.");
@@ -72,24 +76,30 @@ public class NetworkManager {
             LOGGER.warn("NetworkManager levelLoaded called with non-ServerLevel or null server.");
             return;
         }
-        if (this.server != null && this.server == serverLevel.getServer() && this.savedData != null) {
-            LOGGER.debug("NetworkManager already initialized for this server instance.");
+
+        if (this.server == null || this.server != serverLevel.getServer()) {
+            this.server = serverLevel.getServer();
+            LOGGER.info("NetworkManager initialized/updated for server instance.");
+        } else if (this.savedData != null && this.server == serverLevel.getServer()){
+            LOGGER.debug("NetworkManager already initialized for this server and data likely loaded.");
+            if (serverLevel != this.server.overworld() || (this.savedData != null && this.savedData.getNetworks().isEmpty())) { // check if savedData is null before calling getNetworks
+                resolveMembersInLevel(serverLevel);
+            }
             return;
         }
 
-        this.server = serverLevel.getServer();
-        LOGGER.info("NetworkManager initializing for server...");
-
         if (serverLevel == this.server.overworld()) {
             LOGGER.info("Loading network data from Overworld...");
-            loadSavedNetworkData(this.server); // Load structure
-            resolveMembersInLevel(serverLevel); // Resolve members in Overworld
+            loadSavedNetworkData(this.server); // This creates Network objects
+            resolveMembersInLevel(serverLevel); // This adds members to them
+            // By this point, Network constructors and addNetworkMember calls should have
+            // invoked requestSimulation for all loaded, dirty networks.
         } else {
-            LOGGER.info("NetworkManager levelLoaded for dimension {}, resolving members if networks loaded.", serverLevel.dimension().location());
-            if (!this.networks.isEmpty()){
-                resolveMembersInLevel(serverLevel); // Resolve members in this dimension
+            LOGGER.info("NetworkManager levelLoaded for dimension {}, resolving members if networks previously loaded.", serverLevel.dimension().location());
+            if (this.savedData != null && !this.networks.isEmpty()) {
+                resolveMembersInLevel(serverLevel);
             } else {
-                LOGGER.warn("Networks not loaded yet (Overworld not loaded?), cannot resolve members for dimension {}.", serverLevel.dimension().location());
+                LOGGER.warn("Networks not loaded yet (Overworld not loaded, or savedData is null?), cannot resolve members for dimension {}.", serverLevel.dimension().location());
             }
         }
     }
@@ -278,7 +288,7 @@ public class NetworkManager {
     }
 
     @Nullable
-    Network findNetwork(UUID networkId) {
+    public Network findNetwork(UUID networkId) {
         if (networkId == null) return null;
         for (Network network : networks) {
             if (network.getNetworkId().equals(networkId)) {
@@ -312,8 +322,8 @@ public class NetworkManager {
         Network network1 = findNetwork(id1);
         Network network2 = findNetwork(id2);
 
-        Network resultingNetwork;
-        UUID resultingNetworkId;
+        Network resultingNetwork = null;
+        UUID resultingNetworkId = null;
         Set<INetworkMember> membersToUpdateId = new HashSet<>();
         membersToUpdateId.add(networkMember1);
         membersToUpdateId.add(networkMember2);
@@ -474,28 +484,42 @@ public class NetworkManager {
 
         Network network1 = findNetwork(member1);
         Network network2 = findNetwork(member2);
-
         Network networkToCheck = null;
+
+        // ... (existing logic to determine networkToCheck) ...
         if (network1 != null && network1.equals(network2)) {
             networkToCheck = network1;
         } else if (network1 != null) {
             networkToCheck = network1;
             LOGGER.warn("Members {} and {} were in different networks ({}, {}) or one network was null during connection removal check. Checking network {}.",
                     member1.getPos().toShortString(), member2.getPos().toShortString(),
-                    network1 != null ? network1.getNetworkId() : "null",
+                    network1.getNetworkId(), // network1 is not null here
                     network2 != null ? network2.getNetworkId() : "null",
                     networkToCheck.getNetworkId());
         } else if (network2 != null) {
-            networkToCheck = network2;
+            networkToCheck = network2; // network1 was null
             LOGGER.warn("Member {} network was null, checking network {} for member {} after connection removal.",
                     member1.getPos().toShortString(), networkToCheck.getNetworkId(), member2.getPos().toShortString());
         }
 
+
         if (networkToCheck != null && networkToCheck.isValid()) {
             LOGGER.debug("Checking network {} for splits after connection removal between {} and {}.",
                     networkToCheck.getNetworkId(), member1.getPos().toShortString(), member2.getPos().toShortString());
-            splitNetworkIfDisconnected(networkToCheck);
-            markDataDirty();
+
+            boolean splitOccurred = splitNetworkIfDisconnected(networkToCheck);
+
+            if (!splitOccurred && networkToCheck.isValid()) {
+                // If the network wasn't split (still the same network object and valid),
+                // its internal connectivity has changed (a wire removed between members).
+                // It needs re-simulation.
+                LOGGER.debug("Network {} was not split but a connection was removed, marking dirty.", networkToCheck.getNetworkId());
+                networkToCheck.markDirty(); // This will trigger requestSimulation
+            }
+            // If a split occurred, new networks are created and marked dirty by their constructors.
+            // The original networkToCheck would have been removed/invalidated.
+            // markDataDirty() is called by splitNetworkIfDisconnected if a split happens.
+            // If no split, the set of networks and their member lists haven't changed, so no specific save is needed for NetworkSavedData here.
         } else {
             LOGGER.warn("Could not find a valid network to check for splits after connection removal between {} and {}.",
                     member1.getPos().toShortString(), member2.getPos().toShortString());
@@ -507,8 +531,18 @@ public class NetworkManager {
      * This happens when a member is removed and the network is no longer a single connected graph.
      * @param originalNetwork The network to check for disconnection.
      */
-    private void splitNetworkIfDisconnected(Network originalNetwork) {
-        Set<INetworkMember> allMembers = originalNetwork.getNetworkMembers();
+    private boolean splitNetworkIfDisconnected(Network originalNetwork) { // Changed to return boolean
+        Set<INetworkMember> allMembers = new HashSet<>(originalNetwork.getNetworkMembers()); // Use a copy
+        if (allMembers.size() <= 1 && !allMembers.isEmpty()) { // Optimization: single member cannot be disconnected from itself
+            // LOGGER.trace("Network {} has only one or zero members, no split check needed beyond emptiness.", originalNetwork.getNetworkId());
+            return false;
+        }
+        if (allMembers.isEmpty()){ // An empty network doesn't split. It might get removed by caller.
+            // LOGGER.trace("Network {} is empty, cannot split.", originalNetwork.getNetworkId());
+            return false;
+        }
+
+
         Set<BlockPos> visited = new HashSet<>();
         List<Set<INetworkMember>> connectedGroups = new ArrayList<>();
 
@@ -518,17 +552,23 @@ public class NetworkManager {
             Set<INetworkMember> group = new HashSet<>();
             Queue<INetworkMember> queue = new LinkedList<>();
             queue.add(member);
+            // visited.add(member.getPos()); // Add to visited when adding to queue to avoid re-processing
 
             while (!queue.isEmpty()) {
                 INetworkMember current = queue.poll();
                 BlockPos currentPos = current.getPos();
 
+                // Re-check visited here in case added by parallel path in complex graph, though BFS should handle.
                 if (!visited.add(currentPos)) continue;
                 group.add(current);
 
-                for (INetworkMember potentialNeighbor : allMembers) {
+                // Iterate over a snapshot of potential neighbors to avoid CME if allMembers could change
+                // (though in this context, allMembers is a local copy from originalNetwork.getNetworkMembers())
+                for (INetworkMember potentialNeighbor : allMembers) { // allMembers is already a copy
                     if (!visited.contains(potentialNeighbor.getPos()) && hasConnection(current, potentialNeighbor)) {
+                        // if (!queue.contains(potentialNeighbor)) // Queue.contains is O(N), avoid if possible
                         queue.add(potentialNeighbor);
+                        // visited.add(potentialNeighbor.getPos()); // Add here too
                     }
                 }
             }
@@ -539,28 +579,27 @@ public class NetworkManager {
         }
 
         if (connectedGroups.size() <= 1) {
-            LOGGER.trace("Network {} does not need splitting.", originalNetwork.getNetworkId());
-            return; // No split needed
+            // LOGGER.trace("Network {} does not need splitting ({} group(s) found).", originalNetwork.getNetworkId(), connectedGroups.size());
+            return false; // No split needed
         }
 
         LOGGER.info("Splitting network {} into {} separate groups.", originalNetwork.getNetworkId(), connectedGroups.size());
 
-        // Remove original network BEFORE creating new ones
         this.networks.remove(originalNetwork);
         originalNetwork.setInvalid(); // Mark as invalid
 
         for (Set<INetworkMember> group : connectedGroups) {
-            Network newNetwork = createNetwork();
-            // Update IDs for all members in this new group.
-            // setNetworkId will handle registering them with the manager under the new network ID.
-            for(INetworkMember networkMember : group) {
-                newNetwork.addNetworkMember(networkMember);
-                networkMember.setNetworkId(newNetwork.getNetworkId()); // Assign new ID & trigger registration
+            Network newNetwork = createNetwork(); // createNetwork adds to this.networks and its constructor marks it dirty
+            for(INetworkMember networkMemberInGroup : group) {
+                // newNetwork.addNetworkMember(networkMemberInGroup); // This will markDirty
+                networkMemberInGroup.setNetworkId(newNetwork.getNetworkId()); // This updates BE and registers with NM
+                // which in turn calls newNetwork.addNetworkMember
             }
             LOGGER.info("  Created new network {} with {} members after split.", newNetwork.getNetworkId(), group.size());
         }
 
-        markDataDirty();
+        markDataDirty(); // Network set changed, save required
+        return true; // Split occurred
     }
 
     private void cleanupWireConnections(INetworkMember networkMember) {
@@ -615,6 +654,56 @@ public class NetworkManager {
         }
     }
 
+    /**
+     * Marks a specific network as dirty, prompting a re-simulation.
+     * This should be called when a member's state changes in a way
+     * that affects the simulation (e.g., a generator turning on/off).
+     *
+     * @param networkId The UUID of the network to mark dirty.
+     * @return true if the network was found and marked dirty, false otherwise.
+     */
+    public boolean markNetworkDirty(UUID networkId) {
+        if (networkId == null) {
+            LOGGER.warn("Attempted to mark a network dirty with a null ID.");
+            return false;
+        }
+        Network network = findNetwork(networkId);
+        if (network != null) {
+            if (network.isValid()) {
+                LOGGER.trace("NetworkManager: Marking network {} as dirty.", networkId);
+                network.markDirty(); // This internal call within Network will then call requestSimulation
+                return true;
+            } else {
+                LOGGER.trace("NetworkManager: Attempted to mark network {} dirty, but it's invalid.", networkId);
+                return false;
+            }
+        } else {
+            LOGGER.warn("NetworkManager: Attempted to mark network {} dirty, but it was not found.", networkId);
+            return false;
+        }
+    }
+
+    /**
+     * Marks the network containing the given member as dirty.
+     * Convenience method.
+     * @param member The INetworkMember whose network should be marked dirty.
+     * @return true if the member had a network and it was marked dirty, false otherwise.
+     */
+    public boolean markNetworkDirty(INetworkMember member) {
+        if (member == null) {
+            LOGGER.warn("Attempted to mark network dirty for a null member.");
+            return false;
+        }
+        if (member.getNetworkId() == null) {
+            // This can happen if a block is broken before it's fully initialized into a network,
+            // or if its network was already dissolved.
+            LOGGER.trace("Attempted to mark network dirty for member at {}, but it has no network ID.", member.getPos().toShortString());
+            return false;
+        }
+        return markNetworkDirty(member.getNetworkId());
+    }
+
+
     // --- Ticking ---
 
     /**
@@ -623,10 +712,61 @@ public class NetworkManager {
      */
     public void tick() {
         if (networks.isEmpty()) return;
-        for (Network network : networks) {
+        // Create a snapshot for iteration if networks can be modified during tick() by other means
+        // Set<Network> currentNetworks = new HashSet<>(this.networks);
+        for (Network network : networks) { // Iterating directly on ConcurrentHashMap.newKeySet() is generally safe for reads
             if (network.isValid()) {
-                network.tick();
+                network.tick(); // Network.tick() currently does nothing.
             }
+        }
+    }
+
+    public void onServerTick(MinecraftServer serverInstance) {
+        if (this.server == null) {
+            this.server = serverInstance;
+            if (this.server != null) {
+                // LOGGER.info("NetworkManager server instance initialized via onServerTick.");
+            }
+        }
+    }
+
+    // --- Simulation Requesting ---
+    public void requestSimulation(Network network) {
+        if (this.server == null) {
+            LOGGER.error("Server is null, cannot schedule simulation for network {}. Network remains dirty.", network.getNetworkId());
+            // Network will remain dirty. If requestSimulation is called again when server is available, it will proceed.
+            return;
+        }
+        if (network == null || !network.isValid()) {
+            // LOGGER.trace("Simulation request for null or invalid network {} - ignoring.", network != null ? network.getNetworkId() : "null");
+            return;
+        }
+
+        // The currentlySimulating.add check prevents flooding the server.execute queue
+        // with redundant tasks for the same network if markDirty is called rapidly.
+        if (currentlySimulating.add(network.getNetworkId())) {
+            LOGGER.debug("Scheduling simulation for network {} (was not already simulating/queued).", network.getNetworkId());
+            this.server.execute(() -> {
+                // Re-check network validity and dirty status *inside* the server thread execution,
+                // as state might have changed between the request and actual execution.
+                // Also check if members exist, as an empty network shouldn't simulate.
+                if (network.isValid() && !network.getNetworkMembers().isEmpty() && network.isDirtyAndReset()) {
+                    // The network was dirty and is now reset. Proceed with simulation.
+                    initiateSimulationForNetwork(network); // This method handles removing from currentlySimulating on completion/error
+                } else {
+                    // Network is no longer dirty, or became invalid/empty.
+                    // No simulation needed for this scheduled task.
+                    LOGGER.trace("Simulation for network {} cancelled or not needed upon execution (not dirty, invalid, or empty).", network.getNetworkId());
+                    currentlySimulating.remove(network.getNetworkId()); // Release the lock
+                }
+            });
+        } else {
+            // Another simulation for this network is already running or scheduled via server.execute.
+            // The network remains dirty (because isDirtyAndReset() wasn't called for *this* path).
+            // If the ongoing/scheduled simulation completes, and the network is *still* dirty
+            // (e.g., due to changes that occurred *after* the previous isDirtyAndReset but *before* this call),
+            // a new requestSimulation call (triggered by a subsequent markDirty) will eventually pick it up.
+            LOGGER.trace("Network {} is dirty, but a simulation is already in progress or scheduled. It remains dirty.", network.getNetworkId());
         }
     }
 
@@ -720,5 +860,136 @@ public class NetworkManager {
             return wireA.hasConnectionTo(networkMember2.getPos());
         }
         return false;
+    }
+
+    private void applyZeroPowerToNetwork(Network network, ServerLevel level, Set<INetworkMember> membersToProcessOriginal) {
+        if (network == null || level == null ) return;
+
+        Set<BlockPos> positionsToProcess = new HashSet<>();
+        if (membersToProcessOriginal != null) { // If a specific set was given
+            membersToProcessOriginal.forEach(m -> positionsToProcess.add(m.getPos()));
+        } else { // Fallback to all members of the network
+            network.getNetworkMembers().forEach(m -> positionsToProcess.add(m.getPos()));
+        }
+
+        for (BlockPos memberPos : positionsToProcess) {
+            if (level.isLoaded(memberPos)) {
+                BlockEntity be = level.getBlockEntity(memberPos);
+                if (be instanceof ISimulatable simulatableMember && be instanceof INetworkMember currentMember) {
+                    // Optional: Check if currentMember is still part of 'network'
+                    if (network.getNetworkMembers().contains(currentMember)) {
+                        simulatableMember.applySimulation(0.0, 0.0);
+                    } else {
+                        LOGGER.warn("Attempted to apply zero power to BE at {}, but it's no longer in network {}. Type: {}", memberPos, network.getNetworkId(), be.getClass().getSimpleName());
+                    }
+                }
+            }
+        }
+        LOGGER.debug("Applied zero power to members of network {} (or attempted).", network.getNetworkId());
+    }
+    // --- Simulation ---
+    private void initiateSimulationForNetwork(final Network network) { // network should be effectively final
+        if (this.server == null) {
+            LOGGER.error("Server instance is null in initiateSimulationForNetwork (should not happen if onServerTick checks). Aborting for {}.", network.getNetworkId());
+            currentlySimulating.remove(network.getNetworkId()); // Clean up
+            network.markDirty(); // Ensure it's tried again
+            return;
+        }
+
+        final Set<INetworkMember> membersSnapshot = new HashSet<>(network.getNetworkMembers()); // Use a snapshot
+        if (membersSnapshot.isEmpty()) {
+            LOGGER.debug("Network {} has no members at simulation initiation. Skipping.", network.getNetworkId());
+            currentlySimulating.remove(network.getNetworkId());
+            network.setLastSimulationTime(System.currentTimeMillis()); // Mark as "simulated"
+            return;
+        }
+
+        // Determine ServerLevel robustly
+        ServerLevel level = null;
+        INetworkMember firstMember = membersSnapshot.iterator().next();
+        if (firstMember instanceof BlockEntity be) {
+            if (be.getLevel() instanceof ServerLevel memberLevel && memberLevel.getServer() == this.server) {
+                level = memberLevel;
+            }
+        }
+        if (level == null) { // Fallback if first member didn't work out
+            for (INetworkMember member : membersSnapshot) {
+                if (member instanceof BlockEntity be) {
+                    if (be.getLevel() instanceof ServerLevel sl && sl.getServer() == this.server) {
+                        level = sl; break;
+                    }
+                }
+            }
+        }
+        if (level == null) level = this.server.overworld(); // Final fallback
+
+        final ServerLevel finalLevel = level;
+        final NetlistBuilder.BuildResult buildResult;
+
+        try {
+            NetworkGraphBuilder graphBuilder = new NetworkGraphBuilder();
+            Map<INetworkMember, List<ConnectionInfo>> adjList = graphBuilder.buildAdjacencyList(membersSnapshot, finalLevel);
+
+            NetworkCircuitChecker circuitChecker = new NetworkCircuitChecker();
+            if (!circuitChecker.isClosedCircuit(membersSnapshot, adjList)) {
+                LOGGER.info("Network {} is an open circuit. Applying zero power.", network.getNetworkId());
+                this.server.execute(() -> applyZeroPowerToNetwork(network, finalLevel, membersSnapshot));
+                currentlySimulating.remove(network.getNetworkId());
+                network.setLastSimulationTime(System.currentTimeMillis());
+                return;
+            }
+            buildResult = new NetlistBuilder().buildNetlist(adjList);
+        } catch (Exception e) {
+            LOGGER.error("Failed to build netlist or check circuit for network {}: {}", network.getNetworkId(), e.getMessage(), e);
+            currentlySimulating.remove(network.getNetworkId());
+            network.markDirty(); // Re-mark for a retry
+            return;
+        }
+
+        String spiceNetlist = buildResult.netlist();
+        final String finalSpiceNetlist = spiceNetlist; // Make effectively final for lambda
+        LOGGER.info("Attempting ASYNC simulation (TESTING WITH 'run' COMMAND) for network {}. Full Netlist:\n{}", network.getNetworkId(), finalSpiceNetlist);
+        try {
+            // TEMPORARILY USE THE DIAGNOSTIC METHOD
+            NgSpiceSimulator.instance().simulateAsync(finalSpiceNetlist,
+                    simData -> { // OnResult Consumer
+                        this.server.execute(() -> {
+                            try {
+                                if (!network.isValid() || network.getNetworkMembers().isEmpty()) {
+                                    LOGGER.info("Network {} became invalid/empty while (TEST 'run') sim was running. Discarding.", network.getNetworkId());
+                                    return;
+                                }
+                                LOGGER.info("Async (TEST 'run') sim for {} COMPLETED successfully. Applying results.", network.getNetworkId());
+                                SimulationDataApplier.apply(simData, buildResult, finalLevel, null, membersSnapshot);
+                                network.setLastSimulationTime(System.currentTimeMillis());
+                            } catch (Exception e) {
+                                LOGGER.error("Error applying (TEST 'run') sim data for network {}: {}. Original Netlist:\n{}", network.getNetworkId(), e.getMessage(), finalSpiceNetlist, e);
+                                if (network.isValid()) network.markDirty();
+                            } finally {
+                                currentlySimulating.remove(network.getNetworkId());
+                            }
+                        });
+                    },
+                    exception -> { // OnError Consumer
+                        this.server.execute(() -> {
+                            try {
+                                LOGGER.error("Async (TEST 'run') simulation FAILED for network {}: {}. Original Netlist:\n{}", network.getNetworkId(), exception.getMessage(), finalSpiceNetlist, exception);
+                                if (network.isValid()) {
+                                    applyZeroPowerToNetwork(network, finalLevel, membersSnapshot);
+                                }
+                                network.setLastSimulationTime(System.currentTimeMillis());
+                            } catch (Exception e_handler) {
+                                LOGGER.error("Error during (TEST 'run') simulation error handling for network {}: {}", network.getNetworkId(), e_handler.getMessage(), e_handler);
+                            } finally {
+                                currentlySimulating.remove(network.getNetworkId());
+                            }
+                        });
+                    }
+            );
+        } catch (IOException e) { // Catch IOException from NgSpiceSimulator.instance()
+            LOGGER.error("IOException obtaining/starting (TEST 'run') NgSpiceSimulator for network {}: {}. Netlist:\n{}", network.getNetworkId(), e.getMessage(), finalSpiceNetlist, e);
+            currentlySimulating.remove(network.getNetworkId());
+            if (network.isValid()) network.markDirty();
+        }
     }
 }

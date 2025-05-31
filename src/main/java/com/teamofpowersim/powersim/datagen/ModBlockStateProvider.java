@@ -21,7 +21,6 @@ public class ModBlockStateProvider extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
-        blockWithItem(ModBlocks.VOLTAGE_SOURCE);
         blockWithItem(ModBlocks.ALUMINIUM_BLOCK);
         blockWithItem(ModBlocks.BAUXITE_ORE);
         blockWithItem(ModBlocks.DEEPSLATE_BAUXITE_ORE);

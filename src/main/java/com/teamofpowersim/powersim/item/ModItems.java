@@ -19,6 +19,8 @@ public class ModItems {
 
     public static final DeferredItem<Item> TEST_ITEM = ITEMS.register("test_item",
             () -> new TestItem(new Item.Properties()));
+    public static final DeferredItem<Item> MULTIMETER = ITEMS.register("multimeter",
+            () -> new Multimeter(new Item.Properties()));
     public static final DeferredItem<Item> ALUMINIUM_WIRE_SPOOL = ITEMS.register("aluminium_wire_spool",
             () -> new WireSpool(new Item.Properties()));
     public static final DeferredItem<Item> COPPER_WIRE_SPOOL = ITEMS.register("copper_wire_spool",

@@ -9,6 +9,7 @@
     }
   ],
   "result": {
-    "id": "powersim:alumina_powder"
+    "id": "powersim:alumina_powder",
+    "count": 2
   }
 }
