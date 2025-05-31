@@ -11,6 +11,8 @@
   "block.powersim.electric_generator": "Electric Generator",
   "block.powersim.arc_furnace": "Arc Furnace",
   "block.powersim.refinery": "Refinery",
+  "block.powersim.electric_lamp": "Electric Lamp",
+
   "block.powersim.small_connector": "Small Connector",
   "block.powersim.large_connector": "Large Connector",
   "block.powersim.duo_connector": "Duo Connector",

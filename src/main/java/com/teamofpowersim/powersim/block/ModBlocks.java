@@ -93,6 +93,12 @@ public class ModBlocks {
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));
 
+    public static final DeferredBlock<Block> ELECTRIC_LAMP = registerBlock("electric_lamp",
+            () -> new PowerImporterBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion()));
+
     public static final DeferredBlock<Block> SMALL_CONNECTOR = registerBlock("small_connector",
             () -> new SmallConnectorBlock(BlockBehaviour.Properties.of()
                     .instabreak()
