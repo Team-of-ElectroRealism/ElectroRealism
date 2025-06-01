@@ -3,7 +3,6 @@ package com.teamofpowersim.powersim.block.machine.consumer.lamp;
 import com.mojang.logging.LogUtils;
 import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.machine.consumer.AbstractPowerConsumerBlockEntity;
-import com.teamofpowersim.powersim.block.machine.consumer.crusher.ElectricCrusherBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;

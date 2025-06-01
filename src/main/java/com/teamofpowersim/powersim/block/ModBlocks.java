@@ -6,6 +6,7 @@ import com.teamofpowersim.powersim.block.connector.large.LargeConnectorBlock;
 import com.teamofpowersim.powersim.block.custom.ModFlammableRotatedPillarBlock;
 import com.teamofpowersim.powersim.block.custom.Mounting_PlateBlock;
 import com.teamofpowersim.powersim.block.connector.small.SmallConnectorBlock;
+import com.teamofpowersim.powersim.block.machine.consumer.lamp.ElectricLampBlock;
 import com.teamofpowersim.powersim.block.machine.consumer.refinery.RefineryBlock;
 import com.teamofpowersim.powersim.block.machine.provider.electric_generator.ElectricGeneratorBlock;
 import com.teamofpowersim.powersim.block.machine.provider.power_importer.PowerImporterBlock;
@@ -94,7 +95,7 @@ public class ModBlocks {
                     .noOcclusion()));
 
     public static final DeferredBlock<Block> ELECTRIC_LAMP = registerBlock("electric_lamp",
-            () -> new PowerImporterBlock(BlockBehaviour.Properties.of()
+            () -> new ElectricLampBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)
                     .noOcclusion()));

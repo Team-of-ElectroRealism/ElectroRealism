@@ -8,12 +8,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +25,7 @@ public class ElectricLampBlock extends AbstractPowerConsumerBlock {
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
     public static final MapCodec<ElectricLampBlock> CODEC = simpleCodec(ElectricLampBlock::new);
 
-    protected ElectricLampBlock(Properties properties) {
+    public ElectricLampBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.defaultBlockState().setValue(LIT, false));
     }
@@ -30,6 +33,16 @@ public class ElectricLampBlock extends AbstractPowerConsumerBlock {
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
         return new ElectricLampBlockEntity(blockPos, blockState);
+    }
+
+    @Override
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(LIT, false);
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(LIT);
     }
 
     @Override
@@ -79,7 +92,7 @@ public class ElectricLampBlock extends AbstractPowerConsumerBlock {
                     double worldY = (double)pos.getY() + particleRelY;
                     double worldZ = (double)pos.getZ() + particleRelZ;
 
-                    level.addParticle(ParticleTypes.GLOW, worldX, worldY, worldZ, 0.0, 0.0, 0.0);
+                    level.addParticle(ParticleTypes.ELECTRIC_SPARK, worldX, worldY, worldZ, 0.0, 0.0, 0.0);
                 }
             }
         }
