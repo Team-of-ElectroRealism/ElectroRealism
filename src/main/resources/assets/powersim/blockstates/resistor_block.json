@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "powersim:block/resistor_block",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "powersim:block/resistor_block"
+    },
+    "facing=south": {
+      "model": "powersim:block/resistor_block",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "powersim:block/resistor_block",
+      "y": 270
+    }
+  }
+}

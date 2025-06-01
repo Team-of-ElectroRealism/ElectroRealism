@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "W": {
+      "item": "powersim:copper_wire_spool"
+    }
+  },
+  "pattern": [
+    "CGC",
+    "GWG",
+    "CGC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "powersim:electric_lamp"
+  }
+}

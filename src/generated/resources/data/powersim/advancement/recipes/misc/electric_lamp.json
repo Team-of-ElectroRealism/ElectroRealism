@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_electric_lamp": {
+      "conditions": {
+        "items": [
+          {
+            "items": "powersim:electric_lamp"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "powersim:electric_lamp"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_electric_lamp"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "powersim:electric_lamp"
+    ]
+  }
+}

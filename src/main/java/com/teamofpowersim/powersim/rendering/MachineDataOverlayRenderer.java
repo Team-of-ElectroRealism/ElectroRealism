@@ -89,7 +89,7 @@ public final class MachineDataOverlayRenderer {
             double dz = pos.getZ() + 0.5 - camPos.z;
             if (dx * dx + dy * dy + dz * dz > MAX_DISTANCE_SQR) continue; // distance cull
 
-            String text = format(machine);
+            String text = getDataLine(machine);
 
             poseStack.pushPose();
             poseStack.translate(dx, dy, dz);
@@ -121,11 +121,41 @@ public final class MachineDataOverlayRenderer {
         LOGGER.debug("Rendered {} machine labels at {}", members.size(), lookPos);
     }
 
-    /* Helper – tweak to taste */
-    private static String format(AbstractMachineBlockEntity m) {
+    private static String getDataLine(AbstractMachineBlockEntity m) {
         double v = m.getSimVoltage();
         double i = m.getSimCurrent();
-        return String.format("%.0f V  %.1f A  %.0f W", v, i, v * i);
+        double p = v * i;
+
+        return String.format("%s  %s  %s",
+                formatWithBestPrefix(v, "V"),
+                formatWithBestPrefix(i, "A"),
+                formatWithBestPrefix(p, "W"));
+    }
+
+    private static String formatWithBestPrefix(double value, String unit) {
+        // Ordered from smaller to larger
+        final String[] prefixes = {"n", "µ", "m", "", "k", "M", "G", "T"};
+        final double[] factors  = {1e-9, 1e-6, 1e-3, 1, 1e3, 1e6, 1e9, 1e12};
+
+        double abs = Math.abs(value);
+        int idx = prefixes.length - 1;            // default → biggest
+
+        // Pick the largest factor that keeps the number ≥ 1
+        for (int i = 0; i < factors.length; i++) {
+            if (abs < factors[i] * 1_000) {       // 1 – 999 window
+                idx = i;
+                break;
+            }
+        }
+
+        double scaled = value / factors[idx];
+
+        // Choose # decimals: 0 for ≥100, 1 for ≥10, 2 otherwise
+        String fmt = scaled >= 100   ? "%.0f %s%s"
+                : scaled >= 10    ? "%.1f %s%s"
+                :                   "%.2f %s%s";
+
+        return String.format(fmt, scaled, prefixes[idx], unit);
     }
 
     private static void chatOnNewData(AbstractMachineBlockEntity machine, String dataLine) {

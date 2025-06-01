@@ -1,6 +1,5 @@
 package com.teamofpowersim.powersim.block.machine.consumer.power_exporter;
 
-import com.teamofpowersim.powersim.api.ElectricalAPI;
 import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.machine.consumer.AbstractPowerConsumerBlockEntity;
 import com.teamofpowersim.powersim.energy.ModEnergyStorage;
