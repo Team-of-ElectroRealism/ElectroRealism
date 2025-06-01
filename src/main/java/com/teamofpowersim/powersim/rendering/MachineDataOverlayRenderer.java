@@ -123,8 +123,8 @@ public final class MachineDataOverlayRenderer {
 
     /* Helper – tweak to taste */
     private static String format(AbstractMachineBlockEntity m) {
-        double v = m.getSimVoltage();
-        double i = m.getSimCurrent();
+        double v = Math.abs(m.getSimVoltage());
+        double i = Math.abs(m.getSimCurrent());
         return String.format("%.0f V  %.1f A  %.0f W", v, i, v * i);
     }
 

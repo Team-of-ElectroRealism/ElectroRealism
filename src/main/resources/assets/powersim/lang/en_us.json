@@ -12,6 +12,7 @@
   "block.powersim.arc_furnace": "Arc Furnace",
   "block.powersim.refinery": "Refinery",
   "block.powersim.electric_lamp": "Electric Lamp",
+  "block.powersim.resistor_block": "Resistor Block",
 
   "block.powersim.small_connector": "Small Connector",
   "block.powersim.large_connector": "Large Connector",
@@ -62,5 +63,9 @@
   "statusbar.powersim.wire.error": "No NetworkManager for this level",
   "statusbar.powersim.wire.requires_high_current": "This connection requires a high current wire",
 
-  "statusbar.powersim.connector_set": "Connector terminal mode toggled"
+  "statusbar.powersim.connector_set": "Connector terminal mode toggled",
+
+  "statusbar.powersim.resistor_value": "Resistance: %s Ω",
+  "statusbar.powersim.resistor_set": "Resistance set to %s Ω"
+
 }

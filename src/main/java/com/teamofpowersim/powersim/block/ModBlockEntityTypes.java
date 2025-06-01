@@ -5,6 +5,7 @@ import com.teamofpowersim.powersim.block.connector.duo.DuoConnectorBlockEntity;
 import com.teamofpowersim.powersim.block.connector.large.LargeConnectorBlockEntity;
 import com.teamofpowersim.powersim.block.machine.consumer.lamp.ElectricLampBlockEntity;
 import com.teamofpowersim.powersim.block.machine.consumer.refinery.RefineryBlockEntity;
+import com.teamofpowersim.powersim.block.machine.consumer.resistor_block.ResistorBlockEntity;
 import com.teamofpowersim.powersim.block.machine.provider.combustion.CombustionGeneratorBlockEntity;
 import com.teamofpowersim.powersim.block.connector.small.SmallConnectorBlockEntity;
 import com.teamofpowersim.powersim.block.machine.provider.electric_generator.ElectricGeneratorBlockEntity;
@@ -83,6 +84,10 @@ public class ModBlockEntityTypes {
     public static final Supplier<BlockEntityType<ElectricLampBlockEntity>> ELECTRIC_LAMP_BE =
             BLOCK_ENTITY_TYPES.register("electric_lamp_be",
                     () -> BlockEntityType.Builder.of(ElectricLampBlockEntity::new, ModBlocks.ELECTRIC_LAMP.get()).build(null));
+
+    public static final Supplier<BlockEntityType<ResistorBlockEntity>> RESISTOR_BLOCK_BE =
+            BLOCK_ENTITY_TYPES.register("resistor_block_be",
+                    () -> BlockEntityType.Builder.of(ResistorBlockEntity::new, ModBlocks.RESISTOR_BLOCK.get()).build(null));
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITY_TYPES.register(eventBus);

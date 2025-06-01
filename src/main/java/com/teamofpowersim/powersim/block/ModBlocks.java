@@ -8,6 +8,7 @@ import com.teamofpowersim.powersim.block.custom.Mounting_PlateBlock;
 import com.teamofpowersim.powersim.block.connector.small.SmallConnectorBlock;
 import com.teamofpowersim.powersim.block.machine.consumer.lamp.ElectricLampBlock;
 import com.teamofpowersim.powersim.block.machine.consumer.refinery.RefineryBlock;
+import com.teamofpowersim.powersim.block.machine.consumer.resistor_block.ResistorBlock;
 import com.teamofpowersim.powersim.block.machine.provider.electric_generator.ElectricGeneratorBlock;
 import com.teamofpowersim.powersim.block.machine.provider.power_importer.PowerImporterBlock;
 import com.teamofpowersim.powersim.block.machine.consumer.crusher.ElectricCrusherBlock;
@@ -98,6 +99,12 @@ public class ModBlocks {
             () -> new ElectricLampBlock(BlockBehaviour.Properties.of()
                     .instabreak()
                     .mapColor(MapColor.COLOR_GRAY)
+                    .noOcclusion()));
+
+    public static final DeferredBlock<Block> RESISTOR_BLOCK = registerBlock("resistor_block",
+            () -> new ResistorBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .mapColor(MapColor.COLOR_BROWN)
                     .noOcclusion()));
 
     public static final DeferredBlock<Block> SMALL_CONNECTOR = registerBlock("small_connector",

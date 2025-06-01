@@ -51,6 +51,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.POWER_IMPORTER);
                         output.accept(ModBlocks.REFINERY);
                         output.accept(ModBlocks.ELECTRIC_LAMP);
+                        output.accept(ModBlocks.RESISTOR_BLOCK);
 
                         output.accept(ModBlocks.SMALL_CONNECTOR);
                         output.accept(ModBlocks.LARGE_CONNECTOR);
