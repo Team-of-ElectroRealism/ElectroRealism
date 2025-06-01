@@ -31,6 +31,17 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
                 .unlockedBy(getHasName(ModBlocks.ARC_FURNACE.get()), has(ModBlocks.ARC_FURNACE.get()))
                 .save(recipeOutput);
 
+        // Electric Lamp recipe
+        shaped(RecipeCategory.MISC, ModBlocks.ELECTRIC_LAMP)
+                .pattern("CGC")
+                .pattern("GWG")
+                .pattern("CGC")
+                .define('C', Items.COPPER_INGOT)
+                .define('G', Items.GLASS)
+                .define('W', ModItems.COPPER_WIRE_SPOOL)
+                .unlockedBy(getHasName(ModBlocks.ELECTRIC_LAMP.get()), has(ModBlocks.ELECTRIC_LAMP.get()))
+                .save(recipeOutput);
+
         // Fence recipe
         shaped(RecipeCategory.DECORATIONS, ModBlocks.STRIPPED_DARK_OAK_FENCE.get(), 3)
                 .pattern("W#W")

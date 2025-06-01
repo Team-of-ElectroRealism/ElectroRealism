@@ -9,10 +9,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.Objects;
@@ -134,16 +138,12 @@ public abstract class AbstractMachineBlockEntity extends BlockEntity implements 
     }
 
     @Override
+    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries); // This will call saveAdditional in the base BlockEntity class
-        // or any overridden version up the chain.
-        // Explicitly add if super.getUpdateTag() doesn't reliably call our saveAdditional
-        // However, BlockEntity's implementation of saveMetadata (called by default getUpdateTag) does call saveAdditional.
-        // So the values added in saveAdditional above *should* be included.
-        // If ArcFurnaceBlockEntity's saveWithoutMetadata(registries) is just super.saveAdditional, it's fine.
-        // Let's assume the chain works. If not, uncomment and fill:
-        // tag.putDouble(SIM_VOLTAGE_KEY, this.simVoltage);
-        // tag.putDouble(SIM_CURRENT_KEY, this.simCurrent);
-        return tag;
+        return saveWithoutMetadata(registries);
     }
 }

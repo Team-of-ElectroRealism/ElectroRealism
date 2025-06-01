@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "powersim:block/electric_lamp"
+    },
+    "lit=true": {
+      "model": "powersim:block/electric_lamp_lit"
+    }
+  }
+}
