@@ -25,22 +25,32 @@ import java.util.UUID;
 public final class MachineDataOverlayRenderer {
     private static final Logger LOGGER = LogUtils.getLogger();
 
+    private static BlockPos lastChattedBlockPos = null;
+    private static String lastChattedData = null;
+
     private static final Minecraft MC = Minecraft.getInstance();
     private static final double MAX_DISTANCE_SQR = 64 * 64;   // 64-block cull radius
     private static final float  SCALE            = 0.025f;    // Mojang name-tag scale
-
-    private static long nextChatTick = 0;
 
     private MachineDataOverlayRenderer() {}
 
     public static void render(RenderLevelStageEvent event) {
         Level level = MC.level;
-        if (level == null) return;
+        // If level or player is null, or not looking at a block, reset state.
+        if (level == null || MC.player == null) { // Added MC.player == null check for robustness
+            lastChattedBlockPos = null;
+            lastChattedData = null;
+            return;
+        }
 
-        /* ---------------- block the player is looking at ---------------- */
         HitResult hit = MC.hitResult;
         if (!(hit instanceof BlockHitResult blockHit &&
-                hit.getType() == HitResult.Type.BLOCK)) return;
+                hit.getType() == HitResult.Type.BLOCK)) {
+            // Player is not looking at a block.
+            lastChattedBlockPos = null;
+            lastChattedData = null;
+            return;
+        }
         BlockPos lookPos = blockHit.getBlockPos();
 
         /* ---------------- find the matching network -------------------- */
@@ -102,7 +112,7 @@ public final class MachineDataOverlayRenderer {
             poseStack.popPose();
 
             if (pos.equals(lookPos)) {           // <= player’s cross-hair target
-                chatOncePerSecond(machine, text);
+                chatOnNewData(machine, text);
             }
         }
 
@@ -118,25 +128,42 @@ public final class MachineDataOverlayRenderer {
         return String.format("%.0f V  %.1f A  %.0f W", v, i, v * i);
     }
 
-    private static void chatOncePerSecond(AbstractMachineBlockEntity machine,
-                                          String dataLine) {
-        var player = MC.player;
-        var level  = MC.level;
-        if (player == null || level == null) return;
+    private static void chatOnNewData(AbstractMachineBlockEntity machine, String dataLine) {
+            var player = MC.player;
+            // Level is already confirmed not null by the render method's start.
+            // Player null check is important.
+            if (player == null) {
+                return;
+            }
 
-        long now = level.getGameTime();
-        if (now < nextChatTick) return;          // 1-second cooldown
+            BlockPos currentBlockPos = machine.getBlockPos();
+            boolean shouldPrint = false;
 
-        /* Get the human-readable (translated) block name */
-        var name = machine.getBlockState()
-                .getBlock()
-                .getName()            // Component
-                .getString();         // plain text
+            // Condition 1: Player is looking at a new block, or looking at a block for the first time
+            // after looking away (lastChattedBlockPos would be null).
+            if (!currentBlockPos.equals(lastChattedBlockPos)) {
+                shouldPrint = true;
+            }
+            // Condition 2: Player is looking at the same block, but its data has changed.
+            else if (!dataLine.equals(lastChattedData)) {
+                shouldPrint = true;
+            }
 
-        player.sendSystemMessage(
-                Component.literal("[PowerSim] ")
-                        .append(name + ": " + dataLine)
-        );
-        nextChatTick = now + 20;                // 20 ticks ≈ 1 s
-    }
+            if (shouldPrint) {
+                // Get the human-readable (translated) block name
+                var name = machine.getBlockState()
+                        .getBlock()
+                        .getName()            // Component
+                        .getString();         // plain text
+
+                player.sendSystemMessage(
+                        Component.literal("[PowerSim] ")
+                                .append(name + ": " + dataLine)
+                );
+
+                // Update the state with the latest printed block and data
+                lastChattedBlockPos = currentBlockPos;
+                lastChattedData = dataLine;
+            }
+        }
 }

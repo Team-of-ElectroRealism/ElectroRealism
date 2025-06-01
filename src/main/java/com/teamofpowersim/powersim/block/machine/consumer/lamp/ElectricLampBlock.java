@@ -9,6 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -19,15 +20,30 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import org.jetbrains.annotations.Nullable;
 
 public class ElectricLampBlock extends AbstractPowerConsumerBlock {
-    public static final BooleanProperty LIT = BlockStateProperties.LIT;
+    public static final IntegerProperty LIGHT_LEVEL = IntegerProperty.create("light_level", 0, 15);
+    public static final BooleanProperty LIT = BlockStateProperties.LIT;   // keep for textures
+
     public static final MapCodec<ElectricLampBlock> CODEC = simpleCodec(ElectricLampBlock::new);
 
     public ElectricLampBlock(Properties properties) {
-        super(properties);
-        this.registerDefaultState(this.defaultBlockState().setValue(LIT, false));
+        super(properties.lightLevel(s -> 0));         // let us supply the value manually
+        this.registerDefaultState(this.defaultBlockState()
+                .setValue(LIT, false)
+                .setValue(LIGHT_LEVEL, 0));
+    }
+
+    public int getLightEmission(BlockState state, BlockGetter world, BlockPos pos) {
+        return state.getValue(LIGHT_LEVEL);
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(LIT, LIGHT_LEVEL);
     }
 
     @Override
@@ -38,11 +54,6 @@ public class ElectricLampBlock extends AbstractPowerConsumerBlock {
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState().setValue(LIT, false);
-    }
-
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(LIT);
     }
 
     @Override
