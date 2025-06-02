@@ -1,7 +1,6 @@
 package com.teamofpowersim.powersim.event;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.logging.LogUtils;
 import com.teamofpowersim.powersim.PowerSim;
 import com.teamofpowersim.powersim.block.ModBlocks;
 import com.teamofpowersim.powersim.item.ModItems;
@@ -18,8 +17,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import org.checkerframework.checker.units.qual.C;
-import org.slf4j.Logger;
 
 @EventBusSubscriber(Dist.CLIENT)
 public class ClientEvents {

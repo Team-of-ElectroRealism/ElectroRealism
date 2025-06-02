@@ -1,6 +1,7 @@
 package com.teamofpowersim.powersim.block.machine.provider.combustion;
 
 import com.mojang.logging.LogUtils;
+import com.teamofpowersim.powersim.Config;
 import com.teamofpowersim.powersim.PowerSim;
 import com.teamofpowersim.powersim.block.IActiveVoltageProvider;
 import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
@@ -51,7 +52,7 @@ public class CombustionGeneratorBlockEntity extends AbstractPowerProviderBlockEn
     private int litTime;
     private int litDuration;
     private final ContainerData data;
-    private final int nominalVoltage = 400;
+    private final int nominalVoltage = (int) Config.combustionGeneratorOutputVoltage; // TODO should be double
 
     public CombustionGeneratorBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlockEntityTypes.COMBUSTION_GENERATOR_BE.get(), pos, blockState);

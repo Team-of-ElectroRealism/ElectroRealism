@@ -66,6 +66,50 @@
   "statusbar.powersim.connector_set": "Connector terminal mode toggled",
 
   "statusbar.powersim.resistor_value": "Resistance: %s Ω",
-  "statusbar.powersim.resistor_set": "Resistance set to %s Ω"
+  "statusbar.powersim.resistor_set": "Resistance set to %s Ω",
 
+  "powersim.configuration.small_connector_specifics": "Small Connector Configuration",
+  "powersim.configuration.small_connector_max_wire_length": "Max Wire Length",
+  "powersim.configuration.small_connector_connection_point_count": "Connection Points",
+
+  "powersim.configuration.large_connector_specifics": "Large Connector Configuration",
+  "powersim.configuration.large_connector_max_wire_length": "Max Wire Length",
+  "powersim.configuration.large_connector_connection_point_count": "Connection Points",
+
+  "powersim.configuration.duo_connector_specifics": "Duo Connector Configuration",
+  "powersim.configuration.duo_connector_max_wire_length": "Max Wire Length",
+
+  "powersim.configuration.electric_crusher_specifics": "Crusher Configuration",
+  "powersim.configuration.electric_crusher_min_operating_voltage": "Min Operating Voltage (V)",
+  "powersim.configuration.electric_crusher_nominal_operating_current": "Nominal Operating Current (A)",
+  "powersim.configuration.electric_crusher_max_safe_current": "Max Safe Current (A)",
+  "powersim.configuration.electric_crusher_default_crushing_time": "Default Crushing Time (ticks)",
+  "powersim.configuration.electric_crusher_internal_resistance": "Internal Resistance (Ω)",
+
+  "powersim.configuration.arc_furnace_specifics": "Arc Furnace Configuration",
+  "powersim.configuration.arc_furnace_min_operating_voltage": "Min Operating Voltage (V)",
+  "powersim.configuration.arc_furnace_nominal_operating_current": "Nominal Operating Current (A)",
+  "powersim.configuration.arc_furnace_max_safe_current": "Max Safe Current (A)",
+  "powersim.configuration.arc_furnace_default_smelting_time": "Default Smelting Time (ticks)",
+  "powersim.configuration.arc_furnace_internal_resistance": "Internal Resistance (Ω)",
+
+  "powersim.configuration.refinery_specifics": "Refinery Configuration",
+  "powersim.configuration.refinery_min_operating_voltage": "Min Operating Voltage (V)",
+  "powersim.configuration.refinery_nominal_operating_current": "Nominal Operating Current (A)",
+  "powersim.configuration.refinery_max_safe_current": "Max Safe Current (A)",
+  "powersim.configuration.refinery_default_processing_time": "Default Processing Time (ticks)",
+  "powersim.configuration.refinery_internal_resistance": "Internal Resistance (Ω)",
+
+  "powersim.configuration.electric_lamp_specifics": "Electric Lamp Configuration",
+  "powersim.configuration.electric_lamp_min_operating_voltage": "Min Operating Voltage (V)",
+  "powersim.configuration.electric_lamp_nominal_operating_current": "Nominal Operating Current (A)",
+  "powersim.configuration.electric_lamp_max_safe_current": "Max Safe Current (A)",
+  "powersim.configuration.electric_lamp_min_light_power_watts": "Min Power for Light (W)",
+  "powersim.configuration.electric_lamp_internal_resistance": "Internal Resistance (Ω)",
+
+  "powersim.configuration.combustion_generator_specifics": "Combustion Generator Configuration",
+  "powersim.configuration.combustion_generator_output_voltage": "Nominal Output Voltage (V)",
+
+  "powersim.configuration.solar_panel_specifics": "Solar Panel Configuration",
+  "powersim.configuration.solar_panel_output_voltage": "Nominal Output Voltage (V)"
 }

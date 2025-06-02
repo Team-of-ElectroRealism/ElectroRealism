@@ -1,5 +1,6 @@
 package com.teamofpowersim.powersim.block.machine.provider.solarpanel;
 
+import com.teamofpowersim.powersim.Config;
 import com.teamofpowersim.powersim.PowerSim; // For NetworkManager
 import com.teamofpowersim.powersim.block.IActiveVoltageProvider; // Import this
 import com.teamofpowersim.powersim.block.IVoltageConsumer;
@@ -16,7 +17,7 @@ import com.mojang.logging.LogUtils; // For logging
 public class SolarPanelBlockEntity extends AbstractPowerProviderBlockEntity implements IActiveVoltageProvider { // Implement IActiveVoltageProvider
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private final int nominalVoltage = 230; // Renamed for clarity
+    private final int nominalVoltage = (int) Config.solarPanelOutputVoltage; // TODO should be double
     private boolean currentActiveState = false; // Cache the active state to detect changes
 
     public SolarPanelBlockEntity(BlockPos pos, BlockState blockState) {

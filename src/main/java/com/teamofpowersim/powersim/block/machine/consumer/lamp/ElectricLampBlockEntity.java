@@ -1,30 +1,27 @@
 package com.teamofpowersim.powersim.block.machine.consumer.lamp;
 
 import com.mojang.logging.LogUtils;
+import com.teamofpowersim.powersim.Config;
 import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.machine.consumer.AbstractPowerConsumerBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 public class ElectricLampBlockEntity extends AbstractPowerConsumerBlockEntity {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final double LAMP_MIN_OPERATING_VOLTAGE  = 24.0;
-    public static final double LAMP_NOMINAL_OPERATING_CURRENT = 8.0;
-    public static final double LAMP_MAX_SAFE_CURRENT          = 20.0;
-    public static final double LAMP_MIN_LIGHT_POWER_WATTS     = 5.0;
+    public static final double LAMP_MIN_OPERATING_VOLTAGE       = Config.electricLampMinOperatingVoltage;
+    public static final double LAMP_NOMINAL_OPERATING_CURRENT   = Config.electricLampNominalOperatingCurrent;
+    public static final double LAMP_MAX_SAFE_CURRENT            = Config.electricLampMaxSafeCurrent;
+    public static final double LAMP_MIN_LIGHT_POWER_WATTS       = Config.electricLampMinLightPowerWatts;
 
-    private static final String INTERNAL_RESISTANCE_KEY = "electric_lamp.internal_resistance";
-    private static final int DEFAULT_INTERNAL_RESISTANCE = 25;
+    private static final String INTERNAL_RESISTANCE_KEY         = "electric_lamp.internal_resistance";
+    private static final int DEFAULT_INTERNAL_RESISTANCE        = Config.electricLampInternalResistance;
 
     private int internalResistance = DEFAULT_INTERNAL_RESISTANCE;
 

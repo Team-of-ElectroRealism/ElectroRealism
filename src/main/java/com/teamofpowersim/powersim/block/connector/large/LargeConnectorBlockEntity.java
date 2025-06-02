@@ -1,5 +1,6 @@
 package com.teamofpowersim.powersim.block.connector.large;
 
+import com.teamofpowersim.powersim.Config;
 import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.connector.AbstractConnectorBlock;
 import com.teamofpowersim.powersim.block.connector.AbstractConnectorBlockEntity;
@@ -35,12 +36,12 @@ public class LargeConnectorBlockEntity extends AbstractConnectorBlockEntity {
 
     @Override
     public int getMaxWireLength() {
-        return 16;
+        return Config.largeConnectorMaxWireLength;
     }
 
     @Override
     public int getConnectionPointCount() {
-        return 4;
+        return Config.largeConnectorConnectionPointCount;
     }
 
     @Override
