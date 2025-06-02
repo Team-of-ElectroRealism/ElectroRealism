@@ -1,6 +1,7 @@
 package com.teamofpowersim.powersim.block.machine.consumer.arc_furnace;
 
 import com.mojang.logging.LogUtils;
+import com.teamofpowersim.powersim.Config;
 import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.machine.consumer.AbstractPowerConsumerBlockEntity;
 import com.teamofpowersim.powersim.recipe.ModRecipes;
@@ -57,13 +58,13 @@ public class ArcFurnaceBlockEntity extends AbstractPowerConsumerBlockEntity impl
     private static final String INTERNAL_RESISTANCE_KEY = "arc_furnace.internal_resistance";
 
     // Electrical Configuration
-    private static final double FURNACE_MIN_OPERATING_VOLTAGE = 100.0;
-    private static final double FURNACE_NOMINAL_OPERATING_CURRENT = 15.0;
-    private static final double FURNACE_MAX_SAFE_CURRENT = 50.0;
+    private static final double FURNACE_MIN_OPERATING_VOLTAGE = Config.arcFurnaceMinOperatingVoltage;
+    private static final double FURNACE_NOMINAL_OPERATING_CURRENT = Config.arcFurnaceNominalOperatingCurrent;
+    private static final double FURNACE_MAX_SAFE_CURRENT = Config.arcFurnaceMaxSafeCurrent;
 
     // Operational Parameters
-    private static final int DEFAULT_TOTAL_SMELTING_TIME = 80;
-    private static final int DEFAULT_INTERNAL_RESISTANCE = 25;
+    private static final int DEFAULT_TOTAL_SMELTING_TIME = Config.arcFurnaceDefaultSmeltingTime;
+    private static final int DEFAULT_INTERNAL_RESISTANCE = Config.arcFurnaceInternalResistance;
 
     private int heatLevel;
     private int heatTotalLevel = 7;
@@ -131,7 +132,7 @@ public class ArcFurnaceBlockEntity extends AbstractPowerConsumerBlockEntity impl
         double actualVoltage = getSimVoltage();
 
         if (Math.abs(actualCurrent) > getMaxSafeCurrent()) {
-            LOGGER.warn("Arc Furnace at {} OVERCURRENT! I: {:.2f}A > {:.2f}A. Destroying.", blockPos, actualCurrent, getMaxSafeCurrent());
+            LOGGER.warn("Arc Furnace at {} OVERCURRENT! I: {}A > {}A. Destroying.", blockPos, actualCurrent, getMaxSafeCurrent());
             level.destroyBlock(blockPos, true);
             return;
         }

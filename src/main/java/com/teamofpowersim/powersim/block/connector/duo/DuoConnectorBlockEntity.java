@@ -1,5 +1,6 @@
 package com.teamofpowersim.powersim.block.connector.duo;
 
+import com.teamofpowersim.powersim.Config;
 import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.connector.AbstractConnectorBlock;
 import com.teamofpowersim.powersim.block.connector.AbstractConnectorBlockEntity;
@@ -37,7 +38,7 @@ public class DuoConnectorBlockEntity extends AbstractConnectorBlockEntity {
      * @param index The node index (0 or 1).
      * @return The TerminalType for that node. Returns TerminalType.None if index is invalid or property missing.
      */
-    @Nullable // Keep Nullable for consistency, though it should always return a value now
+    @Nullable
     @Override
     public ConnectorPolarity getTerminalType(int index) {
         BlockState state = this.getBlockState();
@@ -48,8 +49,6 @@ public class DuoConnectorBlockEntity extends AbstractConnectorBlockEntity {
                 return state.getValue(DuoConnectorBlock.TERMINAL_TYPE_1);
             }
         } catch (IllegalArgumentException e) {
-            // This might happen if the blockstate somehow doesn't have the property,
-            // though it should if createBlockStateDefinition is correct.
             System.err.println("Error getting TerminalType property for DuoConnector at " + worldPosition + ": " + e.getMessage());
         }
         // Fallback
@@ -63,12 +62,12 @@ public class DuoConnectorBlockEntity extends AbstractConnectorBlockEntity {
 
     @Override
     public int getMaxWireLength() {
-        return 16; // Or your desired value
+        return Config.duoConnectorMaxWireLength;
     }
 
     @Override
     public int getConnectionPointCount() {
-        return 2; // Still two connection points
+        return 2;
     }
 
     @Override

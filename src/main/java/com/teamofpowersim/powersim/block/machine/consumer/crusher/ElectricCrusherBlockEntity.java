@@ -1,6 +1,7 @@
 package com.teamofpowersim.powersim.block.machine.consumer.crusher;
 
 import com.mojang.logging.LogUtils;
+import com.teamofpowersim.powersim.Config;
 import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.machine.consumer.AbstractPowerConsumerBlockEntity;
 import com.teamofpowersim.powersim.recipe.ModRecipes;
@@ -54,12 +55,12 @@ public class ElectricCrusherBlockEntity extends AbstractPowerConsumerBlockEntity
     private static final String CRUSHING_TOTAL_TIME_KEY = "electric_crusher.crushing_total_time";
     private static final String INTERNAL_RESISTANCE_KEY = "electric_crusher.internal_resistance";
 
-    private static final double CRUSHER_MIN_OPERATING_VOLTAGE = 70.0;
-    private static final double CRUSHER_NOMINAL_OPERATING_CURRENT = 8.0;
-    private static final double CRUSHER_MAX_SAFE_CURRENT = 20.0;
+    private static final double CRUSHER_MIN_OPERATING_VOLTAGE = Config.electricCrusherMinOperatingVoltage;
+    private static final double CRUSHER_NOMINAL_OPERATING_CURRENT = Config.electricCrusherNominalOperatingCurrent;
+    private static final double CRUSHER_MAX_SAFE_CURRENT = Config.electricCrusherMaxSafeCurrent;
 
-    private static final int DEFAULT_TOTAL_CRUSHING_TIME = 100;
-    private static final int DEFAULT_INTERNAL_RESISTANCE = 25;
+    private static final int DEFAULT_TOTAL_CRUSHING_TIME = Config.electricCrusherDefaultCrushingTime;
+    private static final int DEFAULT_INTERNAL_RESISTANCE = Config.electricCrusherInternalResistance;
 
     private int crushingProgress;
     private int crushingTotalTime = DEFAULT_TOTAL_CRUSHING_TIME;
@@ -117,7 +118,7 @@ public class ElectricCrusherBlockEntity extends AbstractPowerConsumerBlockEntity
         // Overcurrent check
         double actualCurrent = getSimCurrent();
         if (Math.abs(actualCurrent) > getMaxSafeCurrent()) {
-            LOGGER.warn("Electric Crusher at {} OVERCURRENT! I: {:.2f}A > {:.2f}A. Destroying.", blockPos, actualCurrent, getMaxSafeCurrent());
+            LOGGER.warn("Electric Crusher at {} OVERCURRENT! I: {}A > {}A. Destroying.", blockPos, actualCurrent, getMaxSafeCurrent());
             level.destroyBlock(blockPos, true);
             return;
         }

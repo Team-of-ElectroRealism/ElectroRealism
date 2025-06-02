@@ -1,6 +1,7 @@
 package com.teamofpowersim.powersim.block.machine.consumer.refinery;
 
 import com.mojang.logging.LogUtils;
+import com.teamofpowersim.powersim.Config;
 import com.teamofpowersim.powersim.block.ModBlockEntityTypes;
 import com.teamofpowersim.powersim.block.machine.consumer.AbstractPowerConsumerBlockEntity;
 import com.teamofpowersim.powersim.recipe.ModRecipes;
@@ -55,13 +56,13 @@ public class RefineryBlockEntity extends AbstractPowerConsumerBlockEntity implem
     private static final String INTERNAL_RESISTANCE_KEY = "refinery.internal_resistance";
 
     // Electrical Configuration
-    private static final double REFINERY_MIN_OPERATING_VOLTAGE = 90.0;
-    private static final double REFINERY_NOMINAL_OPERATING_CURRENT = 12.0;
-    private static final double REFINERY_MAX_SAFE_CURRENT = 25.0;
+    private static final double REFINERY_MIN_OPERATING_VOLTAGE = Config.refineryMinOperatingVoltage;
+    private static final double REFINERY_NOMINAL_OPERATING_CURRENT = Config.refineryNominalOperatingCurrent;
+    private static final double REFINERY_MAX_SAFE_CURRENT = Config.refineryMaxSafeCurrent;
 
     // Operational Parameters
-    private static final int DEFAULT_TOTAL_REFINING_TIME = 150;
-    private static final int DEFAULT_INTERNAL_RESISTANCE = 22;
+    private static final int DEFAULT_TOTAL_REFINING_TIME = Config.refineryDefaultProcessingTime;
+    private static final int DEFAULT_INTERNAL_RESISTANCE = Config.refineryInternalResistance;
 
     private int refiningProgress;
     private int refiningTotalTime = DEFAULT_TOTAL_REFINING_TIME;

@@ -16,14 +16,13 @@ import com.teamofpowersim.powersim.simulation.NgSpiceSimulator;
 import com.teamofpowersim.powersim.screen.refinery.RefineryScreen;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.level.block.Blocks;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -34,7 +33,6 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
 import java.io.IOException;
@@ -65,9 +63,8 @@ public class PowerSim {
         ModRecipes.register(modEventBus);
         ModDataComponents.register(modEventBus);
 
-        modEventBus.addListener(this::addCreative);
-
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
@@ -77,30 +74,12 @@ public class PowerSim {
         } catch (IOException e) {
             throw new RuntimeException("Could not load ngspice native", e);
         }
-
-        LOGGER.info("HELLO FROM COMMON SETUP");
-
-        if (Config.logDirtBlock)
-            LOGGER.info("DIRT BLOCK >> {}", BuiltInRegistries.BLOCK.getKey(Blocks.DIRT));
-
-        LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
-
-        Config.items.forEach(item -> LOGGER.info("ITEM >> {}", item.toString()));
     }
 
     private void setupRenderers(final FMLCommonSetupEvent event) {
         BlockEntityRenderers.register(ModBlockEntityTypes.SMALL_CONNECTOR_BE.get(), ConnectorRenderer::new);
         BlockEntityRenderers.register(ModBlockEntityTypes.LARGE_CONNECTOR_BE.get(), ConnectorRenderer::new);
         BlockEntityRenderers.register(ModBlockEntityTypes.DUO_CONNECTOR_BE.get(), ConnectorRenderer::new);
-    }
-
-    private void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
-            event.accept(ModBlocks.COPPER_WIRE);
-            event.accept(ModBlocks.ELECTRIC_CRUSHER);
-            event.accept(ModBlocks.ARC_FURNACE);
-            event.accept(ModBlocks.MOUNTING_PLATE);
-        }
     }
 
     @SubscribeEvent
